@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Dene Bedtime Stories</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <h1>🌙 AI Dene Bedtime Stories</h1>
+    <p class="subtitle">Create calming personalised bedtime stories for your child.</p>
+
+    <div class="mode">
+      <button id="tabTonight" class="tab active" type="button" onclick="showTonight()">🌙 Tonight Story</button>
+      <button id="tabHero" class="tab" type="button" onclick="showHero()">⭐ Hero Story</button>
+    </div>
+
+    <div id="tonightForm">
+      <h3>Tonight's Story</h3>
+      <p>Generate a calming bedtime story instantly.</p>
+      <button id="generateTonightBtn" type="button" onclick="handleGenerate('tonight')">Create Tonight Story</button>
+    </div>
+
+    <div id="heroForm" class="hidden">
+      <h3>Hero Story</h3>
+
+      <label for="heroName">Child Name</label>
+      <input id="heroName" type="text" placeholder="Finley">
+
+      <label for="heroAge">Child Age</label>
+      <input id="heroAge" type="text" placeholder="4">
+
+      <label for="heroIdea">Adventure Idea</label>
+      <input id="heroIdea" type="text" placeholder="A magic forest adventure">
+
+      <label for="heroLength">Story Length</label>
+      <select id="heroLength">
+        <option value="short">Short</option>
+        <option value="medium">Medium</option>
+        <option value="long">Long</option>
+      </select>
+
+      <button id="generateHeroBtn" type="button" onclick="handleGenerate('hero')">Create Hero Story</button>
+    </div>
+
+    <div id="loadingMessage" class="loading hidden">Creating your bedtime story...</div>
+    <div id="storyOutput" class="story"></div>
+
+    <div id="storyContainer" class="hidden">
+      <div id="storyPage"></div>
+
+      <div style="margin-top: 20px;">
+        <button onclick="prevPage()">⬅️ Back</button>
+        <span id="pageIndicator"></span>
+        <button onclick="nextPage()">Next ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

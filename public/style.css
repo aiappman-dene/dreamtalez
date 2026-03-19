@@ -1,0 +1,31 @@
+/* Story page container for pagination */
+#storyPage {
+  max-width: 600px;
+  margin: 20px auto;
+  font-size: 18px;
+  line-height: 1.6;
+  padding: 20px;
+  background: #fff8e7;
+  border-radius: 12px;
+}
+.hidden {
+  display: none;
+}
+
+body {
+  font-family: Arial;
+  text-align: center;
+  padding: 20px;
+}
+
+input {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+}
