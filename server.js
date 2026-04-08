@@ -49,6 +49,19 @@ if (!API_KEY) {
   process.exit(1);
 }
 
+if (NODE_ENV === "production") {
+  if (!process.env.ALLOWED_ORIGINS) {
+    console.error("FATAL: ALLOWED_ORIGINS must be set explicitly in production.");
+    process.exit(1);
+  }
+
+  const invalidOrigins = ALLOWED_ORIGINS.filter((origin) => !/^https:\/\//i.test(origin));
+  if (invalidOrigins.length) {
+    console.error(`FATAL: Production ALLOWED_ORIGINS must use HTTPS only. Invalid entries: ${invalidOrigins.join(", ")}`);
+    process.exit(1);
+  }
+}
+
 function getStoryTokenBudget(length, stage = "story") {
   const normalizedLength = String(length || "medium").toLowerCase();
 
@@ -206,6 +219,12 @@ async function callClaudeWithRetry(options, retries = 2) {
 // =============================================================================
 
 const app = express();
+
+app.disable("x-powered-by");
+
+if (NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 // HTTPS redirect — must be first in production
 if (NODE_ENV === "production") {
