@@ -158,6 +158,23 @@ function $(id) {
   return document.getElementById(id);
 }
 
+async function buildAuthenticatedJsonHeaders() {
+  const headers = { "Content-Type": "application/json" };
+
+  if (currentUser) {
+    try {
+      const idToken = await currentUser.getIdToken();
+      if (idToken) {
+        headers.Authorization = `Bearer ${idToken}`;
+      }
+    } catch (error) {
+      console.error("Fetching auth token failed:", error);
+    }
+  }
+
+  return headers;
+}
+
 function normalizeDialect(value) {
   const key = String(value || "").trim().toLowerCase();
   return DIALECT_ALIASES[key] || DIALECT_BRITISH;
@@ -5998,7 +6015,7 @@ async function handleGenerate(mode) {
   try {
     const response = await fetch("/generate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await buildAuthenticatedJsonHeaders(),
       body: JSON.stringify(payload),
     });
 
@@ -6114,7 +6131,7 @@ async function handleGenerate(mode) {
       try {
         const polishResponse = await fetch("/polish", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await buildAuthenticatedJsonHeaders(),
           body: JSON.stringify({ story: rawFallback, dialect: getCurrentDialect() }),
         });
         if (polishResponse.ok) {

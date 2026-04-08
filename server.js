@@ -8,6 +8,8 @@ import cors from "cors";
 import "dotenv/config";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { applicationDefault, cert, getApps, initializeApp as initializeAdminApp } from "firebase-admin/app";
+import { getAuth as getAdminAuth } from "firebase-admin/auth";
 import { body, validationResult } from "express-validator";
 import fs from "fs";
 import https from "https";
@@ -43,10 +45,30 @@ const USE_FULL_AI_PIPELINE = AI_PIPELINE_PROFILE === "full";
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
   .split(",")
   .map((s) => s.trim());
+const REQUIRE_AUTH_FOR_AI_ROUTES = process.env.REQUIRE_AUTH_FOR_AI_ROUTES === "true";
+const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT || "";
+const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL || "";
+const FIREBASE_PRIVATE_KEY = process.env.FIREBASE_PRIVATE_KEY
+  ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+  : "";
+const GENERATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const GENERATE_LIMIT_MAX = Number(process.env.GENERATE_RATE_LIMIT_MAX || 12);
+const POLISH_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const POLISH_LIMIT_MAX = Number(process.env.POLISH_RATE_LIMIT_MAX || 20);
 
 if (!API_KEY) {
   console.error("FATAL: ANTHROPIC_API_KEY is not set in .env — server cannot start.");
   process.exit(1);
+}
+
+if (REQUIRE_AUTH_FOR_AI_ROUTES) {
+  const hasServiceAccount = FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY;
+  const hasApplicationDefault = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+  if (!hasServiceAccount && !hasApplicationDefault) {
+    console.error("FATAL: REQUIRE_AUTH_FOR_AI_ROUTES=true requires Firebase Admin credentials via FIREBASE_PROJECT_ID/FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY or GOOGLE_APPLICATION_CREDENTIALS.");
+    process.exit(1);
+  }
 }
 
 if (NODE_ENV === "production") {
@@ -90,6 +112,70 @@ function logEvent(msg) {
   const entry = `[${new Date().toISOString()}] ${msg}\n`;
   fs.appendFile("server.log", entry, () => {});
   if (NODE_ENV === "development") console.log(entry.trim());
+}
+
+function getFirebaseAdminInstance() {
+  if (!getApps().length) {
+    const hasServiceAccount = FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY;
+
+    if (hasServiceAccount) {
+      initializeAdminApp({
+        credential: cert({
+          projectId: FIREBASE_PROJECT_ID,
+          clientEmail: FIREBASE_CLIENT_EMAIL,
+          privateKey: FIREBASE_PRIVATE_KEY,
+        }),
+      });
+    } else {
+      initializeAdminApp({
+        credential: applicationDefault(),
+        projectId: FIREBASE_PROJECT_ID || undefined,
+      });
+    }
+  }
+
+  return getAdminAuth();
+}
+
+async function requireAiAuth(req, res, next) {
+  if (!REQUIRE_AUTH_FOR_AI_ROUTES) {
+    req.authUser = null;
+    return next();
+  }
+
+  const authHeader = req.headers.authorization || "";
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+
+  if (!match) {
+    return res.status(401).json({ error: "Please log in to generate stories." });
+  }
+
+  try {
+    const decodedToken = await getFirebaseAdminInstance().verifyIdToken(match[1]);
+    req.authUser = decodedToken;
+    return next();
+  } catch (error) {
+    logEvent(`Auth verification failed on ${req.path} from ${req.ip}: ${error.message}`);
+    return res.status(401).json({ error: "Please log in to generate stories." });
+  }
+}
+
+function buildAiLimiter({ windowMs, max, routeLabel }) {
+  return rateLimit({
+    windowMs,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator(req) {
+      return req.authUser?.uid ? `uid:${req.authUser.uid}` : `ip:${req.ip}`;
+    },
+    handler(req, res) {
+      logEvent(`Rate limit hit on ${routeLabel} from ${req.ip}`);
+      return res.status(429).json({
+        error: "Too many story requests right now. Please wait a few minutes and try again.",
+      });
+    },
+  });
 }
 
 // =============================================================================
@@ -293,6 +379,18 @@ app.use(
   })
 );
 
+const generateLimiter = buildAiLimiter({
+  windowMs: GENERATE_LIMIT_WINDOW_MS,
+  max: GENERATE_LIMIT_MAX,
+  routeLabel: "/generate",
+});
+
+const polishLimiter = buildAiLimiter({
+  windowMs: POLISH_LIMIT_WINDOW_MS,
+  max: POLISH_LIMIT_MAX,
+  routeLabel: "/polish",
+});
+
 // Request logging
 app.use((req, res, next) => {
   logEvent(`${req.method} ${req.url} from ${req.ip}`);
@@ -332,6 +430,8 @@ app.get("/health", (req, res) => {
 
 app.post(
   "/polish",
+  requireAiAuth,
+  polishLimiter,
   [
     body("story").isString().isLength({ min: 10, max: 5000 }).trim(),
     body("dialect").optional().custom(isSupportedStoryLocale),
@@ -375,6 +475,8 @@ app.post(
 
 app.post(
   "/generate",
+  requireAiAuth,
+  generateLimiter,
   [
     body("name").isString().isLength({ min: 1, max: 50 }).trim(),
     body("age").isString().isLength({ min: 1, max: 10 }).trim(),
