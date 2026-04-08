@@ -67,17 +67,18 @@ function getStoryTokenBudget(length, stage = "story") {
 
   if (normalizedLength === "short") {
     if (stage === "title") return 50;
-    return 900;
+    if (stage === "delivery") return 800;
+    return 800;
   }
 
   if (normalizedLength === "long") {
     if (stage === "title") return 60;
-    if (stage === "delivery") return 2200;
-    return 2400;
+    if (stage === "delivery") return 2500;
+    return 2600;
   }
 
   if (stage === "title") return 50;
-  if (stage === "delivery") return 1400;
+  if (stage === "delivery") return 1500;
   return 1500;
 }
 

@@ -398,6 +398,71 @@ ENVIRONMENTAL GROUNDING:
 - Do not over-repeat, but ensure the reader always feels physically present in the world.
 - The setting should feel alive and continuous, not just mentioned once at the start.`;
 
+const STORY_PERSONALITIES = [
+  {
+    key: "gentle-curious",
+    label: "gentle curiosity",
+    traits: "observant, tender, quietly curious",
+    strength: "noticing small beautiful things others miss",
+    comfortStyle: "finding calm through wonder and careful noticing",
+  },
+  {
+    key: "brave-soft",
+    label: "soft bravery",
+    traits: "hesitant at first, then quietly brave",
+    strength: "taking the next small step even when something feels new",
+    comfortStyle: "steady breathing, kind encouragement, one step at a time",
+  },
+  {
+    key: "kind-helper",
+    label: "kind helpfulness",
+    traits: "warm-hearted, thoughtful, eager to help",
+    strength: "making others feel safe and included",
+    comfortStyle: "comforting others and being comforted in return",
+  },
+  {
+    key: "playful-dreamer",
+    label: "playful dreaming",
+    traits: "light-hearted, imaginative, full of warm ideas",
+    strength: "turning ordinary moments into gentle magic",
+    comfortStyle: "soft humour, imaginative play, cosy delight",
+  },
+];
+
+const STORY_BLUEPRINTS = {
+  random: {
+    promise: "a magical bedtime adventure shaped by the child's interests",
+    beats: [
+      "Hook the child within the first 2–3 sentences with one specific image or wonder.",
+      "Reveal the child's personality through a choice, not a label.",
+      "Introduce a clear but gentle goal early.",
+      "Create 2 connected story turns that escalate wonder rather than danger.",
+      "Resolve the goal on-page with a satisfying emotional payoff.",
+      "Finish with a warm bedtime landing, not just a stop.",
+    ],
+  },
+  hero: {
+    promise: "a premium bespoke story built tightly around the custom story idea",
+    beats: [
+      "Open inside the custom idea immediately so the story feels bespoke from line one.",
+      "Give the child a memorable role, ability, or responsibility connected to that idea.",
+      "Create a clear arc with a midpoint discovery and a final satisfying payoff.",
+      "Make the custom idea shape the world, problem, and resolution throughout.",
+      "End with earned calm and a feeling of proud completion.",
+    ],
+  },
+  today: {
+    promise: "a memory-keeping bedtime story that gently transforms the child's real day into emotional reassurance",
+    beats: [
+      "Open in a warm familiar place at the end of the day.",
+      "Turn each real moment into a soft reflective scene.",
+      "Name the emotional meaning of the day indirectly through action and comfort.",
+      "Let the child feel seen, proud, and loved.",
+      "End with clear emotional settling and safety.",
+    ],
+  },
+};
+
 
 /**
  * Build the user-facing story generation prompt.
@@ -435,6 +500,8 @@ export function buildStoryPrompt({ name, age, interests, length, dialect, custom
   // - hero: custom idea is a contract, must be followed exactly
   // - random: magical story inspired by the child's interests
   const mode = dayBeats ? "today" : customIdea ? "hero" : "random";
+  const personality = selectStoryPersonality({ name, age: ageNum, interests, mode, customIdea, dayMood });
+  const blueprint = STORY_BLUEPRINTS[mode] || STORY_BLUEPRINTS.random;
 
   // Mood guidance map — shapes the emotional arc for today-mode stories
   const moodGuidance = {
@@ -525,6 +592,26 @@ APPEARANCE RULES:
 - Never describe clothing, body, or features in a way that could feel uncomfortable — keep it warm, simple, and child-appropriate.`
     : "";
 
+  const storyCraftBlock = `
+STORY DNA:
+- Story promise: ${blueprint.promise}
+- Child personality lane: ${personality.label}
+- Personality traits to show in action: ${personality.traits}
+- Inner strength to spotlight: ${personality.strength}
+- Comfort style to return to at the ending: ${personality.comfortStyle}
+- Core theme: ${theme}
+
+CRAFT RULES (THIS IS WHAT MAKES THE STORY FEEL PAID-FOR, NOT GENERATED):
+- Begin with a strong bedtime hook, not throat-clearing.
+- Give ${name} one memorable emotional quality immediately.
+- Make every paragraph do one job: hook, deepen, turn, reveal, resolve, settle.
+- Prefer specific images over generic magic.
+- Avoid vague filler like "they had an adventure" or "something magical happened".
+- Include one line a parent would naturally enjoy reading aloud because it sounds elegant and warm.
+- The ending should feel earned, sleepy, and emotionally complete.`;
+
+  const storyBlueprintBlock = blueprint.beats.map((beat, index) => `${index + 1}. ${beat}`).join("\n");
+
   return `Write a bedtime story for this child:
 
 STORY MODE: ${mode}
@@ -541,6 +628,8 @@ LANGUAGE STYLE: ${languageStyle}
 SETTING: ${setting}
 THEME: ${theme}
 
+${storyCraftBlock}
+
 STORY STRUCTURE:
 ${dayBeats
   ? `1. Opening — Begin with ${name} at the close of their day, in a warm and familiar setting (home, bedroom, garden).
@@ -553,6 +642,9 @@ ${dayBeats
 3. Journey — A calm, curiosity-driven journey${customIdea ? ` centred on "${customIdea}"` : ` inspired by the child's interests`}.
 4. Resolution — A warm, satisfying moment of wonder or kindness.
 5. Bedtime — ${name} returns home feeling safe, happy, and ready to sleep. End with ${name} fully settled. You MAY add ONE final "sleepy seed" sentence — a gentle image of the story world continuing peacefully without them (e.g. the characters tucking themselves in, the setting growing quiet). No cliffhangers, no "just the beginning", no teasing. The sleepy seed is warm and permanent, not exciting.`}
+
+PREMIUM STORY BLUEPRINT:
+${storyBlueprintBlock}
 
 LENGTH: ${wordRange}
 ${CONTEXT_LOCK}
@@ -661,10 +753,22 @@ ${storyText}`;
 
 function getWordRange(length) {
   switch (length) {
-    case "short": return "250–350 words";
-    case "long": return "1000–1300 words, paced like an unhurried 9–10 minute bedtime read-aloud";
-    default: return "450–650 words";
+    case "short": return "300–500 words";
+    case "long": return "1600–2200 words, paced like an unhurried premium 9–10 minute bedtime read-aloud";
+    default: return "700–1100 words";
   }
+}
+
+function selectStoryPersonality({ name, age, interests, mode, customIdea, dayMood }) {
+  if (mode === "today") {
+    if (dayMood === "brave" || dayMood === "nervous") return STORY_PERSONALITIES[1];
+    if (dayMood === "joyful" || dayMood === "exciting") return STORY_PERSONALITIES[3];
+    if (dayMood === "mixed" || dayMood === "quiet" || dayMood === "tired") return STORY_PERSONALITIES[2];
+  }
+
+  const source = `${name || ""} ${interests || ""} ${customIdea || ""}`.toLowerCase();
+  const score = Array.from(source).reduce((total, char) => total + char.charCodeAt(0), age || 0);
+  return STORY_PERSONALITIES[score % STORY_PERSONALITIES.length];
 }
 
 function getDialectInstruction(dialect) {
