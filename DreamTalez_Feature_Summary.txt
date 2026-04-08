@@ -1,0 +1,59 @@
+# DreamTalez App – Feature Summary for Firebase Migration
+
+This file lists all features and logic currently implemented in your DreamTalez app. Use it as a reference for migrating to Firebase or for documentation.
+
+---
+
+## 1. User Authentication & Privacy
+- Secure login modal (password, 4-digit PIN, memorable word)
+- Account recovery via memorable word (“forgot password” flow)
+- Lockout after 5 failed login attempts (5-minute lock)
+- Secure logout (session clear, show login modal)
+- Credentials stored in localStorage (frontend-only for now)
+
+## 2. Onboarding & Child Management
+- Onboarding: child’s name, age, interests, language style
+- Add multiple children (name, age, interests)
+- Children’s data stored in localStorage
+
+## 3. Story Generation & Personalization
+- Choose story type (quick, short, medium, long)
+- Select children for story (single, all, custom)
+- Generate story via backend API (POST to /generate-story)
+- Magical UI and story formatting
+
+## 4. Engagement & Habit Building
+- Daily streak tracking (nights in a row)
+- Weekly story limit (20 per rolling 7 days)
+- Fun bedtime tips (rotating messages)
+- Mascot greeting with child’s name
+
+## 5. Monetization & Subscription
+- 7-day free trial logic (tracked in localStorage)
+- Paywall modal when trial ends or not subscribed
+- Subscription button (UI only, not connected to payment backend)
+
+## 6. Archive & History
+- Archive last 7 stories (title, date, content)
+- View story archive modal
+
+## 7. Parent Mode
+- Parent modal for settings, feedback, subscription, archive, logout
+- Reset onboarding (clears all localStorage)
+
+## 8. Security & Best Practices
+- Hardened backend (helmet, CORS, CSRF, input validation, HTTPS, logging)
+- Strict HTML meta security headers (CSP, X-Frame-Options, etc.)
+- All sensitive actions require authentication
+
+## 9. Accessibility & UI
+- Responsive, accessible UI with clear labels and large buttons
+- Magical, child-friendly design and animations
+
+## 10. Firebase Integration (in progress)
+- Firebase Analytics initialized (frontend)
+- Firebase SDKs loaded via CDN
+
+---
+
+**Tip:** For each feature, consider if you want to store data in Firestore, use Firebase Auth, or log events with Analytics. Let me know if you want a step-by-step migration plan for any section!
