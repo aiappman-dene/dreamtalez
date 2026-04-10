@@ -354,19 +354,22 @@ app.use(
 // Request size limit
 app.use(express.json({ limit: "10kb" }));
 
-// CORS
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+// CORS — scoped to API routes only.
+// Applying cors() globally blocks same-origin static assets (app.js, CSS,
+// fonts) with HTTP 500 when the browser's Origin header isn't in
+// ALLOWED_ORIGINS, because Express's default error handler turns the thrown
+// CORS error into a 500. Static files are same-origin and don't need CORS at
+// all; only the JSON API routes below opt in via corsMiddleware.
+const corsMiddleware = cors({
+  origin(origin, callback) {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+});
 
 // Rate limiting — applied ONLY to API routes below, never to static assets.
 // Static files (app.js, CSS, HTML) must always load without limit-based throttling.
@@ -419,8 +422,10 @@ app.get("/health", (req, res) => {
 // Used as fallback when procedural stories need AI polish
 // =============================================================================
 
+app.options("/polish", corsMiddleware);
 app.post(
   "/polish",
+  corsMiddleware,
   requireAiAuth,
   polishLimiter,
   [
@@ -464,8 +469,10 @@ app.post(
 // Story generation endpoint
 // =============================================================================
 
+app.options("/generate", corsMiddleware);
 app.post(
   "/generate",
+  corsMiddleware,
   requireAiAuth,
   generateLimiter,
   [
