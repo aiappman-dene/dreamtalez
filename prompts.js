@@ -542,11 +542,12 @@ const STORY_BLUEPRINTS = {
  * @param {string} [params.dayBeats] - Today mode: 2–3 real things that happened in the child's day.
  * @param {string} [params.dayMood] - Today mode: optional mood tag (joyful, brave, nervous, tired, exciting, quiet, mixed).
  */
-export function buildStoryPrompt({ name, age, interests, length, dialect, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood }) {
+export function buildStoryPrompt({ name, age, interests, length, dialect, language, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood }) {
   const ageNum = parseInt(age) || 5;
   const wordRange = getWordRange(length);
   const languageLevel = getLanguageLevel(ageNum);
-  const languageStyle = getDialectInstruction(dialect);
+  // `language` takes priority over legacy `dialect` for story language
+  const languageStyle = getLanguageInstruction(language || dialect);
 
   // Hero ideas take absolute priority. For quick stories, tonight's wish should
   // drive setting/theme inference before the child's broader saved interests.
@@ -830,11 +831,59 @@ function selectStoryPersonality({ name, age, interests, mode, customIdea, dayMoo
   return STORY_PERSONALITIES[score % STORY_PERSONALITIES.length];
 }
 
-function getDialectInstruction(dialect) {
-  const normalized = String(dialect || "").trim().toLowerCase();
-  return normalized === "american" || normalized === "en-us"
-    ? "American English (en-US) spelling and phrasing (for example: color, favorite, cozy, mom, traveling, prioritize)"
-    : "British English (en-GB) spelling and phrasing (for example: colour, favourite, cosy, mum, travelling, prioritise)";
+// Maps language codes to full Claude-readable language names.
+const LANGUAGE_NAMES = {
+  "en-GB": "British English",
+  "en-US": "American English",
+  "es":    "Spanish",
+  "fr":    "French",
+  "pt":    "Portuguese",
+  "de":    "German",
+  "it":    "Italian",
+  "ja":    "Japanese",
+  "zh-CN": "Simplified Chinese (Mandarin)",
+  "ar":    "Modern Standard Arabic",
+  "hi":    "Hindi",
+  "ur":    "Urdu",
+};
+
+// Legacy dialect aliases → language code
+const DIALECT_TO_LANGUAGE = {
+  "british":  "en-GB",
+  "american": "en-US",
+  "en-gb":    "en-GB",
+  "en-us":    "en-US",
+};
+
+export function resolveLanguageCode(language) {
+  if (!language) return "en-GB";
+  const key = String(language).trim().toLowerCase();
+  return DIALECT_TO_LANGUAGE[key] || language;
+}
+
+function getLanguageInstruction(language) {
+  const code = resolveLanguageCode(language);
+  const name = LANGUAGE_NAMES[code];
+
+  if (!name) {
+    // Unknown code — fall back to British English
+    return "British English (en-GB) spelling and phrasing";
+  }
+
+  if (code === "en-GB") {
+    return "British English (en-GB) spelling and phrasing (for example: colour, favourite, cosy, mum, travelling, prioritise)";
+  }
+  if (code === "en-US") {
+    return "American English (en-US) spelling and phrasing (for example: color, favorite, cozy, mom, traveling, prioritize)";
+  }
+
+  // Non-English: full language instruction
+  return `${name}. Write the ENTIRE story in ${name}. Do not use any English words or phrases. Use vocabulary and expressions natural for a children's bedtime story in ${name}.`;
+}
+
+// Keep as a named export so server.js and other callers can still use it
+export function getDialectInstruction(dialect) {
+  return getLanguageInstruction(dialect);
 }
 
 /**
@@ -867,7 +916,8 @@ function inferSetting(interests) {
     [/princess|castle|queen|king|prince/, "a peaceful moonlit castle with enchanted gardens"],
     [/ocean|sea|fish|mermaid|whale|dolphin|swim|swimming|underwater/, "a tranquil ocean cove glowing with soft light"],
     [/egypt|egyptian|pyramid|pyramids|pharaoh|nile|desert/, "a calm golden desert where moonlit pyramids and the quiet Nile shimmer softly"],
-    [/space|rocket|planet|star|astronaut|moon|fly|flying|glide|gliding|soar|soaring/, "a calm, twinkling corner of the galaxy"],
+    [/fly|flying|glide|gliding|soar|soaring/, "a peaceful evening sky above a beautiful landscape, where gentle wonders drift below"],
+    [/space|rocket|planet|star|astronaut|moon/, "a calm, twinkling corner of the galaxy"],
     [/dragon/, "a cosy mountain hollow where friendly dragons nest"],
     [/robot|machine|android/, "a gentle workshop town where kind robots live"],
     [/farm|horse|cow|pig|chicken|sheep/, "a peaceful countryside farm bathed in golden light"],

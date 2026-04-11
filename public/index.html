@@ -56,6 +56,34 @@
       </div>
     </div>
 
+    <!-- LANGUAGE SELECTION (shown once on first sign-up)                   -->
+    <!-- ================================================================== -->
+    <div id="pageLanguage" class="page hidden">
+      <div class="page-scroll lang-page">
+        <div class="lang-header">
+          <span class="brand-icon">&#9733;</span>
+          <h1 class="lang-title">DreamTalez</h1>
+          <p class="lang-subtitle">What language would you like stories in?</p>
+          <p class="lang-hint">You can change this anytime in Settings</p>
+        </div>
+        <div class="lang-grid" id="langGrid">
+          <button type="button" class="lang-btn" data-lang="en-GB">🇬🇧<span class="lang-en">English (UK)</span><span class="lang-native">English (UK)</span></button>
+          <button type="button" class="lang-btn" data-lang="en-US">🇺🇸<span class="lang-en">English (US)</span><span class="lang-native">English (US)</span></button>
+          <button type="button" class="lang-btn" data-lang="es">🇪🇸<span class="lang-en">Spanish</span><span class="lang-native">Español</span></button>
+          <button type="button" class="lang-btn" data-lang="fr">🇫🇷<span class="lang-en">French</span><span class="lang-native">Français</span></button>
+          <button type="button" class="lang-btn" data-lang="pt">🇵🇹<span class="lang-en">Portuguese</span><span class="lang-native">Português</span></button>
+          <button type="button" class="lang-btn" data-lang="de">🇩🇪<span class="lang-en">German</span><span class="lang-native">Deutsch</span></button>
+          <button type="button" class="lang-btn" data-lang="it">🇮🇹<span class="lang-en">Italian</span><span class="lang-native">Italiano</span></button>
+          <button type="button" class="lang-btn" data-lang="ja">🇯🇵<span class="lang-en">Japanese</span><span class="lang-native">日本語</span></button>
+          <button type="button" class="lang-btn" data-lang="zh-CN">🇨🇳<span class="lang-en">Mandarin Chinese</span><span class="lang-native">中文</span></button>
+          <button type="button" class="lang-btn" data-lang="ar">🇸🇦<span class="lang-en">Arabic</span><span class="lang-native">العربية</span></button>
+          <button type="button" class="lang-btn" data-lang="hi">🇮🇳<span class="lang-en">Hindi</span><span class="lang-native">हिन्दी</span></button>
+          <button type="button" class="lang-btn" data-lang="ur">🇵🇰<span class="lang-en">Urdu</span><span class="lang-native">اردو</span></button>
+        </div>
+        <button type="button" id="langContinueBtn" class="btn primary btn-lg lang-continue" disabled>Continue</button>
+      </div>
+    </div>
+
     <!-- ================================================================== -->
     <!-- HOME PAGE                                                           -->
     <!-- ================================================================== -->
@@ -313,12 +341,22 @@
 
         <div class="card">
           <h2>Story Language</h2>
-          <p class="hint">Choose the spelling and phrasing style used in generated stories.</p>
-          <div class="dialect-toggle" role="group" aria-label="Story language preference">
-            <button type="button" id="dialectBritishBtn" class="btn ghost dialect-btn" aria-pressed="false">British English</button>
-            <button type="button" id="dialectAmericanBtn" class="btn ghost dialect-btn" aria-pressed="false">American English</button>
+          <p class="hint">Stories will be written in your chosen language.</p>
+          <div class="settings-lang-grid" id="settingsLangGrid">
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="en-GB">🇬🇧<span class="lang-en">English (UK)</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="en-US">🇺🇸<span class="lang-en">English (US)</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="es">🇪🇸<span class="lang-en">Spanish</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="fr">🇫🇷<span class="lang-en">French</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="pt">🇵🇹<span class="lang-en">Portuguese</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="de">🇩🇪<span class="lang-en">German</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="it">🇮🇹<span class="lang-en">Italian</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="ja">🇯🇵<span class="lang-en">Japanese</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="zh-CN">🇨🇳<span class="lang-en">Mandarin</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="ar">🇸🇦<span class="lang-en">Arabic</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="hi">🇮🇳<span class="lang-en">Hindi</span></button>
+            <button type="button" class="lang-btn lang-btn-sm" data-lang="ur">🇵🇰<span class="lang-en">Urdu</span></button>
           </div>
-          <p id="dialectStatus" class="hint dialect-status">Stories will use your saved language preference.</p>
+          <p id="settingsLangStatus" class="hint" style="margin-top:10px"></p>
         </div>
 
         <div class="card">

@@ -203,6 +203,68 @@ function getDialectLabel(dialect = getCurrentDialect()) {
   return dialect === DIALECT_AMERICAN ? "American English" : "British English";
 }
 
+// =============================================================================
+// Language — user-level preference stored in Firestore
+// =============================================================================
+
+let cachedLanguage = "en-GB";
+
+const SUPPORTED_LANGUAGES = [
+  "en-GB", "en-US", "es", "fr", "pt", "de", "it",
+  "ja", "zh-CN", "ar", "hi", "ur",
+];
+
+const LANGUAGE_LABELS = {
+  "en-GB": "English (UK)", "en-US": "English (US)",
+  "es": "Spanish", "fr": "French", "pt": "Portuguese",
+  "de": "German", "it": "Italian", "ja": "Japanese",
+  "zh-CN": "Mandarin Chinese", "ar": "Arabic",
+  "hi": "Hindi", "ur": "Urdu",
+};
+
+function getCurrentLanguage() {
+  return SUPPORTED_LANGUAGES.includes(cachedLanguage) ? cachedLanguage : "en-GB";
+}
+
+async function saveLanguageToFirestore(langCode) {
+  if (!currentUser) return;
+  try {
+    const { doc, setDoc, getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+    const db = getFirestore();
+    await setDoc(doc(db, "users", currentUser.uid), { language: langCode }, { merge: true });
+  } catch (err) {
+    console.error("Failed to save language preference:", err);
+  }
+}
+
+async function loadUserProfile() {
+  if (!currentUser) return { isNewUser: false };
+  try {
+    const { doc, getDoc, getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+    const db = getFirestore();
+    const snap = await getDoc(doc(db, "users", currentUser.uid));
+    if (!snap.exists()) {
+      // Brand new user — show language screen
+      return { isNewUser: true };
+    }
+    const data = snap.data();
+    if (data.language && SUPPORTED_LANGUAGES.includes(data.language)) {
+      cachedLanguage = data.language;
+      // Keep cachedDialect in sync for en-GB/en-US
+      if (data.language === "en-US") cachedDialect = "en-US";
+      else cachedDialect = "en-GB";
+    } else {
+      // Existing user with no language set — default silently
+      cachedLanguage = "en-GB";
+      saveLanguageToFirestore("en-GB");
+    }
+    return { isNewUser: false };
+  } catch (err) {
+    console.error("loadUserProfile failed:", err);
+    return { isNewUser: false };
+  }
+}
+
 function matchReplacementCase(source, replacement) {
   if (source.toUpperCase() === source) return replacement.toUpperCase();
   if (source[0] && source[0] === source[0].toUpperCase()) {
@@ -5371,7 +5433,7 @@ function setupReadingModeEvents() {
 // UI — Page Navigation
 // =============================================================================
 
-const ALL_PAGES = ["authScreen", "pageHome", "pageChildren", "pageQuick", "pageToday", "pageHero", "pageLibrary", "pageSettings", "pagePrivacy", "pageTerms", "storyCard"];
+const ALL_PAGES = ["authScreen", "pageLanguage", "pageHome", "pageChildren", "pageQuick", "pageToday", "pageHero", "pageLibrary", "pageSettings", "pagePrivacy", "pageTerms", "storyCard"];
 
 function navigateTo(page) {
   previousPage = currentPage;
@@ -5446,6 +5508,15 @@ function navigateTo(page) {
     const emailEl = $("settingsEmail");
     if (emailEl && currentUser) emailEl.textContent = currentUser.email || "";
     renderDialectControls();
+    // Highlight active language in settings grid
+    const sGrid = $("settingsLangGrid");
+    if (sGrid) {
+      sGrid.querySelectorAll(".lang-btn").forEach((b) => {
+        b.classList.toggle("selected", b.dataset.lang === getCurrentLanguage());
+      });
+    }
+    const sStatus = $("settingsLangStatus");
+    if (sStatus) sStatus.textContent = `✓ Stories are in ${LANGUAGE_LABELS[getCurrentLanguage()] || getCurrentLanguage()}`;
   }
 
   // Scroll to top of the new page
@@ -6255,7 +6326,7 @@ async function handleGenerate(mode) {
       interests,
       length: "short",
       mode: "random",
-      dialect: getCurrentDialect(),
+      language: getCurrentLanguage(), dialect: getCurrentLanguage(),
       childWish: childWish || undefined,
       appearance: child.appearance || undefined,
     };
@@ -6288,7 +6359,7 @@ async function handleGenerate(mode) {
       interests,
       length: "medium",
       mode: "today",
-      dialect: getCurrentDialect(),
+      language: getCurrentLanguage(), dialect: getCurrentLanguage(),
       dayBeats,
       dayMood: dayMood || undefined,
       appearance: child.appearance || undefined,
@@ -6323,7 +6394,7 @@ async function handleGenerate(mode) {
       interests,
       length,
       mode: "hero",
-      dialect: getCurrentDialect(),
+      language: getCurrentLanguage(), dialect: getCurrentLanguage(),
       customIdea: rawIdea,
       seriesContext: seriesContext || undefined,
       appearance: child.appearance || undefined,
@@ -6430,7 +6501,7 @@ async function handleGenerate(mode) {
           window.StoryCache.scheduleBackgroundFill(
             cachedChildren,
             () => currentUser?.getIdToken(),
-            getCurrentDialect()
+            getCurrentLanguage()
           );
           return;
         }
@@ -6516,7 +6587,7 @@ async function handleGenerate(mode) {
             headers: await buildAuthenticatedJsonHeaders(),
             body: JSON.stringify({
               story: rawFallback,
-              dialect: getCurrentDialect(),
+              language: getCurrentLanguage(), dialect: getCurrentLanguage(),
               mode: mode === "tonight" ? "rewrite" : "edit",
             }),
           });
@@ -6569,6 +6640,11 @@ async function handleGenerate(mode) {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
+    const { isNewUser } = await loadUserProfile();
+    if (isNewUser) {
+      navigateTo("language");
+      return;
+    }
     await loadChildren();
     navigateTo("home");
     // Start background cache fill once children are loaded
@@ -6577,7 +6653,7 @@ onAuthStateChanged(auth, async (user) => {
       window.StoryCache.scheduleBackgroundFill(
         cachedChildren,
         () => currentUser?.getIdToken(),
-        getCurrentDialect()
+        getCurrentLanguage()
       );
       window.StoryCache.updateOfflineIndicator();
     }
@@ -6604,7 +6680,7 @@ window.addEventListener("online", () => {
     window.StoryCache.scheduleBackgroundFill(
       cachedChildren,
       () => currentUser?.getIdToken(),
-      getCurrentDialect()
+      getCurrentLanguage()
     );
   }
 });
@@ -6662,3 +6738,61 @@ window.saveChild = saveChild;
 window.cancelEditChild = cancelEditChild;
 window.enterReadingMode = enterReadingMode;
 window.saveCurrentStoryToLibrary = saveCurrentStoryToLibrary;
+
+// =============================================================================
+// Language selection screen handlers
+// =============================================================================
+
+let selectedOnboardingLang = null;
+
+// Onboarding grid (pageLanguage)
+const langGrid = $("langGrid");
+if (langGrid) {
+  langGrid.addEventListener("click", (e) => {
+    const btn = e.target.closest(".lang-btn[data-lang]");
+    if (!btn) return;
+    langGrid.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    selectedOnboardingLang = btn.dataset.lang;
+    const continueBtn = $("langContinueBtn");
+    if (continueBtn) continueBtn.disabled = false;
+  });
+}
+
+const langContinueBtn = $("langContinueBtn");
+if (langContinueBtn) {
+  langContinueBtn.addEventListener("click", async () => {
+    if (!selectedOnboardingLang) return;
+    cachedLanguage = selectedOnboardingLang;
+    if (selectedOnboardingLang === "en-US") cachedDialect = "en-US";
+    else cachedDialect = "en-GB";
+    await saveLanguageToFirestore(selectedOnboardingLang);
+    await loadChildren();
+    navigateTo("home");
+    if (window.StoryCache) {
+      window.StoryCache.scheduleBackgroundFill(
+        cachedChildren,
+        () => currentUser?.getIdToken(),
+        getCurrentLanguage()
+      );
+    }
+  });
+}
+
+// Settings language grid
+const settingsLangGrid = $("settingsLangGrid");
+if (settingsLangGrid) {
+  settingsLangGrid.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".lang-btn[data-lang]");
+    if (!btn) return;
+    const langCode = btn.dataset.lang;
+    settingsLangGrid.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    cachedLanguage = langCode;
+    if (langCode === "en-US") cachedDialect = "en-US";
+    else cachedDialect = "en-GB";
+    await saveLanguageToFirestore(langCode);
+    const status = $("settingsLangStatus");
+    if (status) status.textContent = `✓ Stories will be in ${LANGUAGE_LABELS[langCode] || langCode}`;
+  });
+}

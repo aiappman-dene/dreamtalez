@@ -25,6 +25,7 @@ import {
   buildValidationPrompt,
   buildDeliveryQaPrompt,
   buildTitlePrompt,
+  resolveLanguageCode,
 } from "./prompts.js";
 import {
   normalizeStoryLocale,
@@ -557,6 +558,7 @@ app.post(
     body("appearance").optional().isString().isLength({ max: 200 }).trim(),
     body("dayBeats").optional().isString().isLength({ max: 400 }).trim(),
     body("dayMood").optional().isString().isLength({ max: 40 }).trim(),
+    body("language").optional().isString().isLength({ max: 10 }).trim(),
   ],
   async (req, res) => {
     try {
@@ -566,11 +568,16 @@ app.post(
         return res.status(400).json({ error: "Please check your input and try again." });
       }
 
-      const { name, age, interests, length, mode, dialect, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood } = req.body;
+      const { name, age, interests, length, mode, dialect, language, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood } = req.body;
       const cleanName = sanitizeInput(name);
       const cleanAge = sanitizeInput(age);
       const cleanInterests = sanitizeInput(interests);
-      const cleanDialect = normalizeStoryLocale(dialect);
+      // `language` takes priority over legacy `dialect`.
+      // Resolve to a canonical code (e.g. "ja", "ar", "en-GB").
+      const cleanLanguage = language
+        ? resolveLanguageCode(String(language).trim().substring(0, 10))
+        : resolveLanguageCode(dialect);
+      const cleanDialect = cleanLanguage; // keep existing references working
       const cleanIdea = customIdea ? sanitizeInput(customIdea) : null;
       const cleanSeriesContext = seriesContext
         ? String(seriesContext).replace(/[<>{}\[\]]/g, "").trim().substring(0, 700)
@@ -626,6 +633,7 @@ app.post(
         age: cleanAge,
         interests: cleanInterests,
         length,
+        language: cleanLanguage,
         dialect: cleanDialect,
         customIdea: cleanIdea,
         seriesContext: cleanSeriesContext,

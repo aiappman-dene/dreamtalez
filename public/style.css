@@ -1391,3 +1391,117 @@ select {
     padding: 14px 16px;
   }
 }
+
+/* =============================================================================
+   Language Selection Screen
+   ============================================================================= */
+
+.lang-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 40px;
+  min-height: 100vh;
+}
+
+.lang-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.lang-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 8px 0 4px;
+}
+
+.lang-subtitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+}
+
+.lang-hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 28px;
+}
+
+.settings-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.lang-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, transform 0.12s;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.lang-btn:hover {
+  border-color: var(--primary);
+  background: rgba(108, 99, 255, 0.06);
+}
+
+.lang-btn.selected {
+  border-color: var(--primary);
+  background: rgba(108, 99, 255, 0.1);
+  transform: scale(1.03);
+}
+
+.lang-btn .lang-en {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.lang-btn .lang-native {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.lang-btn-sm {
+  padding: 10px 8px;
+  font-size: 1.2rem;
+}
+
+.lang-btn-sm .lang-en {
+  font-size: 0.72rem;
+}
+
+.lang-continue {
+  width: 100%;
+  max-width: 480px;
+}
+
+.lang-continue:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
