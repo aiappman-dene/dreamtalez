@@ -6474,9 +6474,12 @@ async function handleGenerate(mode) {
       }) || fallbackTitle;
 
       finalText = rawFallback;
-      // Quick Story stays fully offline — no /polish network call.
-      // Medium/Long/Hero fallbacks still attempt a polish pass for quality.
-      if (mode !== "tonight") {
+      // Offline-safe polish: if the device has network, upgrade the procedural
+      // draft with a Sonnet polish pass for Disney-grade prose. If offline, or
+      // the polish call fails for any reason, we still serve the raw procedural
+      // story so bedtime always happens.
+      const isOnline = typeof navigator === "undefined" || navigator.onLine !== false;
+      if (isOnline) {
         try {
           const polishResponse = await fetch("/polish", {
             method: "POST",
@@ -6488,7 +6491,7 @@ async function handleGenerate(mode) {
             finalText = applyDialectToText(polishData.story || rawFallback, getCurrentDialect());
           }
         } catch {
-          // Polish failed too — serve raw procedural story
+          // Polish failed — serve raw procedural story, bedtime still happens.
         }
       }
     } catch (fallbackError) {
