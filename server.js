@@ -500,8 +500,10 @@ app.post(
       const polishSystem = polishMode === "rewrite"
         ? REWRITE_SYSTEM_PROMPT
         : EDITOR_SYSTEM_PROMPT;
+      // In rewrite mode we frame the draft as a story brief so Sonnet
+      // treats it as a spec to discard rather than text worth preserving.
       const polishPrompt = polishMode === "rewrite"
-        ? story
+        ? `STORY BRIEF (ignore the prose, use only the facts below):\n\n${story}\n\nNow write a completely new bedtime story using only the character name, companion, setting, and goal from the brief above. Do not keep any sentences from the brief.`
         : buildGrammarPrompt(story, cleanDialect);
       const polishTemperature = polishMode === "rewrite" ? 1.0 : 0.2;
       const polishMaxTokens = polishMode === "rewrite" ? 2000 : 1200;
