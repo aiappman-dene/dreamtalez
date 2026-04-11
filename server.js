@@ -259,8 +259,8 @@ const CLAUDE_MODEL_DEFAULT = CLAUDE_MODEL_HAIKU;
 const API_VERSION = "2023-06-01";
 
 // Tier model + creative temperature by story size.
-// Hero mode and long/medium lengths get Sonnet for Disney-grade prose.
-// Short stories stay on Haiku for speed + cost.
+// All lengths use Sonnet for Disney-grade prose. Short (Quick Story)
+// gets the highest creative temperature for vivid, fresh storytelling.
 function getModelConfig({ mode, length } = {}) {
   if (mode === "hero") {
     return { model: CLAUDE_MODEL_SONNET, temperature: 0.85 };
@@ -272,7 +272,7 @@ function getModelConfig({ mode, length } = {}) {
       return { model: CLAUDE_MODEL_SONNET, temperature: 0.75 };
     case "short":
     default:
-      return { model: CLAUDE_MODEL_HAIKU, temperature: 0.7 };
+      return { model: CLAUDE_MODEL_SONNET, temperature: 0.9 };
   }
 }
 

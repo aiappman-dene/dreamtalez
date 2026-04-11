@@ -6251,7 +6251,7 @@ async function handleGenerate(mode) {
       name: formatName(name),
       age,
       interests,
-      length: "medium",
+      length: "short",
       mode: "random",
       dialect: getCurrentDialect(),
       childWish: childWish || undefined,
@@ -6342,15 +6342,9 @@ async function handleGenerate(mode) {
   }
 
   try {
-    if (mode === "tonight") {
-      // Quick stories are offline-first: always use the procedural engine.
-      // No network call, no auth, no rate limits — bedtime always happens,
-      // even on a plane or a dead Wi-Fi router.
-      throw Object.assign(new Error("Quick stories use the offline procedural engine."), {
-        proceduralFallback: true,
-      });
-    }
-
+    // All modes hit the AI pipeline when online.
+    // Network failures fall through to the procedural catch block
+    // so bedtime always happens offline too.
     const response = await fetch("/generate", {
       method: "POST",
       headers: await buildAuthenticatedJsonHeaders(),
