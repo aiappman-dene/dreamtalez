@@ -6212,6 +6212,8 @@ function reReadFromLibrary(id) {
 
 // Re-entry guard: prevents double-clicks from eating 2 trial stories
 let generationInProgress = false;
+// Expose to story-cache.js so background fill pauses during user generation
+window._dtGenerationInProgress = () => generationInProgress;
 
 async function handleGenerate(mode) {
   const storyOutput = $("storyOutput");
@@ -6403,6 +6405,40 @@ async function handleGenerate(mode) {
       console.warn("AI generation unavailable, using procedural fallback.", error);
     }
 
+    // OFFLINE CACHE: Before falling back to the procedural engine, check if we
+    // have a pre-generated AI story stored in IndexedDB for this child. Serves
+    // a real AI story on airplane mode for Medium / Long modes.
+    // Quick (tonight) skips this — procedural is intentional for quick stories.
+    if (window.StoryCache && mode !== "tonight") {
+      try {
+        const offlineChild = getSelectedChild();
+        const offlineMode = mode === "hero" ? "hero" : "medium";
+        const cached = await window.StoryCache.claimCachedStory(
+          offlineChild?.name || "",
+          offlineMode
+        );
+        if (cached) {
+          const storyText = applyDialectToText(cached.text, getCurrentDialect());
+          const storyTitle = applyDialectToText(cached.title, getCurrentDialect());
+          displayStory(storyTitle, storyText, {
+            childName: offlineChild?.name,
+            mode: offlineMode,
+          });
+          recordStoryUsed();
+          enterReadingMode();
+          // Replenish the slot we just consumed when back online
+          window.StoryCache.scheduleBackgroundFill(
+            cachedChildren,
+            () => currentUser?.getIdToken(),
+            getCurrentDialect()
+          );
+          return;
+        }
+      } catch (cacheErr) {
+        console.warn("[StoryCache] claim failed:", cacheErr);
+      }
+    }
+
     // FALLBACK: If API fails, serve a procedural story so bedtime still happens.
     // Works for both Quick and Hero modes — quality insurance for parents.
     const selectedChild = getSelectedChild();
@@ -6535,6 +6571,16 @@ onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     await loadChildren();
     navigateTo("home");
+    // Start background cache fill once children are loaded
+    if (window.StoryCache) {
+      window.StoryCache.pruneOldEntries();
+      window.StoryCache.scheduleBackgroundFill(
+        cachedChildren,
+        () => currentUser?.getIdToken(),
+        getCurrentDialect()
+      );
+      window.StoryCache.updateOfflineIndicator();
+    }
   } else {
     currentUser = null;
     cachedChildren = [];
@@ -6551,6 +6597,17 @@ onAuthStateChanged(auth, async (user) => {
 // =============================================================================
 // Event Listeners — consolidated in one place
 // =============================================================================
+
+// When the device regains internet, replenish the offline cache
+window.addEventListener("online", () => {
+  if (window.StoryCache && cachedChildren.length && currentUser) {
+    window.StoryCache.scheduleBackgroundFill(
+      cachedChildren,
+      () => currentUser?.getIdToken(),
+      getCurrentDialect()
+    );
+  }
+});
 
 // Hero "Start a new series" button
 const seriesResetBtn = $("heroSeriesResetBtn");

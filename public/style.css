@@ -1338,6 +1338,34 @@ select {
 }
 
 /* =============================================================================
+   Offline-ready indicator
+   ============================================================================= */
+
+.offline-ready-pill {
+  position: fixed;
+  bottom: calc(var(--nav-height) + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(76, 175, 147, 0.12);
+  border: 1px solid rgba(76, 175, 147, 0.35);
+  color: var(--success, #4caf93);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  white-space: nowrap;
+}
+
+.offline-ready-pill.visible {
+  opacity: 1;
+}
+
+/* =============================================================================
    Responsive
    ============================================================================= */
 
