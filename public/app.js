@@ -204,6 +204,49 @@ function getDialectLabel(dialect = getCurrentDialect()) {
 }
 
 // =============================================================================
+// Global Idea Bank — community learning system
+// Stores successful story ideas so future generations can be inspired by
+// what worked well for children of similar ages worldwide.
+// =============================================================================
+
+async function saveToGlobalIdeaBank({ originalIdea, ageGroup, type, language }) {
+  if (!currentUser || !originalIdea) return;
+  try {
+    const { collection, addDoc, getFirestore, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+    const db = getFirestore();
+    await addDoc(collection(db, "globalIdeaBank"), {
+      originalIdea,
+      ageGroup,
+      type,
+      language,
+      rating: null,
+      childSlept: null,
+      createdAt: serverTimestamp(),
+    });
+  } catch (err) {
+    // Non-critical — silently ignore
+  }
+}
+
+async function getGlobalIdeaInspiration(ageGroup, language) {
+  try {
+    const { collection, query, where, orderBy, limit, getDocs, getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+    const db = getFirestore();
+    const q = query(
+      collection(db, "globalIdeaBank"),
+      where("ageGroup", "==", ageGroup),
+      where("language", "==", language),
+      orderBy("createdAt", "desc"),
+      limit(5)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => d.data().originalIdea).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+// =============================================================================
 // Language — user-level preference stored in Firestore
 // =============================================================================
 
@@ -5433,7 +5476,7 @@ function setupReadingModeEvents() {
 // UI — Page Navigation
 // =============================================================================
 
-const ALL_PAGES = ["authScreen", "pageLanguage", "pageHome", "pageChildren", "pageQuick", "pageToday", "pageHero", "pageLibrary", "pageSettings", "pagePrivacy", "pageTerms", "storyCard"];
+const ALL_PAGES = ["authScreen", "pageLanguage", "pageHome", "pageChildren", "pageCreate", "pageToday", "pageLibrary", "pageSettings", "pagePrivacy", "pageTerms", "storyCard"];
 
 function navigateTo(page) {
   previousPage = currentPage;
@@ -5442,11 +5485,11 @@ function navigateTo(page) {
   // Map page name to DOM id
   const pageIdMap = {
     auth: "authScreen",
+    language: "pageLanguage",
     home: "pageHome",
     children: "pageChildren",
-    quick: "pageQuick",
+    create: "pageCreate",
     today: "pageToday",
-    hero: "pageHero",
     library: "pageLibrary",
     settings: "pageSettings",
     privacy: "pagePrivacy",
@@ -5478,29 +5521,18 @@ function navigateTo(page) {
     renderChildrenList();
     clearChildForm();
     setEditMode(null);
-  } else if (page === "quick") {
-    const child = getSelectedChild();
-    const label = $("quickChildLabel");
-    if (label) label.textContent = child.name !== "a little one" ? `Story for ${child.name}` : "";
   } else if (page === "today") {
     const child = getSelectedChild();
     const label = $("todayChildLabel");
     if (label) label.textContent = child.name !== "a little one" ? `Story for ${child.name}` : "";
-  } else if (page === "hero") {
-    // Auto-fill Hero form from selected child profile
+  } else if (page === "create") {
     const child = getSelectedChild();
-    if (child.name && child.name !== "a little one") {
-      const heroName = $("heroName");
-      const heroAge = $("heroAge");
-      const heroIdea = $("heroIdea");
-      if (heroName && !heroName.value) heroName.value = child.name;
-      if (heroAge && !heroAge.value) heroAge.value = child.age || "";
-      if (heroIdea && !heroIdea.value && child.interests?.length) {
-        heroIdea.value = child.interests.join(", ");
-      }
-    }
-    renderHeroSiblings();
-    updateHeroSeriesLabel();
+    const label = $("createChildLabel");
+    const titleEl = $("createPageTitle");
+    const lengthInput = $("createLength");
+    const length = lengthInput?.value || "medium";
+    if (label) label.textContent = child.name !== "a little one" ? `Story for ${child.name}` : "";
+    if (titleEl) titleEl.textContent = length === "long" ? "Long Story — My Idea" : "Medium Story — My Idea";
   } else if (page === "library") {
     renderLibrary();
     renderLibraryChildFilter();
@@ -5523,6 +5555,14 @@ function navigateTo(page) {
   const targetEl = $(targetId);
   const scrollEl = targetEl?.querySelector(".page-scroll");
   if (scrollEl) scrollEl.scrollTop = 0;
+}
+
+function openCreatePage(length) {
+  const lengthInput = $("createLength");
+  if (lengthInput) lengthInput.value = length || "medium";
+  const ideaInput = $("createIdea");
+  if (ideaInput) ideaInput.value = "";
+  navigateTo("create");
 }
 
 function closeStoryCard() {
@@ -6305,33 +6345,7 @@ async function handleGenerate(mode) {
   let payload;
   let buttonId;
 
-  if (mode === "tonight") {
-    // ---- Random Story: auto-fill from child profile ----
-    const child = getSelectedChild();
-    const name = child.name || "a little one";
-    const age = String(child.age || 5);
-    // Optional: child's wish for tonight (parent types what the child said)
-    const childWish = ($("tonightWish")?.value || "").trim().slice(0, 120);
-    const baseInterests = child.interests?.length
-      ? child.interests.join(", ")
-      : pick(interestsByAge[getAgeGroup(child.age || 5)]);
-    const randomStoryInterests = childWish
-      ? `${childWish}, ${baseInterests}`
-      : baseInterests;
-    const interests = enrichInterestsWithContext(randomStoryInterests, child);
-
-    payload = {
-      name: formatName(name),
-      age,
-      interests,
-      length: "short",
-      mode: "random",
-      language: getCurrentLanguage(), dialect: getCurrentLanguage(),
-      childWish: childWish || undefined,
-      appearance: child.appearance || undefined,
-    };
-    buttonId = "generateTonightBtn";
-  } else if (mode === "today") {
+  if (mode === "today") {
     // ---- Story from Today: weave real day-beats into a gentle story ----
     const child = getSelectedChild();
     if (!child.name || child.name === "a little one") {
@@ -6365,42 +6379,70 @@ async function handleGenerate(mode) {
       appearance: child.appearance || undefined,
     };
     buttonId = "generateTodayBtn";
-  } else if (mode === "hero") {
-    // ---- Hero Story: use parent's custom inputs ----
-    const name = ($("heroName")?.value || "").trim();
-    const age = ($("heroAge")?.value || "").trim();
-    const rawIdea = ($("heroIdea")?.value || "").trim();
-    const length = $("heroLength")?.value || "medium";
-
-    if (!name || !age || !rawIdea) {
-      alert("Please fill in the child's name, age, and story idea.");
+  } else if (mode === "medium-surprise" || mode === "long-surprise") {
+    // ---- Surprise Me: random idea, child from profile ----
+    const child = getSelectedChild();
+    if (!child.name || child.name === "a little one") {
+      alert("Please add and choose a child first.");
+      generationInProgress = false;
       return;
     }
+    const storyLength = mode === "long-surprise" ? "long" : "medium";
+    const baseInterests = child.interests?.length
+      ? child.interests.join(", ")
+      : pick(interestsByAge[getAgeGroup(child.age || 5)]);
+    const interests = enrichInterestsWithContext(baseInterests, child);
 
-    // Get child's general interests from their profile (for enrichment)
+    // Fetch global inspiration for this age group (non-blocking)
+    const ageGroup = Math.round((parseInt(child.age) || 5) / 2) * 2;
+    const globalIdeas = await getGlobalIdeaInspiration(ageGroup, getCurrentLanguage()).catch(() => []);
+
+    payload = {
+      name: formatName(child.name),
+      age: String(child.age || 5),
+      interests,
+      length: storyLength,
+      mode: "random",
+      language: getCurrentLanguage(), dialect: getCurrentLanguage(),
+      appearance: child.appearance || undefined,
+      globalInspiration: globalIdeas.length ? globalIdeas : undefined,
+    };
+    buttonId = mode === "long-surprise" ? "surpriseLongBtn" : "surpriseMediumBtn";
+  } else if (mode === "create") {
+    // ---- My Idea: parent's idea, child from profile ----
     const child = getSelectedChild();
+    if (!child.name || child.name === "a little one") {
+      alert("Please add and choose a child first.");
+      generationInProgress = false;
+      return;
+    }
+    const rawIdea = ($("createIdea")?.value || "").trim();
+    if (!rawIdea) {
+      alert("Please enter a story idea.");
+      generationInProgress = false;
+      return;
+    }
+    const storyLength = $("createLength")?.value || "medium";
     const baseInterests = child.interests?.length
       ? child.interests.join(", ")
       : rawIdea;
-    // Only include siblings the parent has ticked for this story
-    const tickedSiblings = getTickedHeroSiblings();
-    const interests = enrichInterestsWithContext(baseInterests, child, tickedSiblings);
-
-    const seriesContext = buildSeriesContinuationContext(child.name || name);
+    const interests = enrichInterestsWithContext(baseInterests, child);
+    const seriesContext = buildSeriesContinuationContext(child.name);
 
     payload = {
-      name: formatName(name),
-      age,
+      name: formatName(child.name),
+      age: String(child.age || 5),
       interests,
-      length,
+      length: storyLength,
       mode: "hero",
       language: getCurrentLanguage(), dialect: getCurrentLanguage(),
       customIdea: rawIdea,
       seriesContext: seriesContext || undefined,
       appearance: child.appearance || undefined,
     };
-    buttonId = "generateHeroBtn";
+    buttonId = "generateCreateBtn";
   } else {
+    generationInProgress = false;
     return;
   }
 
@@ -6442,18 +6484,30 @@ async function handleGenerate(mode) {
     const title = applyDialectToText(data?.title || `${payload.name}'s Bedtime Story`, payload.dialect);
 
     const storyChildName = getSelectedChild()?.name || payload.name;
-    const storyMode = mode === "hero" ? "hero" : mode === "today" ? "today" : "random";
+    const storyMode = (mode === "hero" || mode === "create") ? "hero" : mode === "today" ? "today" : "random";
     displayStory(title, story, { childName: storyChildName, mode: storyMode });
 
-    // Auto-save bespoke stories (Hero + Today) — both are personal keepsakes.
+    // Auto-save bespoke stories (Create/Hero + Today) — both are personal keepsakes.
     if ((storyMode === "hero" || storyMode === "today") && story && !story.startsWith("No story was returned")) {
       saveStoryToLibrary({ childName: storyChildName, title, text: story, mode: storyMode });
       if (storyMode === "hero") advanceHeroSeries(storyChildName, title, story);
     }
 
-    // Clear the Quick Story wish so tomorrow's child can pick fresh
-    const wishInput = $("tonightWish");
-    if (wishInput && mode === "tonight") wishInput.value = "";
+    // Global Idea Bank: save idea metadata so future stories can learn from it
+    if (story && !story.startsWith("No story was returned") && payload.customIdea) {
+      saveToGlobalIdeaBank({
+        originalIdea: payload.customIdea,
+        ageGroup: Math.round((parseInt(payload.age) || 5) / 2) * 2, // round to nearest 2
+        type: storyMode,
+        language: getCurrentLanguage(),
+      }).catch(() => {});
+    }
+
+    // Clear create idea input after generation
+    if (mode === "create") {
+      const ideaInput = $("createIdea");
+      if (ideaInput) ideaInput.value = "";
+    }
 
     // Clear today-story form so tomorrow starts fresh
     if (mode === "today") {
@@ -6480,10 +6534,10 @@ async function handleGenerate(mode) {
     // have a pre-generated AI story stored in IndexedDB for this child. Serves
     // a real AI story on airplane mode for Medium / Long modes.
     // Quick (tonight) skips this — procedural is intentional for quick stories.
-    if (window.StoryCache && mode !== "tonight") {
+    if (window.StoryCache) {
       try {
         const offlineChild = getSelectedChild();
-        const offlineMode = mode === "hero" ? "hero" : "medium";
+        const offlineMode = mode === "create" ? "hero" : mode === "long-surprise" ? "long" : "medium";
         const cached = await window.StoryCache.claimCachedStory(
           offlineChild?.name || "",
           offlineMode
@@ -6518,23 +6572,20 @@ async function handleGenerate(mode) {
     let fallbackMode = "random";
     let heroIdea = "";
 
-    if (mode === "hero") {
-      // Build a pseudo-child from the hero form so the procedural engine can run
-      const heroName = ($("heroName")?.value || "").trim() || selectedChild?.name || "a little one";
-      const heroAge = Number(($("heroAge")?.value || "").trim()) || Number(selectedChild?.age) || 5;
-      heroIdea = ($("heroIdea")?.value || "").trim();
-      const heroLength = $("heroLength")?.value || "medium";
-      const heroGender = selectedChild?.gender || "neutral";
+    if (mode === "create") {
+      // Build fallback from create form + selected child profile
+      heroIdea = ($("createIdea")?.value || "").trim();
+      const createLength = $("createLength")?.value || "medium";
       const heroInterestsBase = selectedChild?.interests?.length
         ? selectedChild.interests
         : [heroIdea].filter(Boolean);
       fallbackChild = {
-        name: heroName,
-        age: heroAge,
-        gender: heroGender,
+        name: selectedChild?.name || "a little one",
+        age: Number(selectedChild?.age) || 5,
+        gender: selectedChild?.gender || "neutral",
         interests: heroInterestsBase,
         customIdea: heroIdea,
-        requestedLength: heroLength,
+        requestedLength: createLength,
       };
       fallbackMode = "hero";
     }
@@ -6545,22 +6596,17 @@ async function handleGenerate(mode) {
     };
 
     console.log("API failed, falling back to procedural story engine");
-    const quickWish = mode === "tonight"
-      ? ($("tonightWish")?.value || "").trim().toLowerCase()
-      : "";
-    const quickFallbackChild = quickWish
-      ? { ...fallbackChild, interests: [quickWish] }
-      : fallbackChild;
+    const quickWish = "";
+    const quickFallbackChild = fallbackChild;
     const heroFallbackChild = heroIdea
       ? { ...fallbackChild, interests: [heroIdea] }
       : fallbackChild;
-    const selectedWorld = mode === "tonight"
-      ? (quickWish ? (findQuickWishMatchedWorld(quickWish, quickFallbackChild) || pickRandomSuitableWorld(fallbackChild)) : pickRandomSuitableWorld(fallbackChild))
-      : mode === "hero"
-        ? (heroIdea ? (findQuickWishMatchedWorld(heroIdea, heroFallbackChild) || pickSuitableWorld(heroFallbackChild)) : pickSuitableWorld(fallbackChild))
-        : pickSuitableWorld(fallbackChild);
-    const siblings = mode === "hero" ? getTickedHeroSiblings() : getSiblingsFor(fallbackChild);
-    const proceduralChild = mode === "hero" ? heroFallbackChild : quickFallbackChild;
+    const isHeroMode = mode === "create";
+    const selectedWorld = isHeroMode
+      ? (heroIdea ? (findQuickWishMatchedWorld(heroIdea, heroFallbackChild) || pickSuitableWorld(heroFallbackChild)) : pickSuitableWorld(fallbackChild))
+      : pickSuitableWorld(fallbackChild);
+    const siblings = isHeroMode ? [] : getSiblingsFor(fallbackChild);
+    const proceduralChild = isHeroMode ? heroFallbackChild : quickFallbackChild;
     let finalText = "";
     let displayTitle = fallbackTitle;
 
@@ -6588,7 +6634,7 @@ async function handleGenerate(mode) {
             body: JSON.stringify({
               story: rawFallback,
               language: getCurrentLanguage(), dialect: getCurrentLanguage(),
-              mode: mode === "tonight" ? "rewrite" : "edit",
+              mode: "edit",
             }),
           });
           if (polishResponse.ok) {
@@ -6738,6 +6784,7 @@ window.saveChild = saveChild;
 window.cancelEditChild = cancelEditChild;
 window.enterReadingMode = enterReadingMode;
 window.saveCurrentStoryToLibrary = saveCurrentStoryToLibrary;
+window.openCreatePage = openCreatePage;
 
 // =============================================================================
 // Language selection screen handlers

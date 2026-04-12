@@ -776,6 +776,57 @@ select {
   margin-left: auto;
 }
 
+/* Story From Today — highlighted primary card */
+.story-choice-today {
+  border-color: rgba(91, 155, 213, 0.45);
+  background: linear-gradient(135deg, var(--navy-accent), rgba(30, 60, 110, 0.9));
+}
+
+.story-choice-today:hover {
+  border-color: rgba(91, 155, 213, 0.8);
+}
+
+/* "Daily habit" badge */
+.choice-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #93c5fd;
+  background: rgba(91, 155, 213, 0.18);
+  border: 1px solid rgba(91, 155, 213, 0.35);
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+  margin-left: auto;
+}
+
+/* Hub card — Medium/Long story with inline buttons */
+.story-choice-hub {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.choice-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.choice-hub-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.choice-hub-btn {
+  flex: 1;
+  font-size: 0.85rem;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+}
+
 /* =============================================================================
    Children List (children page)
    ============================================================================= */
@@ -1412,14 +1463,14 @@ select {
 .lang-title {
   font-size: 2rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 8px 0 4px;
 }
 
 .lang-subtitle {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   margin: 0 0 6px;
 }
 
@@ -1452,30 +1503,32 @@ select {
   align-items: center;
   gap: 4px;
   padding: 14px 10px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--card-border);
   border-radius: var(--radius-md);
-  background: var(--surface);
+  background: var(--card-bg);
   cursor: pointer;
   transition: border-color 0.18s, background 0.18s, transform 0.12s;
   font-size: 1.5rem;
   line-height: 1;
+  color: var(--text);
 }
 
 .lang-btn:hover {
-  border-color: var(--primary);
-  background: rgba(108, 99, 255, 0.06);
+  border-color: var(--primary-hover);
+  background: var(--navy-soft);
 }
 
 .lang-btn.selected {
-  border-color: var(--primary);
-  background: rgba(108, 99, 255, 0.1);
+  border-color: #5b9bd5;
+  background: rgba(91, 155, 213, 0.2);
   transform: scale(1.03);
+  box-shadow: 0 0 0 1px rgba(91, 155, 213, 0.4);
 }
 
 .lang-btn .lang-en {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   text-align: center;
   line-height: 1.2;
 }

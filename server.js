@@ -559,6 +559,7 @@ app.post(
     body("dayBeats").optional().isString().isLength({ max: 400 }).trim(),
     body("dayMood").optional().isString().isLength({ max: 40 }).trim(),
     body("language").optional().isString().isLength({ max: 10 }).trim(),
+    body("globalInspiration").optional().isArray({ max: 10 }),
   ],
   async (req, res) => {
     try {
@@ -568,7 +569,7 @@ app.post(
         return res.status(400).json({ error: "Please check your input and try again." });
       }
 
-      const { name, age, interests, length, mode, dialect, language, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood } = req.body;
+      const { name, age, interests, length, mode, dialect, language, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood, globalInspiration } = req.body;
       const cleanName = sanitizeInput(name);
       const cleanAge = sanitizeInput(age);
       const cleanInterests = sanitizeInput(interests);
@@ -628,6 +629,14 @@ app.post(
       // Max 1 regeneration to prevent infinite loops.
       // ================================================================
 
+      // Sanitize global inspiration ideas (max 5, each max 100 chars)
+      const cleanGlobalInspiration = Array.isArray(globalInspiration)
+        ? globalInspiration
+            .slice(0, 5)
+            .map((s) => sanitizeInput(String(s || "").trim().substring(0, 100)))
+            .filter(Boolean)
+        : [];
+
       const storyInputs = {
         name: cleanName,
         age: cleanAge,
@@ -641,6 +650,7 @@ app.post(
         appearance: cleanAppearance,
         dayBeats: cleanBeats,
         dayMood: cleanMood,
+        globalInspiration: cleanGlobalInspiration.length ? cleanGlobalInspiration : undefined,
       };
       // Tiered model selection: Sonnet for hero/long/medium, Haiku for short.
       const modelConfig = getModelConfig({ mode, length });

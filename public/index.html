@@ -137,32 +137,47 @@
 
         <!-- Story choices -->
         <div id="storyChoices" class="story-choices hidden">
-          <button type="button" class="story-choice-card" onclick="navigateTo('quick')">
-            <span class="choice-icon">&#9889;</span>
-            <div class="choice-text">
-              <h3>Quick Story</h3>
-              <p>A magical bedtime story in one tap</p>
-            </div>
-            <span class="choice-arrow">&#8250;</span>
-          </button>
 
-          <button type="button" class="story-choice-card" onclick="navigateTo('today')">
+          <!-- Story From Today — primary feature -->
+          <button type="button" class="story-choice-card story-choice-today" onclick="navigateTo('today')">
             <span class="choice-icon">&#9733;</span>
             <div class="choice-text">
-              <h3>Story from Today</h3>
-              <p>Turn real moments into a bedtime story</p>
+              <h3>Story From Today</h3>
+              <p>Turn your child's real day into a calming bedtime story</p>
             </div>
-            <span class="choice-arrow">&#8250;</span>
+            <span class="choice-badge">Daily habit</span>
           </button>
 
-          <button type="button" class="story-choice-card" onclick="navigateTo('hero')">
-            <span class="choice-icon">&#9812;</span>
-            <div class="choice-text">
-              <h3>Hero Story</h3>
-              <p>A bespoke story with full creative control</p>
+          <!-- Medium Story -->
+          <div class="story-choice-card story-choice-hub">
+            <div class="choice-top">
+              <span class="choice-icon">&#128218;</span>
+              <div class="choice-text">
+                <h3>Medium Story</h3>
+                <p>A 6–7 min personalised bedtime story</p>
+              </div>
             </div>
-            <span class="choice-arrow">&#8250;</span>
-          </button>
+            <div class="choice-hub-btns">
+              <button type="button" id="surpriseMediumBtn" class="btn ghost choice-hub-btn" onclick="handleGenerate('medium-surprise')">&#127922; Surprise Me</button>
+              <button type="button" class="btn ghost choice-hub-btn" onclick="openCreatePage('medium')">&#9999;&#65039; My Idea</button>
+            </div>
+          </div>
+
+          <!-- Long Story -->
+          <div class="story-choice-card story-choice-hub">
+            <div class="choice-top">
+              <span class="choice-icon">&#128218;</span>
+              <div class="choice-text">
+                <h3>Long Story</h3>
+                <p>A longer adventure (~10 min) for your child</p>
+              </div>
+            </div>
+            <div class="choice-hub-btns">
+              <button type="button" id="surpriseLongBtn" class="btn ghost choice-hub-btn" onclick="handleGenerate('long-surprise')">&#127922; Surprise Me</button>
+              <button type="button" class="btn ghost choice-hub-btn" onclick="openCreatePage('long')">&#9999;&#65039; My Idea</button>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -205,22 +220,23 @@
     </div>
 
     <!-- ================================================================== -->
-    <!-- QUICK STORY PAGE                                                    -->
+    <!-- CREATE MY OWN STORY PAGE                                           -->
     <!-- ================================================================== -->
-    <div id="pageQuick" class="page hidden">
+    <div id="pageCreate" class="page hidden">
       <div class="page-scroll">
 
         <div class="page-header">
           <button type="button" class="back-btn" onclick="navigateTo('home')">&#8592; Back</button>
-          <h2 class="page-title">Quick Story</h2>
+          <h2 id="createPageTitle" class="page-title">Create a Story</h2>
           <span class="page-header-spacer"></span>
         </div>
 
         <div class="card">
-          <p id="quickChildLabel" class="child-label"></p>
-          <p class="hint">Ask your child what they want a story about tonight — or leave it blank for a surprise.</p>
-          <input id="tonightWish" type="text" placeholder="Tonight's wish (optional) — e.g. flying with dolphins" maxlength="120" />
-          <button type="button" id="generateTonightBtn" class="btn primary btn-lg" onclick="handleGenerate('tonight')">Create a Quick Story</button>
+          <p id="createChildLabel" class="child-label"></p>
+          <p class="hint">What should the story be about tonight?</p>
+          <input id="createIdea" type="text" placeholder="e.g. a brave princess who saves her baby dragon" maxlength="200" />
+          <input id="createLength" type="hidden" value="medium" />
+          <button type="button" id="generateCreateBtn" class="btn primary btn-lg" onclick="handleGenerate('create')">Create My Story</button>
         </div>
 
       </div>
@@ -234,13 +250,13 @@
 
         <div class="page-header">
           <button type="button" class="back-btn" onclick="navigateTo('home')">&#8592; Back</button>
-          <h2 class="page-title">Story from Today</h2>
+          <h2 class="page-title">Story From Today</h2>
           <span class="page-header-spacer"></span>
         </div>
 
         <div class="card">
           <p id="todayChildLabel" class="child-label"></p>
-          <p class="hint">Tell us 2–3 things from your child's day. We'll weave them into a gentle bedtime story.</p>
+          <p class="hint">Share 2–3 moments from today. We'll weave them into a calming bedtime story so your child feels heard and ready for sleep.</p>
           <textarea id="todayBeats" placeholder="e.g. Sophia fell off her bike but was very brave, we had ice cream in the park, she helped her little brother with his puzzle" maxlength="400" rows="3"></textarea>
           <select id="todayMood" aria-label="Overall tone of today">
             <option value="" selected>How did today feel? (optional)</option>
@@ -258,44 +274,14 @@
       </div>
     </div>
 
-    <!-- ================================================================== -->
-    <!-- HERO STORY PAGE                                                     -->
-    <!-- ================================================================== -->
-    <div id="pageHero" class="page hidden">
-      <div class="page-scroll">
-
-        <div class="page-header">
-          <button type="button" class="back-btn" onclick="navigateTo('home')">&#8592; Back</button>
-          <h2 class="page-title">Hero Story</h2>
-          <span class="page-header-spacer"></span>
-        </div>
-
-        <div class="card" id="heroForm">
-          <p class="hint">Customise every detail — a unique, professional story just for your child.</p>
-          <input id="heroName" type="text" placeholder="Child's name" maxlength="50" />
-          <input id="heroAge" type="number" placeholder="Age" min="1" max="18" />
-          <input id="heroIdea" type="text" placeholder="Story idea (e.g. a dinosaur who loves football)" maxlength="200" />
-
-          <label class="hint hero-length-label" for="heroLength">Story length</label>
-          <select id="heroLength" aria-label="Story length">
-            <option value="short">Quick (2–3 min read)</option>
-            <option value="medium" selected>Medium (4–5 min read)</option>
-            <option value="long">Long (about 10 min read)</option>
-          </select>
-
-          <div id="heroSiblingsWrap" class="siblings-wrap hidden">
-            <p class="hint">Who's in tonight's story?</p>
-            <div id="heroSiblings" class="sibling-list"></div>
-          </div>
-
-          <div id="heroSeriesWrap" class="series-wrap">
-            <p id="heroSeriesLabel" class="hint series-label">Series: starting a new one tonight.</p>
-            <button type="button" id="heroSeriesResetBtn" class="btn ghost btn-sm hidden">Start a new series</button>
-          </div>
-
-          <button type="button" id="generateHeroBtn" class="btn primary btn-lg" onclick="handleGenerate('hero')">Create My Child's Story</button>
-        </div>
-
+    <!-- Hero series/sibling stubs — kept for JS compatibility, never shown -->
+    <div id="pageHero" class="hidden" aria-hidden="true" style="display:none">
+      <input id="heroName" /><input id="heroAge" /><input id="heroIdea" />
+      <select id="heroLength"><option value="medium" selected></option></select>
+      <div id="heroSiblingsWrap"><div id="heroSiblings"></div></div>
+      <div id="heroSeriesWrap">
+        <p id="heroSeriesLabel"></p>
+        <button id="heroSeriesResetBtn" class="hidden"></button>
       </div>
     </div>
 

@@ -542,7 +542,7 @@ const STORY_BLUEPRINTS = {
  * @param {string} [params.dayBeats] - Today mode: 2–3 real things that happened in the child's day.
  * @param {string} [params.dayMood] - Today mode: optional mood tag (joyful, brave, nervous, tired, exciting, quiet, mixed).
  */
-export function buildStoryPrompt({ name, age, interests, length, dialect, language, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood }) {
+export function buildStoryPrompt({ name, age, interests, length, dialect, language, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood, globalInspiration }) {
   const ageNum = parseInt(age) || 5;
   const wordRange = getWordRange(length);
   const languageLevel = getLanguageLevel(ageNum);
@@ -707,7 +707,9 @@ PREMIUM STORY BLUEPRINT:
 ${storyBlueprintBlock}
 
 LENGTH: ${wordRange}
-${CONTEXT_LOCK}
+${Array.isArray(globalInspiration) && globalInspiration.length
+  ? `\nGLOBAL INSPIRATION (ideas that resonated with children worldwide — use as creative inspiration only, do not copy):\n${globalInspiration.map((idea) => `- ${idea}`).join("\n")}\n`
+  : ""}${CONTEXT_LOCK}
 
 Write the story now.`;
 }
