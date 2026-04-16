@@ -2,25 +2,6 @@
 // DreamTalez — Frontend Application
 // Production-quality bedtime story generator
 // =============================================================================
-//
-// CHANGE LOG (vs previous version):
-// ----------------------------------
-// [BUG]  dreamInterests was referenced but never defined → removed reference,
-//        merged age-appropriate fallback interests into enhanceInterests()
-// [BUG]  innerHTML used for story output → replaced with textContent (XSS fix)
-// [BUG]  No response.ok check on /generate fetch → added proper error handling
-// [BUG]  formatName() defined before ES module imports → moved after imports
-// [BUG]  Hero form never auto-filled from selected child → now auto-fills
-// [BUG]  enhanceInterests() crashed when child had no interests → guarded
-// [BUG]  Reading mode didn't prevent background scroll → body overflow hidden
-// [BUG]  Escape key didn't close reading mode → added keydown listener
-// [BUG]  Server now returns { story, title } → frontend handles title
-// [IMPROVE] Loading state uses animated overlay instead of plain text
-// [IMPROVE] Story card appears only when a story exists
-// [IMPROVE] Tab state properly managed
-// [IMPROVE] All event listeners consolidated at bottom
-// [IMPROVE] All globals eliminated except auth state
-// =============================================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
@@ -56,7 +37,6 @@ const firebaseConfig = {
   storageBucket: "dreamtalez.firebasestorage.app",
   messagingSenderId: "219771634733",
   appId: "1:219771634733:web:007c920a5442a4d19c24a4",
-  measurementId: "G-Y9MQTMYQ5C",
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
@@ -166,7 +146,9 @@ function pick(arr) {
 function formatName(name) {
   if (!name) return "A little one";
   const trimmed = name.trim();
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+  // Capitalise first letter only; preserve the rest as-is so "Mary Jane"
+  // and "MacGregor" are not corrupted to "Mary jane" / "Macgregor".
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
 function $(id) {
@@ -249,26 +231,1500 @@ async function getGlobalIdeaInspiration(ageGroup, language) {
 // Language — user-level preference stored in Firestore
 // =============================================================================
 
-let cachedLanguage = "en-GB";
+const LS_LANG_KEY = "dt-lang";
 
 const SUPPORTED_LANGUAGES = [
   "en-GB", "en-US", "es", "fr", "pt", "de", "it",
   "ja", "zh-CN", "ar", "hi", "ur",
 ];
 
+// Seed from localStorage immediately — no Firestore call needed on boot
+let cachedLanguage = (() => {
+  try {
+    const saved = localStorage.getItem(LS_LANG_KEY);
+    return saved && SUPPORTED_LANGUAGES.includes(saved) ? saved : "en-GB";
+  } catch { return "en-GB"; }
+})();
+
 const LANGUAGE_LABELS = {
   "en-GB": "English (UK)", "en-US": "English (US)",
-  "es": "Spanish", "fr": "French", "pt": "Portuguese",
-  "de": "German", "it": "Italian", "ja": "Japanese",
-  "zh-CN": "Mandarin Chinese", "ar": "Arabic",
-  "hi": "Hindi", "ur": "Urdu",
+  "es": "Español", "fr": "Français", "pt": "Português",
+  "de": "Deutsch", "it": "Italiano", "ja": "日本語",
+  "zh-CN": "中文（简体）", "ar": "العربية",
+  "hi": "हिन्दी", "ur": "اردو",
 };
 
 function getCurrentLanguage() {
   return SUPPORTED_LANGUAGES.includes(cachedLanguage) ? cachedLanguage : "en-GB";
 }
 
+// =============================================================================
+// i18n — UI Strings (all 12 supported languages)
+// =============================================================================
+
+const RTL_LANGUAGES = new Set(["ar", "ur"]);
+
+/* eslint-disable quote-props */
+const UI_STRINGS = {
+  "en-GB": {
+    tagline: "Magical stories, made just for your child",
+    auth_subtitle: "Create beautiful, personalised bedtime stories your child will treasure — safe, calming, and age-appropriate.",
+    email_placeholder: "Email address",
+    password_placeholder: "Password",
+    sign_up: "Sign Up",
+    log_in: "Log In",
+    forgot_password: "Forgot password?",
+    sample_story_btn: "★ Read a Sample Story",
+    trust_line: "7-day free trial · Then £2.99/month · 10 stories per week · No ads",
+    auth_legal: "By signing up you agree to our",
+    auth_terms: "Terms",
+    auth_and: "and",
+    auth_privacy: "Privacy Policy",
+    lang_subtitle: "What language would you like stories in?",
+    lang_hint: "You can change this anytime in Settings",
+    continue_btn: "Continue",
+    back_btn: "← Back",
+    paywall_title: "Your free trial has ended",
+    paywall_hint: "Continue creating personalised bedtime stories your child will love.",
+    paywall_perk1: "10 magical stories every week",
+    paywall_perk2: "Story From Today, Medium & Long stories",
+    paywall_perk3: "Full Story Library & series continuity",
+    paywall_perk4: "12 languages · Safe · No ads",
+    subscribe_btn: "Start Subscribing — £2.99/month",
+    paywall_note: "Your saved stories stay yours — readable anytime.",
+    welcome_title: "Welcome to DreamTalez ★",
+    welcome_hint: "Add your first child to start creating magical stories.",
+    add_first_child: "Add Your First Child",
+    change_btn: "Change",
+    story_today_title: "Story From Today",
+    story_today_desc: "Turn your child's real day into a calming bedtime story",
+    story_today_badge: "Daily habit",
+    medium_story: "Medium Story",
+    medium_story_desc: "A 6–7 min personalised bedtime story",
+    long_story: "Long Story",
+    long_story_desc: "A longer adventure (~10 min) for your child",
+    surprise_me: "🎲 Surprise Me",
+    my_idea: "✏️ My Idea",
+    children_title: "Children",
+    add_child_heading: "Add a Child",
+    edit_child_heading: "Edit Child",
+    add_child_hint: "Stories are personalised to their age, interests, and appearance.",
+    child_name_placeholder: "Child's first name",
+    age_placeholder: "Age",
+    gender_default: "Gender",
+    gender_girl: "Girl",
+    gender_boy: "Boy",
+    gender_neutral: "Prefer not to say",
+    interests_placeholder: "Interests (e.g. dinosaurs, fairies, space)",
+    appearance_placeholder: "Appearance (e.g. long dark hair like Jasmine, green eyes)",
+    save_child: "Save Child",
+    update_child: "Update Child",
+    cancel: "Cancel",
+    create_story_title: "Create a Story",
+    medium_my_idea: "Medium Story — My Idea",
+    long_my_idea: "Long Story — My Idea",
+    create_hint: "What should the story be about tonight?",
+    create_placeholder: "e.g. a brave princess who saves her baby dragon",
+    create_btn: "Create My Story",
+    today_page_title: "Story From Today",
+    today_hint: "Share 2–3 moments from today. We'll weave them into a calming bedtime story so your child feels heard and ready for sleep.",
+    today_placeholder: "e.g. she fell off her bike but was very brave, we had ice cream in the park, she helped her little brother with his puzzle",
+    today_mood_default: "How did today feel? (optional)",
+    mood_joyful: "Joyful & happy",
+    mood_brave: "Brave & proud",
+    mood_nervous: "Nervous or worried",
+    mood_tired: "Tired or grumpy",
+    mood_exciting: "Busy & exciting",
+    mood_quiet: "Quiet & gentle",
+    mood_mixed: "A mix of feelings",
+    today_btn: "Turn Today into a Story",
+    library_title: "Story Library",
+    library_hint: "Saved stories for this child.",
+    settings_title: "Settings",
+    account_heading: "Account",
+    manage_children: "Manage Children",
+    log_out: "Log Out",
+    story_language_heading: "Story Language",
+    story_language_hint: "Stories will be written in your chosen language.",
+    legal_heading: "Legal",
+    privacy_policy: "Privacy Policy",
+    terms_of_service: "Terms of Service",
+    danger_zone: "Danger Zone",
+    danger_hint: "Permanently delete your account and all data.",
+    delete_account: "Delete my account",
+    home_nav: "Home",
+    library_nav: "Library",
+    settings_nav: "Settings",
+    loading_text: "Writing your story…",
+    loading_sub: "This usually takes 10–20 seconds",
+    your_story: "Your Story",
+    read_story: "Read Story",
+    save_to_library: "★ Save to Library",
+    saved: "Saved!",
+    could_not_save: "Could not save",
+    reading_subtitle: "A story made just for you",
+    continue_tomorrow: "Continue Tomorrow",
+    privacy_title: "Privacy Policy",
+    terms_title: "Terms of Service",
+    story_for: "Story for {{name}}",
+    active: "Active",
+    select_child: "Select",
+    edit: "Edit",
+    remove: "Remove",
+    lang_saved_status: "✓ Stories are in",
+    alert_email_password: "Please enter your email and password.",
+    alert_password_length: "Password must be at least 6 characters.",
+    alert_add_child: "Please add and choose a child first.",
+    alert_add_beats: "Please share 2–3 things from your child's day so we can weave them into the story.",
+    alert_add_idea: "Please enter a story idea.",
+    alert_save_child_name: "Please enter a child's name.",
+    alert_save_child_age: "Please enter a valid age (1–18).",
+    alert_max_children: "You can have up to {{max}} children on one account. Please remove a profile before adding a new one.",
+    alert_delete_logged_in: "You need to be logged in to delete your account.",
+    alert_delete_cancel: "Account deletion cancelled.",
+    alert_delete_confirm: "To permanently delete your account, type DELETE below:",
+    alert_delete_password: "Please enter your password to confirm:",
+    alert_account_deleted: "Your account has been deleted. We're sorry to see you go.",
+    alert_logout_confirm: "Log out?",
+    alert_reset_email: "Please type your email address in the email box first, then tap 'Forgot password?' again.",
+    alert_reset_sent: "We've sent a password reset link to {{email}}. Check your inbox (and spam folder).",
+    alert_remove_child_fail: "Could not remove child. Please try again.",
+    alert_save_child_fail: "Could not save child. Please try again.",
+    alert_remove_story_fail: "Could not remove the story. Please try again.",
+    alert_lang_save_fail: "Could not save language preference. Please try again.",
+  },
+  "fr": {
+    tagline: "Des histoires magiques, créées juste pour votre enfant",
+    auth_subtitle: "Créez de belles histoires du soir personnalisées que votre enfant chérira — apaisantes et adaptées à son âge.",
+    email_placeholder: "Adresse e-mail",
+    password_placeholder: "Mot de passe",
+    sign_up: "S'inscrire",
+    log_in: "Se connecter",
+    forgot_password: "Mot de passe oublié ?",
+    sample_story_btn: "★ Lire une histoire d'exemple",
+    trust_line: "7 jours d'essai gratuit · Puis £2.99/mois · 10 histoires par semaine · Sans publicité",
+    auth_legal: "En vous inscrivant, vous acceptez nos",
+    auth_terms: "Conditions",
+    auth_and: "et notre",
+    auth_privacy: "Politique de confidentialité",
+    lang_subtitle: "Dans quelle langue souhaitez-vous les histoires ?",
+    lang_hint: "Vous pouvez modifier cela à tout moment dans les Paramètres",
+    continue_btn: "Continuer",
+    back_btn: "← Retour",
+    paywall_title: "Votre période d'essai est terminée",
+    paywall_hint: "Continuez à créer des histoires du soir personnalisées que votre enfant adorera.",
+    paywall_perk1: "10 histoires magiques chaque semaine",
+    paywall_perk2: "Histoire du Jour, histoires Moyennes et Longues",
+    paywall_perk3: "Bibliothèque complète et continuité des séries",
+    paywall_perk4: "12 langues · Sûr · Sans publicité",
+    subscribe_btn: "S'abonner — £2.99/mois",
+    paywall_note: "Vos histoires sauvegardées restent les vôtres — lisibles à tout moment.",
+    welcome_title: "Bienvenue sur DreamTalez ★",
+    welcome_hint: "Ajoutez votre premier enfant pour commencer à créer des histoires magiques.",
+    add_first_child: "Ajouter votre premier enfant",
+    change_btn: "Changer",
+    story_today_title: "Histoire du Jour",
+    story_today_desc: "Transformez la vraie journée de votre enfant en une histoire du soir apaisante",
+    story_today_badge: "Habitude quotidienne",
+    medium_story: "Histoire Moyenne",
+    medium_story_desc: "Une histoire du soir personnalisée de 6–7 min",
+    long_story: "Longue Histoire",
+    long_story_desc: "Une aventure plus longue (~10 min) pour votre enfant",
+    surprise_me: "🎲 Surprenez-moi",
+    my_idea: "✏️ Mon idée",
+    children_title: "Enfants",
+    add_child_heading: "Ajouter un enfant",
+    edit_child_heading: "Modifier l'enfant",
+    add_child_hint: "Les histoires sont personnalisées selon l'âge, les intérêts et l'apparence.",
+    child_name_placeholder: "Prénom de l'enfant",
+    age_placeholder: "Âge",
+    gender_default: "Genre",
+    gender_girl: "Fille",
+    gender_boy: "Garçon",
+    gender_neutral: "Préfère ne pas dire",
+    interests_placeholder: "Intérêts (ex. dinosaures, fées, l'espace)",
+    appearance_placeholder: "Apparence (ex. longs cheveux noirs, yeux verts)",
+    save_child: "Enregistrer l'enfant",
+    update_child: "Mettre à jour l'enfant",
+    cancel: "Annuler",
+    create_story_title: "Créer une histoire",
+    medium_my_idea: "Histoire Moyenne — Mon Idée",
+    long_my_idea: "Longue Histoire — Mon Idée",
+    create_hint: "De quoi devrait parler l'histoire ce soir ?",
+    create_placeholder: "ex. une princesse courageuse qui sauve son bébé dragon",
+    create_btn: "Créer mon histoire",
+    today_page_title: "Histoire du Jour",
+    today_hint: "Partagez 2–3 moments de la journée. Nous les tisserons dans une histoire du soir apaisante pour que votre enfant se sente écouté.",
+    today_placeholder: "ex. elle est tombée de son vélo mais était très courageuse, nous avons mangé une glace dans le parc",
+    today_mood_default: "Comment s'est passée la journée ? (facultatif)",
+    mood_joyful: "Joyeux & heureux",
+    mood_brave: "Courageux & fier",
+    mood_nervous: "Nerveux ou inquiet",
+    mood_tired: "Fatigué ou grincheux",
+    mood_exciting: "Bien rempli & excitant",
+    mood_quiet: "Calme & doux",
+    mood_mixed: "Un mélange de sentiments",
+    today_btn: "Transformer la journée en histoire",
+    library_title: "Bibliothèque d'histoires",
+    library_hint: "Histoires sauvegardées pour cet enfant.",
+    settings_title: "Paramètres",
+    account_heading: "Compte",
+    manage_children: "Gérer les enfants",
+    log_out: "Se déconnecter",
+    story_language_heading: "Langue des histoires",
+    story_language_hint: "Les histoires seront écrites dans la langue choisie.",
+    legal_heading: "Légal",
+    privacy_policy: "Politique de confidentialité",
+    terms_of_service: "Conditions d'utilisation",
+    danger_zone: "Zone dangereuse",
+    danger_hint: "Supprimez définitivement votre compte et toutes vos données.",
+    delete_account: "Supprimer mon compte",
+    home_nav: "Accueil",
+    library_nav: "Bibliothèque",
+    settings_nav: "Paramètres",
+    loading_text: "Écriture de votre histoire…",
+    loading_sub: "Cela prend généralement 10–20 secondes",
+    your_story: "Votre histoire",
+    read_story: "Lire l'histoire",
+    save_to_library: "★ Enregistrer dans la bibliothèque",
+    saved: "Enregistré !",
+    could_not_save: "Impossible d'enregistrer",
+    reading_subtitle: "Une histoire créée juste pour vous",
+    continue_tomorrow: "Continuer demain",
+    privacy_title: "Politique de confidentialité",
+    terms_title: "Conditions d'utilisation",
+    story_for: "Histoire pour {{name}}",
+    active: "Actif",
+    select_child: "Sélectionner",
+    edit: "Modifier",
+    remove: "Supprimer",
+    lang_saved_status: "✓ Les histoires sont en",
+    alert_email_password: "Veuillez entrer votre e-mail et mot de passe.",
+    alert_password_length: "Le mot de passe doit comporter au moins 6 caractères.",
+    alert_add_child: "Veuillez d'abord ajouter et choisir un enfant.",
+    alert_add_beats: "Veuillez d'abord partager 2–3 moments de la journée.",
+    alert_add_idea: "Veuillez saisir une idée d'histoire.",
+    alert_save_child_name: "Veuillez entrer le prénom de l'enfant.",
+    alert_save_child_age: "Veuillez entrer un âge valide (1–18).",
+    alert_max_children: "Vous pouvez avoir jusqu'à {{max}} enfants sur un compte.",
+    alert_delete_logged_in: "Vous devez être connecté pour supprimer votre compte.",
+    alert_delete_cancel: "Suppression du compte annulée.",
+    alert_delete_confirm: "Pour supprimer définitivement votre compte, tapez DELETE :",
+    alert_delete_password: "Veuillez entrer votre mot de passe pour confirmer :",
+    alert_account_deleted: "Votre compte a été supprimé.",
+    alert_logout_confirm: "Se déconnecter ?",
+    alert_reset_email: "Veuillez d'abord saisir votre e-mail dans le champ e-mail.",
+    alert_reset_sent: "Nous avons envoyé un lien de réinitialisation à {{email}}.",
+    alert_remove_child_fail: "Impossible de supprimer l'enfant. Veuillez réessayer.",
+    alert_save_child_fail: "Impossible d'enregistrer l'enfant. Veuillez réessayer.",
+    alert_remove_story_fail: "Impossible de supprimer l'histoire. Veuillez réessayer.",
+    alert_lang_save_fail: "Impossible d'enregistrer la préférence de langue. Veuillez réessayer.",
+  },
+  "es": {
+    tagline: "Historias mágicas, creadas solo para tu hijo",
+    auth_subtitle: "Crea hermosas historias de cuentos personalizadas que tu hijo atesorará — seguras, relajantes y apropiadas para su edad.",
+    email_placeholder: "Correo electrónico",
+    password_placeholder: "Contraseña",
+    sign_up: "Registrarse",
+    log_in: "Iniciar sesión",
+    forgot_password: "¿Olvidaste tu contraseña?",
+    sample_story_btn: "★ Leer un cuento de muestra",
+    trust_line: "7 días de prueba gratuita · Luego £2.99/mes · 10 cuentos por semana · Sin anuncios",
+    auth_legal: "Al registrarte, aceptas nuestros",
+    auth_terms: "Términos",
+    auth_and: "y nuestra",
+    auth_privacy: "Política de privacidad",
+    lang_subtitle: "¿En qué idioma te gustaría los cuentos?",
+    lang_hint: "Puedes cambiarlo en cualquier momento en Ajustes",
+    continue_btn: "Continuar",
+    back_btn: "← Atrás",
+    paywall_title: "Tu período de prueba ha terminado",
+    paywall_hint: "Sigue creando hermosas historias de cuentos personalizadas que tu hijo amará.",
+    paywall_perk1: "10 cuentos mágicos cada semana",
+    paywall_perk2: "Historia de Hoy, cuentos Medianos y Largos",
+    paywall_perk3: "Biblioteca completa y continuidad de series",
+    paywall_perk4: "12 idiomas · Seguro · Sin anuncios",
+    subscribe_btn: "Suscribirse — £2.99/mes",
+    paywall_note: "Tus historias guardadas son tuyas para siempre — legibles en cualquier momento.",
+    welcome_title: "Bienvenido a DreamTalez ★",
+    welcome_hint: "Añade tu primer hijo para empezar a crear cuentos mágicos.",
+    add_first_child: "Añadir tu primer hijo",
+    change_btn: "Cambiar",
+    story_today_title: "Historia de Hoy",
+    story_today_desc: "Convierte el día real de tu hijo en un cuento relajante para dormir",
+    story_today_badge: "Hábito diario",
+    medium_story: "Cuento Mediano",
+    medium_story_desc: "Un cuento personalizado de 6–7 min",
+    long_story: "Cuento Largo",
+    long_story_desc: "Una aventura más larga (~10 min) para tu hijo",
+    surprise_me: "🎲 Sorpréndeme",
+    my_idea: "✏️ Mi idea",
+    children_title: "Niños",
+    add_child_heading: "Añadir un niño",
+    edit_child_heading: "Editar niño",
+    add_child_hint: "Los cuentos se personalizan según su edad, intereses y apariencia.",
+    child_name_placeholder: "Nombre del niño",
+    age_placeholder: "Edad",
+    gender_default: "Género",
+    gender_girl: "Niña",
+    gender_boy: "Niño",
+    gender_neutral: "Prefiero no decir",
+    interests_placeholder: "Intereses (p.ej. dinosaurios, hadas, el espacio)",
+    appearance_placeholder: "Apariencia (p.ej. pelo largo oscuro, ojos verdes)",
+    save_child: "Guardar niño",
+    update_child: "Actualizar niño",
+    cancel: "Cancelar",
+    create_story_title: "Crear un cuento",
+    medium_my_idea: "Cuento Mediano — Mi Idea",
+    long_my_idea: "Cuento Largo — Mi Idea",
+    create_hint: "¿De qué debería tratar el cuento esta noche?",
+    create_placeholder: "p.ej. una valiente princesa que salva a su bebé dragón",
+    create_btn: "Crear mi cuento",
+    today_page_title: "Historia de Hoy",
+    today_hint: "Comparte 2–3 momentos de hoy. Los tejeremos en un cuento relajante para que tu hijo se sienta escuchado.",
+    today_placeholder: "p.ej. se cayó de la bicicleta pero fue muy valiente, tomamos helado en el parque",
+    today_mood_default: "¿Cómo fue el día? (opcional)",
+    mood_joyful: "Alegre y feliz",
+    mood_brave: "Valiente y orgulloso",
+    mood_nervous: "Nervioso o preocupado",
+    mood_tired: "Cansado o malhumorado",
+    mood_exciting: "Ocupado y emocionante",
+    mood_quiet: "Tranquilo y suave",
+    mood_mixed: "Una mezcla de sentimientos",
+    today_btn: "Convertir el día en cuento",
+    library_title: "Biblioteca de cuentos",
+    library_hint: "Cuentos guardados para este niño.",
+    settings_title: "Ajustes",
+    account_heading: "Cuenta",
+    manage_children: "Gestionar niños",
+    log_out: "Cerrar sesión",
+    story_language_heading: "Idioma de los cuentos",
+    story_language_hint: "Los cuentos se escribirán en el idioma elegido.",
+    legal_heading: "Legal",
+    privacy_policy: "Política de privacidad",
+    terms_of_service: "Términos de servicio",
+    danger_zone: "Zona de peligro",
+    danger_hint: "Elimina permanentemente tu cuenta y todos los datos.",
+    delete_account: "Eliminar mi cuenta",
+    home_nav: "Inicio",
+    library_nav: "Biblioteca",
+    settings_nav: "Ajustes",
+    loading_text: "Escribiendo tu cuento…",
+    loading_sub: "Esto suele tardar 10–20 segundos",
+    your_story: "Tu cuento",
+    read_story: "Leer el cuento",
+    save_to_library: "★ Guardar en la biblioteca",
+    saved: "¡Guardado!",
+    could_not_save: "No se pudo guardar",
+    reading_subtitle: "Un cuento creado solo para ti",
+    continue_tomorrow: "Continuar mañana",
+    privacy_title: "Política de privacidad",
+    terms_title: "Términos de servicio",
+    story_for: "Cuento para {{name}}",
+    active: "Activo",
+    select_child: "Seleccionar",
+    edit: "Editar",
+    remove: "Eliminar",
+    lang_saved_status: "✓ Los cuentos están en",
+    alert_email_password: "Por favor introduce tu correo y contraseña.",
+    alert_password_length: "La contraseña debe tener al menos 6 caracteres.",
+    alert_add_child: "Por favor añade y elige un niño primero.",
+    alert_add_beats: "Por favor comparte 2–3 momentos del día de tu hijo.",
+    alert_add_idea: "Por favor introduce una idea para el cuento.",
+    alert_save_child_name: "Por favor introduce el nombre del niño.",
+    alert_save_child_age: "Por favor introduce una edad válida (1–18).",
+    alert_max_children: "Puedes tener hasta {{max}} niños en una cuenta.",
+    alert_delete_logged_in: "Debes estar conectado para eliminar tu cuenta.",
+    alert_delete_cancel: "Eliminación de cuenta cancelada.",
+    alert_delete_confirm: "Para eliminar permanentemente tu cuenta, escribe DELETE:",
+    alert_delete_password: "Por favor introduce tu contraseña para confirmar:",
+    alert_account_deleted: "Tu cuenta ha sido eliminada.",
+    alert_logout_confirm: "¿Cerrar sesión?",
+    alert_reset_email: "Por favor escribe tu correo en el campo de correo primero.",
+    alert_reset_sent: "Hemos enviado un enlace de restablecimiento a {{email}}.",
+    alert_remove_child_fail: "No se pudo eliminar al niño. Inténtalo de nuevo.",
+    alert_save_child_fail: "No se pudo guardar al niño. Inténtalo de nuevo.",
+    alert_remove_story_fail: "No se pudo eliminar la historia. Inténtalo de nuevo.",
+    alert_lang_save_fail: "No se pudo guardar la preferencia de idioma. Inténtalo de nuevo.",
+  },
+  "pt": {
+    tagline: "Histórias mágicas, criadas só para o seu filho",
+    auth_subtitle: "Crie belas histórias para dormir personalizadas que o seu filho vai guardar com carinho — seguras, relaxantes e adequadas à idade.",
+    email_placeholder: "Endereço de e-mail",
+    password_placeholder: "Palavra-passe",
+    sign_up: "Registar",
+    log_in: "Entrar",
+    forgot_password: "Esqueceu a palavra-passe?",
+    sample_story_btn: "★ Ler uma história de exemplo",
+    trust_line: "7 dias de prova gratuita · Depois £2.99/mês · 10 histórias por semana · Sem anúncios",
+    auth_legal: "Ao registar-se, aceita os nossos",
+    auth_terms: "Termos",
+    auth_and: "e a nossa",
+    auth_privacy: "Política de privacidade",
+    lang_subtitle: "Em que idioma gostaria das histórias?",
+    lang_hint: "Pode alterar isto a qualquer momento nas Definições",
+    continue_btn: "Continuar",
+    back_btn: "← Voltar",
+    paywall_title: "O seu período de prova terminou",
+    paywall_hint: "Continue a criar belas histórias para dormir personalizadas que o seu filho vai adorar.",
+    paywall_perk1: "10 histórias mágicas por semana",
+    paywall_perk2: "História de Hoje, histórias Médias e Longas",
+    paywall_perk3: "Biblioteca completa e continuidade de séries",
+    paywall_perk4: "12 idiomas · Seguro · Sem anúncios",
+    subscribe_btn: "Subscrever — £2.99/mês",
+    paywall_note: "As suas histórias guardadas ficam suas — legíveis a qualquer momento.",
+    welcome_title: "Bem-vindo ao DreamTalez ★",
+    welcome_hint: "Adicione o seu primeiro filho para começar a criar histórias mágicas.",
+    add_first_child: "Adicionar o primeiro filho",
+    change_btn: "Alterar",
+    story_today_title: "História de Hoje",
+    story_today_desc: "Transforme o dia real do seu filho numa história relaxante para dormir",
+    story_today_badge: "Hábito diário",
+    medium_story: "História Média",
+    medium_story_desc: "Uma história personalizada de 6–7 min",
+    long_story: "História Longa",
+    long_story_desc: "Uma aventura mais longa (~10 min) para o seu filho",
+    surprise_me: "🎲 Surpreenda-me",
+    my_idea: "✏️ A minha ideia",
+    children_title: "Filhos",
+    add_child_heading: "Adicionar um filho",
+    edit_child_heading: "Editar filho",
+    add_child_hint: "As histórias são personalizadas com base na idade, interesses e aparência.",
+    child_name_placeholder: "Primeiro nome do filho",
+    age_placeholder: "Idade",
+    gender_default: "Género",
+    gender_girl: "Rapariga",
+    gender_boy: "Rapaz",
+    gender_neutral: "Prefiro não dizer",
+    interests_placeholder: "Interesses (ex. dinossauros, fadas, espaço)",
+    appearance_placeholder: "Aparência (ex. cabelo comprido escuro, olhos verdes)",
+    save_child: "Guardar filho",
+    update_child: "Actualizar filho",
+    cancel: "Cancelar",
+    create_story_title: "Criar uma história",
+    medium_my_idea: "História Média — A Minha Ideia",
+    long_my_idea: "História Longa — A Minha Ideia",
+    create_hint: "Sobre o que deve ser a história esta noite?",
+    create_placeholder: "ex. uma princesa corajosa que salva o seu dragão bebé",
+    create_btn: "Criar a minha história",
+    today_page_title: "História de Hoje",
+    today_hint: "Partilhe 2–3 momentos de hoje. Vamos tecê-los numa história relaxante para que o seu filho se sinta ouvido.",
+    today_placeholder: "ex. caiu da bicicleta mas foi muito corajosa, comemos gelado no parque",
+    today_mood_default: "Como correu o dia? (opcional)",
+    mood_joyful: "Alegre e feliz",
+    mood_brave: "Corajoso e orgulhoso",
+    mood_nervous: "Nervoso ou preocupado",
+    mood_tired: "Cansado ou rabugento",
+    mood_exciting: "Agitado e emocionante",
+    mood_quiet: "Calmo e suave",
+    mood_mixed: "Uma mistura de sentimentos",
+    today_btn: "Transformar o dia numa história",
+    library_title: "Biblioteca de histórias",
+    library_hint: "Histórias guardadas para este filho.",
+    settings_title: "Definições",
+    account_heading: "Conta",
+    manage_children: "Gerir filhos",
+    log_out: "Sair",
+    story_language_heading: "Idioma das histórias",
+    story_language_hint: "As histórias serão escritas no idioma escolhido.",
+    legal_heading: "Legal",
+    privacy_policy: "Política de privacidade",
+    terms_of_service: "Termos de serviço",
+    danger_zone: "Zona de perigo",
+    danger_hint: "Eliminar permanentemente a sua conta e todos os dados.",
+    delete_account: "Eliminar a minha conta",
+    home_nav: "Início",
+    library_nav: "Biblioteca",
+    settings_nav: "Definições",
+    loading_text: "A escrever a sua história…",
+    loading_sub: "Normalmente demora 10–20 segundos",
+    your_story: "A sua história",
+    read_story: "Ler a história",
+    save_to_library: "★ Guardar na biblioteca",
+    saved: "Guardado!",
+    could_not_save: "Não foi possível guardar",
+    reading_subtitle: "Uma história criada só para si",
+    continue_tomorrow: "Continuar amanhã",
+    privacy_title: "Política de privacidade",
+    terms_title: "Termos de serviço",
+    story_for: "História para {{name}}",
+    active: "Activo",
+    select_child: "Seleccionar",
+    edit: "Editar",
+    remove: "Remover",
+    lang_saved_status: "✓ As histórias estão em",
+    alert_email_password: "Por favor introduza o seu e-mail e palavra-passe.",
+    alert_password_length: "A palavra-passe deve ter pelo menos 6 caracteres.",
+    alert_add_child: "Por favor adicione e escolha um filho primeiro.",
+    alert_add_beats: "Por favor partilhe 2–3 momentos do dia do seu filho.",
+    alert_add_idea: "Por favor introduza uma ideia para a história.",
+    alert_save_child_name: "Por favor introduza o nome do filho.",
+    alert_save_child_age: "Por favor introduza uma idade válida (1–18).",
+    alert_max_children: "Pode ter até {{max}} filhos numa conta.",
+    alert_delete_logged_in: "Precisa de estar ligado para eliminar a sua conta.",
+    alert_delete_cancel: "Eliminação de conta cancelada.",
+    alert_delete_confirm: "Para eliminar permanentemente a sua conta, escreva DELETE:",
+    alert_delete_password: "Por favor introduza a sua palavra-passe para confirmar:",
+    alert_account_deleted: "A sua conta foi eliminada.",
+    alert_logout_confirm: "Sair?",
+    alert_reset_email: "Por favor introduza primeiro o seu e-mail no campo de e-mail.",
+    alert_reset_sent: "Enviámos um link de redefinição para {{email}}.",
+    alert_remove_child_fail: "Não foi possível remover o filho. Por favor tente novamente.",
+    alert_save_child_fail: "Não foi possível guardar o filho. Por favor tente novamente.",
+    alert_remove_story_fail: "Não foi possível remover a história. Por favor tente novamente.",
+    alert_lang_save_fail: "Não foi possível guardar a preferência de idioma. Por favor tente novamente.",
+  },
+  "de": {
+    tagline: "Magische Geschichten, genau für dein Kind gemacht",
+    auth_subtitle: "Erstelle wunderschöne, personalisierte Gutenachtgeschichten, die dein Kind schätzen wird — sicher, beruhigend und altersgerecht.",
+    email_placeholder: "E-Mail-Adresse",
+    password_placeholder: "Passwort",
+    sign_up: "Registrieren",
+    log_in: "Anmelden",
+    forgot_password: "Passwort vergessen?",
+    sample_story_btn: "★ Eine Beispielgeschichte lesen",
+    trust_line: "7 Tage kostenlose Testversion · Dann £2.99/Monat · 10 Geschichten pro Woche · Keine Werbung",
+    auth_legal: "Mit der Anmeldung stimmst du unseren",
+    auth_terms: "Nutzungsbedingungen",
+    auth_and: "und unserer",
+    auth_privacy: "Datenschutzrichtlinie",
+    lang_subtitle: "In welcher Sprache möchtest du Geschichten?",
+    lang_hint: "Du kannst das jederzeit in den Einstellungen ändern",
+    continue_btn: "Weiter",
+    back_btn: "← Zurück",
+    paywall_title: "Deine kostenlose Testversion ist abgelaufen",
+    paywall_hint: "Erstelle weiterhin personalisierte Gutenachtgeschichten, die dein Kind lieben wird.",
+    paywall_perk1: "10 magische Geschichten jede Woche",
+    paywall_perk2: "Geschichte von Heute, Mittellange & Lange Geschichten",
+    paywall_perk3: "Vollständige Story-Bibliothek & Serienkontinuität",
+    paywall_perk4: "12 Sprachen · Sicher · Keine Werbung",
+    subscribe_btn: "Abonnieren — £2.99/Monat",
+    paywall_note: "Deine gespeicherten Geschichten gehören dir — jederzeit lesbar.",
+    welcome_title: "Willkommen bei DreamTalez ★",
+    welcome_hint: "Füge dein erstes Kind hinzu, um magische Geschichten zu erstellen.",
+    add_first_child: "Erstes Kind hinzufügen",
+    change_btn: "Ändern",
+    story_today_title: "Geschichte von Heute",
+    story_today_desc: "Verwandle den wirklichen Tag deines Kindes in eine beruhigende Gutenachtgeschichte",
+    story_today_badge: "Tägliche Gewohnheit",
+    medium_story: "Mittellange Geschichte",
+    medium_story_desc: "Eine personalisierte Gutenachtgeschichte von 6–7 Min",
+    long_story: "Lange Geschichte",
+    long_story_desc: "Ein längeres Abenteuer (~10 Min) für dein Kind",
+    surprise_me: "🎲 Überrasch mich",
+    my_idea: "✏️ Meine Idee",
+    children_title: "Kinder",
+    add_child_heading: "Kind hinzufügen",
+    edit_child_heading: "Kind bearbeiten",
+    add_child_hint: "Geschichten werden nach Alter, Interessen und Aussehen personalisiert.",
+    child_name_placeholder: "Vorname des Kindes",
+    age_placeholder: "Alter",
+    gender_default: "Geschlecht",
+    gender_girl: "Mädchen",
+    gender_boy: "Junge",
+    gender_neutral: "Keine Angabe",
+    interests_placeholder: "Interessen (z.B. Dinosaurier, Feen, Weltraum)",
+    appearance_placeholder: "Aussehen (z.B. lange dunkle Haare, grüne Augen)",
+    save_child: "Kind speichern",
+    update_child: "Kind aktualisieren",
+    cancel: "Abbrechen",
+    create_story_title: "Geschichte erstellen",
+    medium_my_idea: "Mittellange Geschichte — Meine Idee",
+    long_my_idea: "Lange Geschichte — Meine Idee",
+    create_hint: "Worum soll die Geschichte heute Abend gehen?",
+    create_placeholder: "z.B. eine mutige Prinzessin, die ihren Baby-Drachen rettet",
+    create_btn: "Meine Geschichte erstellen",
+    today_page_title: "Geschichte von Heute",
+    today_hint: "Teile 2–3 Momente von heute. Wir weben sie zu einer beruhigenden Gutenachtgeschichte.",
+    today_placeholder: "z.B. sie ist vom Fahrrad gefallen, war aber sehr mutig, wir haben Eis im Park gegessen",
+    today_mood_default: "Wie war der Tag? (optional)",
+    mood_joyful: "Freudig & glücklich",
+    mood_brave: "Mutig & stolz",
+    mood_nervous: "Nervös oder besorgt",
+    mood_tired: "Müde oder grummelig",
+    mood_exciting: "Aufregend & beschäftigt",
+    mood_quiet: "Ruhig & sanft",
+    mood_mixed: "Ein Mix aus Gefühlen",
+    today_btn: "Den Tag in eine Geschichte verwandeln",
+    library_title: "Geschichten-Bibliothek",
+    library_hint: "Gespeicherte Geschichten für dieses Kind.",
+    settings_title: "Einstellungen",
+    account_heading: "Konto",
+    manage_children: "Kinder verwalten",
+    log_out: "Abmelden",
+    story_language_heading: "Sprache der Geschichten",
+    story_language_hint: "Geschichten werden in deiner gewählten Sprache verfasst.",
+    legal_heading: "Rechtliches",
+    privacy_policy: "Datenschutzrichtlinie",
+    terms_of_service: "Nutzungsbedingungen",
+    danger_zone: "Gefahrenbereich",
+    danger_hint: "Konto und alle Daten dauerhaft löschen.",
+    delete_account: "Mein Konto löschen",
+    home_nav: "Startseite",
+    library_nav: "Bibliothek",
+    settings_nav: "Einstellungen",
+    loading_text: "Deine Geschichte wird geschrieben…",
+    loading_sub: "Das dauert normalerweise 10–20 Sekunden",
+    your_story: "Deine Geschichte",
+    read_story: "Geschichte lesen",
+    save_to_library: "★ In Bibliothek speichern",
+    saved: "Gespeichert!",
+    could_not_save: "Konnte nicht speichern",
+    reading_subtitle: "Eine Geschichte nur für dich",
+    continue_tomorrow: "Morgen weiterlesen",
+    privacy_title: "Datenschutzrichtlinie",
+    terms_title: "Nutzungsbedingungen",
+    story_for: "Geschichte für {{name}}",
+    active: "Aktiv",
+    select_child: "Auswählen",
+    edit: "Bearbeiten",
+    remove: "Entfernen",
+    lang_saved_status: "✓ Geschichten sind auf",
+    alert_email_password: "Bitte gib deine E-Mail und dein Passwort ein.",
+    alert_password_length: "Das Passwort muss mindestens 6 Zeichen lang sein.",
+    alert_add_child: "Bitte füge zuerst ein Kind hinzu und wähle es aus.",
+    alert_add_beats: "Bitte teile zuerst 2–3 Momente aus dem Tag deines Kindes.",
+    alert_add_idea: "Bitte gib eine Idee für die Geschichte ein.",
+    alert_save_child_name: "Bitte gib den Namen des Kindes ein.",
+    alert_save_child_age: "Bitte gib ein gültiges Alter ein (1–18).",
+    alert_max_children: "Du kannst bis zu {{max}} Kinder in einem Konto haben.",
+    alert_delete_logged_in: "Du musst eingeloggt sein, um dein Konto zu löschen.",
+    alert_delete_cancel: "Kontolöschung abgebrochen.",
+    alert_delete_confirm: "Um dein Konto dauerhaft zu löschen, gib DELETE ein:",
+    alert_delete_password: "Bitte gib dein Passwort zur Bestätigung ein:",
+    alert_account_deleted: "Dein Konto wurde gelöscht.",
+    alert_logout_confirm: "Abmelden?",
+    alert_reset_email: "Bitte gib zuerst deine E-Mail-Adresse ein.",
+    alert_reset_sent: "Wir haben einen Reset-Link an {{email}} gesendet.",
+    alert_remove_child_fail: "Kind konnte nicht entfernt werden. Bitte versuche es erneut.",
+    alert_save_child_fail: "Kind konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    alert_remove_story_fail: "Geschichte konnte nicht entfernt werden. Bitte versuche es erneut.",
+    alert_lang_save_fail: "Spracheinstellung konnte nicht gespeichert werden. Bitte versuche es erneut.",
+  },
+  "it": {
+    tagline: "Storie magiche, create apposta per il tuo bambino",
+    auth_subtitle: "Crea belle storie della buonanotte personalizzate che il tuo bambino tesorizzerà — sicure, rilassanti e adatte all'età.",
+    email_placeholder: "Indirizzo e-mail",
+    password_placeholder: "Password",
+    sign_up: "Registrati",
+    log_in: "Accedi",
+    forgot_password: "Password dimenticata?",
+    sample_story_btn: "★ Leggi una storia di esempio",
+    trust_line: "7 giorni di prova gratuita · Poi £2.99/mese · 10 storie a settimana · Nessuna pubblicità",
+    auth_legal: "Registrandoti, accetti i nostri",
+    auth_terms: "Termini",
+    auth_and: "e la nostra",
+    auth_privacy: "Informativa sulla privacy",
+    lang_subtitle: "In quale lingua vorresti le storie?",
+    lang_hint: "Puoi cambiarlo in qualsiasi momento nelle Impostazioni",
+    continue_btn: "Continua",
+    back_btn: "← Indietro",
+    paywall_title: "La tua prova gratuita è terminata",
+    paywall_hint: "Continua a creare belle storie della buonanotte personalizzate che il tuo bambino amerà.",
+    paywall_perk1: "10 storie magiche ogni settimana",
+    paywall_perk2: "Storia di Oggi, storie Medie e Lunghe",
+    paywall_perk3: "Libreria completa e continuità delle serie",
+    paywall_perk4: "12 lingue · Sicuro · Nessuna pubblicità",
+    subscribe_btn: "Abbonati — £2.99/mese",
+    paywall_note: "Le tue storie salvate rimangono tue — leggibili in qualsiasi momento.",
+    welcome_title: "Benvenuto su DreamTalez ★",
+    welcome_hint: "Aggiungi il tuo primo bambino per iniziare a creare storie magiche.",
+    add_first_child: "Aggiungi il tuo primo bambino",
+    change_btn: "Cambia",
+    story_today_title: "Storia di Oggi",
+    story_today_desc: "Trasforma la giornata reale del tuo bambino in una storia rilassante per la buonanotte",
+    story_today_badge: "Abitudine quotidiana",
+    medium_story: "Storia Media",
+    medium_story_desc: "Una storia personalizzata di 6–7 min",
+    long_story: "Storia Lunga",
+    long_story_desc: "Un'avventura più lunga (~10 min) per il tuo bambino",
+    surprise_me: "🎲 Sorprendimi",
+    my_idea: "✏️ La mia idea",
+    children_title: "Bambini",
+    add_child_heading: "Aggiungi un bambino",
+    edit_child_heading: "Modifica bambino",
+    add_child_hint: "Le storie sono personalizzate in base a età, interessi e aspetto.",
+    child_name_placeholder: "Nome del bambino",
+    age_placeholder: "Età",
+    gender_default: "Genere",
+    gender_girl: "Bambina",
+    gender_boy: "Bambino",
+    gender_neutral: "Preferisco non dire",
+    interests_placeholder: "Interessi (es. dinosauri, fate, spazio)",
+    appearance_placeholder: "Aspetto (es. capelli lunghi scuri, occhi verdi)",
+    save_child: "Salva bambino",
+    update_child: "Aggiorna bambino",
+    cancel: "Annulla",
+    create_story_title: "Crea una storia",
+    medium_my_idea: "Storia Media — La Mia Idea",
+    long_my_idea: "Storia Lunga — La Mia Idea",
+    create_hint: "Di cosa dovrebbe parlare la storia stasera?",
+    create_placeholder: "es. una coraggiosa principessa che salva il suo drago cucciolo",
+    create_btn: "Crea la mia storia",
+    today_page_title: "Storia di Oggi",
+    today_hint: "Condividi 2–3 momenti di oggi. Li intrecceremo in una storia rilassante per la buonanotte.",
+    today_placeholder: "es. è caduta dalla bici ma era molto coraggiosa, abbiamo mangiato il gelato al parco",
+    today_mood_default: "Come è andata la giornata? (opzionale)",
+    mood_joyful: "Gioioso & felice",
+    mood_brave: "Coraggioso & orgoglioso",
+    mood_nervous: "Nervoso o preoccupato",
+    mood_tired: "Stanco o scontroso",
+    mood_exciting: "Impegnato & emozionante",
+    mood_quiet: "Tranquillo & dolce",
+    mood_mixed: "Un mix di emozioni",
+    today_btn: "Trasforma la giornata in una storia",
+    library_title: "Libreria di storie",
+    library_hint: "Storie salvate per questo bambino.",
+    settings_title: "Impostazioni",
+    account_heading: "Account",
+    manage_children: "Gestisci bambini",
+    log_out: "Esci",
+    story_language_heading: "Lingua delle storie",
+    story_language_hint: "Le storie saranno scritte nella lingua scelta.",
+    legal_heading: "Legale",
+    privacy_policy: "Informativa sulla privacy",
+    terms_of_service: "Termini di servizio",
+    danger_zone: "Zona pericolosa",
+    danger_hint: "Elimina definitivamente il tuo account e tutti i dati.",
+    delete_account: "Elimina il mio account",
+    home_nav: "Home",
+    library_nav: "Libreria",
+    settings_nav: "Impostazioni",
+    loading_text: "Scrittura della tua storia…",
+    loading_sub: "Di solito ci vogliono 10–20 secondi",
+    your_story: "La tua storia",
+    read_story: "Leggi la storia",
+    save_to_library: "★ Salva nella libreria",
+    saved: "Salvato!",
+    could_not_save: "Impossibile salvare",
+    reading_subtitle: "Una storia creata solo per te",
+    continue_tomorrow: "Continua domani",
+    privacy_title: "Informativa sulla privacy",
+    terms_title: "Termini di servizio",
+    story_for: "Storia per {{name}}",
+    active: "Attivo",
+    select_child: "Seleziona",
+    edit: "Modifica",
+    remove: "Rimuovi",
+    lang_saved_status: "✓ Le storie sono in",
+    alert_email_password: "Per favore inserisci la tua e-mail e password.",
+    alert_password_length: "La password deve avere almeno 6 caratteri.",
+    alert_add_child: "Per favore aggiungi e scegli un bambino prima.",
+    alert_add_beats: "Per favore condividi 2–3 momenti della giornata del tuo bambino.",
+    alert_add_idea: "Per favore inserisci un'idea per la storia.",
+    alert_save_child_name: "Per favore inserisci il nome del bambino.",
+    alert_save_child_age: "Per favore inserisci un'età valida (1–18).",
+    alert_max_children: "Puoi avere fino a {{max}} bambini su un account.",
+    alert_delete_logged_in: "Devi essere connesso per eliminare il tuo account.",
+    alert_delete_cancel: "Eliminazione account annullata.",
+    alert_delete_confirm: "Per eliminare definitivamente il tuo account, scrivi DELETE:",
+    alert_delete_password: "Per favore inserisci la tua password per confermare:",
+    alert_account_deleted: "Il tuo account è stato eliminato.",
+    alert_logout_confirm: "Uscire?",
+    alert_reset_email: "Per favore inserisci prima la tua e-mail nel campo e-mail.",
+    alert_reset_sent: "Abbiamo inviato un link di reimpostazione a {{email}}.",
+    alert_remove_child_fail: "Impossibile rimuovere il bambino. Riprova.",
+    alert_save_child_fail: "Impossibile salvare il bambino. Riprova.",
+    alert_remove_story_fail: "Impossibile rimuovere la storia. Riprova.",
+    alert_lang_save_fail: "Impossibile salvare la preferenza lingua. Riprova.",
+  },
+  "ja": {
+    tagline: "お子様のために作られた、魔法のようなお話",
+    auth_subtitle: "お子様が大切にする美しい寝るためのお話を作りましょう — 安全で、落ち着く、年齢に合ったお話です。",
+    email_placeholder: "メールアドレス",
+    password_placeholder: "パスワード",
+    sign_up: "新規登録",
+    log_in: "ログイン",
+    forgot_password: "パスワードをお忘れですか？",
+    sample_story_btn: "★ サンプルのお話を読む",
+    trust_line: "7日間無料体験 · その後 £2.99/月 · 週10話 · 広告なし",
+    auth_legal: "登録することで以下に同意します：",
+    auth_terms: "利用規約",
+    auth_and: "および",
+    auth_privacy: "プライバシーポリシー",
+    lang_subtitle: "お話の言語を選んでください",
+    lang_hint: "設定からいつでも変更できます",
+    continue_btn: "続ける",
+    back_btn: "← 戻る",
+    paywall_title: "無料体験が終了しました",
+    paywall_hint: "お子様が大好きなパーソナライズされた寝るためのお話を作り続けましょう。",
+    paywall_perk1: "毎週10話の魔法のようなお話",
+    paywall_perk2: "今日のお話、中編・長編のお話",
+    paywall_perk3: "完全なお話ライブラリとシリーズの継続",
+    paywall_perk4: "12言語 · 安全 · 広告なし",
+    subscribe_btn: "サブスクリプションを始める — £2.99/月",
+    paywall_note: "保存したお話はいつでも読めます。",
+    welcome_title: "DreamTalez へようこそ ★",
+    welcome_hint: "最初のお子様を追加して魔法のお話を作り始めましょう。",
+    add_first_child: "最初のお子様を追加",
+    change_btn: "変更",
+    story_today_title: "今日のお話",
+    story_today_desc: "お子様の実際の一日を落ち着く寝るためのお話に変えましょう",
+    story_today_badge: "毎日の習慣",
+    medium_story: "中編のお話",
+    medium_story_desc: "6〜7分のパーソナライズされた寝るためのお話",
+    long_story: "長編のお話",
+    long_story_desc: "お子様のための長い冒険（約10分）",
+    surprise_me: "🎲 おまかせ",
+    my_idea: "✏️ 私のアイデア",
+    children_title: "お子様",
+    add_child_heading: "お子様を追加",
+    edit_child_heading: "お子様を編集",
+    add_child_hint: "年齢、興味、外見に合わせてお話をパーソナライズします。",
+    child_name_placeholder: "お子様の名前",
+    age_placeholder: "年齢",
+    gender_default: "性別",
+    gender_girl: "女の子",
+    gender_boy: "男の子",
+    gender_neutral: "答えたくない",
+    interests_placeholder: "興味（例：恐竜、妖精、宇宙）",
+    appearance_placeholder: "外見（例：長い黒髪、緑の瞳）",
+    save_child: "お子様を保存",
+    update_child: "お子様を更新",
+    cancel: "キャンセル",
+    create_story_title: "お話を作る",
+    medium_my_idea: "中編のお話 — 私のアイデア",
+    long_my_idea: "長編のお話 — 私のアイデア",
+    create_hint: "今夜のお話はどんな内容にしますか？",
+    create_placeholder: "例：赤ちゃんドラゴンを救う勇敢なお姫様",
+    create_btn: "お話を作る",
+    today_page_title: "今日のお話",
+    today_hint: "今日の2〜3つの出来事を教えてください。それを落ち着く寝るためのお話に織り込みます。",
+    today_placeholder: "例：自転車から落ちたけどとても勇敢だった、公園でアイスクリームを食べた",
+    today_mood_default: "今日はどんな一日でしたか？（任意）",
+    mood_joyful: "嬉しくて楽しい",
+    mood_brave: "勇敢で誇らしい",
+    mood_nervous: "緊張または心配",
+    mood_tired: "疲れているまたは機嫌が悪い",
+    mood_exciting: "忙しくて刺激的",
+    mood_quiet: "静かで穏やか",
+    mood_mixed: "いろいろな気持ち",
+    today_btn: "今日をお話に変える",
+    library_title: "お話ライブラリ",
+    library_hint: "このお子様の保存済みお話。",
+    settings_title: "設定",
+    account_heading: "アカウント",
+    manage_children: "お子様を管理",
+    log_out: "ログアウト",
+    story_language_heading: "お話の言語",
+    story_language_hint: "お話は選択した言語で書かれます。",
+    legal_heading: "法的情報",
+    privacy_policy: "プライバシーポリシー",
+    terms_of_service: "利用規約",
+    danger_zone: "危険ゾーン",
+    danger_hint: "アカウントとすべてのデータを完全に削除します。",
+    delete_account: "アカウントを削除",
+    home_nav: "ホーム",
+    library_nav: "ライブラリ",
+    settings_nav: "設定",
+    loading_text: "お話を書いています…",
+    loading_sub: "通常10〜20秒かかります",
+    your_story: "あなたのお話",
+    read_story: "お話を読む",
+    save_to_library: "★ ライブラリに保存",
+    saved: "保存しました！",
+    could_not_save: "保存できませんでした",
+    reading_subtitle: "あなたのために作られたお話",
+    continue_tomorrow: "明日続ける",
+    privacy_title: "プライバシーポリシー",
+    terms_title: "利用規約",
+    story_for: "{{name}}のお話",
+    active: "選択中",
+    select_child: "選択",
+    edit: "編集",
+    remove: "削除",
+    lang_saved_status: "✓ お話の言語：",
+    alert_email_password: "メールアドレスとパスワードを入力してください。",
+    alert_password_length: "パスワードは6文字以上である必要があります。",
+    alert_add_child: "まずお子様を追加して選択してください。",
+    alert_add_beats: "まず今日の出来事を2〜3つ教えてください。",
+    alert_add_idea: "お話のアイデアを入力してください。",
+    alert_save_child_name: "お子様の名前を入力してください。",
+    alert_save_child_age: "有効な年齢を入力してください（1〜18）。",
+    alert_max_children: "1つのアカウントに最大{{max}}人のお子様を登録できます。",
+    alert_delete_logged_in: "アカウントを削除するにはログインが必要です。",
+    alert_delete_cancel: "アカウントの削除をキャンセルしました。",
+    alert_delete_confirm: "アカウントを完全に削除するには DELETE と入力してください：",
+    alert_delete_password: "確認のためパスワードを入力してください：",
+    alert_account_deleted: "アカウントが削除されました。",
+    alert_logout_confirm: "ログアウトしますか？",
+    alert_reset_email: "まずメールアドレスをメール欄に入力してください。",
+    alert_reset_sent: "{{email}} にリセットリンクを送信しました。",
+    alert_remove_child_fail: "お子様を削除できませんでした。もう一度お試しください。",
+    alert_save_child_fail: "お子様を保存できませんでした。もう一度お試しください。",
+    alert_remove_story_fail: "お話を削除できませんでした。もう一度お試しください。",
+    alert_lang_save_fail: "言語設定を保存できませんでした。もう一度お試しください。",
+  },
+  "zh-CN": {
+    tagline: "神奇的故事，专为您的孩子而创",
+    auth_subtitle: "创作美丽的个性化睡前故事，让孩子珍惜 — 安全、舒缓、适合年龄。",
+    email_placeholder: "电子邮件地址",
+    password_placeholder: "密码",
+    sign_up: "注册",
+    log_in: "登录",
+    forgot_password: "忘记密码？",
+    sample_story_btn: "★ 阅读示例故事",
+    trust_line: "7天免费试用 · 之后 £2.99/月 · 每周10个故事 · 无广告",
+    auth_legal: "注册即表示您同意我们的",
+    auth_terms: "服务条款",
+    auth_and: "和",
+    auth_privacy: "隐私政策",
+    lang_subtitle: "您希望故事使用哪种语言？",
+    lang_hint: "您可以随时在设置中更改",
+    continue_btn: "继续",
+    back_btn: "← 返回",
+    paywall_title: "您的免费试用已结束",
+    paywall_hint: "继续创作孩子喜欢的个性化睡前故事。",
+    paywall_perk1: "每周10个神奇故事",
+    paywall_perk2: "今日故事、中篇和长篇故事",
+    paywall_perk3: "完整故事库和系列连续性",
+    paywall_perk4: "12种语言 · 安全 · 无广告",
+    subscribe_btn: "开始订阅 — £2.99/月",
+    paywall_note: "您保存的故事永远属于您 — 随时可阅读。",
+    welcome_title: "欢迎使用 DreamTalez ★",
+    welcome_hint: "添加您的第一个孩子，开始创作神奇故事。",
+    add_first_child: "添加第一个孩子",
+    change_btn: "更改",
+    story_today_title: "今日故事",
+    story_today_desc: "将孩子真实的一天变成平静的睡前故事",
+    story_today_badge: "每日习惯",
+    medium_story: "中篇故事",
+    medium_story_desc: "6–7分钟的个性化睡前故事",
+    long_story: "长篇故事",
+    long_story_desc: "为孩子准备的更长冒险（约10分钟）",
+    surprise_me: "🎲 给我惊喜",
+    my_idea: "✏️ 我的想法",
+    children_title: "孩子",
+    add_child_heading: "添加孩子",
+    edit_child_heading: "编辑孩子",
+    add_child_hint: "故事根据孩子的年龄、兴趣和外貌个性化。",
+    child_name_placeholder: "孩子的名字",
+    age_placeholder: "年龄",
+    gender_default: "性别",
+    gender_girl: "女孩",
+    gender_boy: "男孩",
+    gender_neutral: "不愿透露",
+    interests_placeholder: "兴趣（如：恐龙、仙女、太空）",
+    appearance_placeholder: "外貌（如：长黑发，绿色眼睛）",
+    save_child: "保存孩子",
+    update_child: "更新孩子",
+    cancel: "取消",
+    create_story_title: "创作故事",
+    medium_my_idea: "中篇故事 — 我的想法",
+    long_my_idea: "长篇故事 — 我的想法",
+    create_hint: "今晚的故事应该讲什么？",
+    create_placeholder: "如：一位勇敢的公主救了她的小龙",
+    create_btn: "创作我的故事",
+    today_page_title: "今日故事",
+    today_hint: "分享今天的2–3个时刻。我们将把它们编织成平静的睡前故事。",
+    today_placeholder: "如：她从自行车上摔下来但很勇敢，我们在公园吃了冰淇淋",
+    today_mood_default: "今天感觉怎么样？（可选）",
+    mood_joyful: "快乐 & 开心",
+    mood_brave: "勇敢 & 自豪",
+    mood_nervous: "紧张或担心",
+    mood_tired: "疲惫或暴躁",
+    mood_exciting: "忙碌 & 兴奋",
+    mood_quiet: "安静 & 温柔",
+    mood_mixed: "各种感受",
+    today_btn: "将今天变成故事",
+    library_title: "故事库",
+    library_hint: "这个孩子的已保存故事。",
+    settings_title: "设置",
+    account_heading: "账户",
+    manage_children: "管理孩子",
+    log_out: "退出登录",
+    story_language_heading: "故事语言",
+    story_language_hint: "故事将以您选择的语言书写。",
+    legal_heading: "法律",
+    privacy_policy: "隐私政策",
+    terms_of_service: "服务条款",
+    danger_zone: "危险区域",
+    danger_hint: "永久删除您的账户和所有数据。",
+    delete_account: "删除我的账户",
+    home_nav: "主页",
+    library_nav: "故事库",
+    settings_nav: "设置",
+    loading_text: "正在写您的故事…",
+    loading_sub: "通常需要10–20秒",
+    your_story: "您的故事",
+    read_story: "阅读故事",
+    save_to_library: "★ 保存到故事库",
+    saved: "已保存！",
+    could_not_save: "无法保存",
+    reading_subtitle: "专为您创作的故事",
+    continue_tomorrow: "明天继续",
+    privacy_title: "隐私政策",
+    terms_title: "服务条款",
+    story_for: "{{name}}的故事",
+    active: "已选择",
+    select_child: "选择",
+    edit: "编辑",
+    remove: "删除",
+    lang_saved_status: "✓ 故事语言为",
+    alert_email_password: "请输入您的电子邮件和密码。",
+    alert_password_length: "密码必须至少6个字符。",
+    alert_add_child: "请先添加并选择一个孩子。",
+    alert_add_beats: "请先分享孩子今天的2–3个时刻。",
+    alert_add_idea: "请输入故事想法。",
+    alert_save_child_name: "请输入孩子的名字。",
+    alert_save_child_age: "请输入有效年龄（1–18）。",
+    alert_max_children: "一个账户最多可以有{{max}}个孩子。",
+    alert_delete_logged_in: "需要登录才能删除账户。",
+    alert_delete_cancel: "账户删除已取消。",
+    alert_delete_confirm: "要永久删除账户，请输入 DELETE：",
+    alert_delete_password: "请输入您的密码以确认：",
+    alert_account_deleted: "您的账户已被删除。",
+    alert_logout_confirm: "退出登录？",
+    alert_reset_email: "请先在邮件框中输入您的电子邮件地址。",
+    alert_reset_sent: "我们已向 {{email}} 发送了重置链接。",
+    alert_remove_child_fail: "无法删除孩子。请重试。",
+    alert_save_child_fail: "无法保存孩子。请重试。",
+    alert_remove_story_fail: "无法删除故事。请重试。",
+    alert_lang_save_fail: "无法保存语言首选项。请重试。",
+  },
+  "ar": {
+    tagline: "قصص سحرية، مصنوعة خصيصاً لطفلك",
+    auth_subtitle: "أنشئ قصص نوم شخصية جميلة سيكنزها طفلك — آمنة وهادئة ومناسبة للعمر.",
+    email_placeholder: "عنوان البريد الإلكتروني",
+    password_placeholder: "كلمة المرور",
+    sign_up: "إنشاء حساب",
+    log_in: "تسجيل الدخول",
+    forgot_password: "نسيت كلمة المرور؟",
+    sample_story_btn: "★ قراءة قصة نموذجية",
+    trust_line: "7 أيام تجربة مجانية · ثم £2.99/شهر · 10 قصص أسبوعياً · بلا إعلانات",
+    auth_legal: "بالتسجيل، أنت توافق على",
+    auth_terms: "شروط الخدمة",
+    auth_and: "و",
+    auth_privacy: "سياسة الخصوصية",
+    lang_subtitle: "ما اللغة التي تريد القصص بها؟",
+    lang_hint: "يمكنك تغيير هذا في أي وقت من الإعدادات",
+    continue_btn: "متابعة",
+    back_btn: "رجوع →",
+    paywall_title: "انتهت فترة التجربة المجانية",
+    paywall_hint: "استمر في إنشاء قصص نوم شخصية جميلة سيحبها طفلك.",
+    paywall_perk1: "10 قصص سحرية كل أسبوع",
+    paywall_perk2: "قصة اليوم، والقصص المتوسطة والطويلة",
+    paywall_perk3: "مكتبة قصص كاملة واستمرارية السلاسل",
+    paywall_perk4: "12 لغة · آمن · بلا إعلانات",
+    subscribe_btn: "ابدأ الاشتراك — £2.99/شهر",
+    paywall_note: "قصصك المحفوظة لك دائماً — يمكن قراءتها في أي وقت.",
+    welcome_title: "مرحباً بك في DreamTalez ★",
+    welcome_hint: "أضف طفلك الأول لبدء إنشاء قصص سحرية.",
+    add_first_child: "إضافة طفلك الأول",
+    change_btn: "تغيير",
+    story_today_title: "قصة اليوم",
+    story_today_desc: "حوّل يوم طفلك الحقيقي إلى قصة نوم هادئة",
+    story_today_badge: "عادة يومية",
+    medium_story: "قصة متوسطة",
+    medium_story_desc: "قصة نوم شخصية مدتها 6–7 دقائق",
+    long_story: "قصة طويلة",
+    long_story_desc: "مغامرة أطول (~10 دقائق) لطفلك",
+    surprise_me: "🎲 فاجئني",
+    my_idea: "✏️ فكرتي",
+    children_title: "الأطفال",
+    add_child_heading: "إضافة طفل",
+    edit_child_heading: "تعديل الطفل",
+    add_child_hint: "تُخصَّص القصص وفق عمر الطفل واهتماماته ومظهره.",
+    child_name_placeholder: "الاسم الأول للطفل",
+    age_placeholder: "العمر",
+    gender_default: "الجنس",
+    gender_girl: "بنت",
+    gender_boy: "ولد",
+    gender_neutral: "أفضل عدم الإفصاح",
+    interests_placeholder: "الاهتمامات (مثل: الديناصورات، الجنيات، الفضاء)",
+    appearance_placeholder: "المظهر (مثل: شعر طويل داكن، عيون خضراء)",
+    save_child: "حفظ الطفل",
+    update_child: "تحديث الطفل",
+    cancel: "إلغاء",
+    create_story_title: "إنشاء قصة",
+    medium_my_idea: "قصة متوسطة — فكرتي",
+    long_my_idea: "قصة طويلة — فكرتي",
+    create_hint: "عمَ يجب أن تكون القصة الليلة؟",
+    create_placeholder: "مثل: أميرة شجاعة تنقذ تنينها الصغير",
+    create_btn: "إنشاء قصتي",
+    today_page_title: "قصة اليوم",
+    today_hint: "شارك 2–3 لحظات من اليوم. سنحيكها في قصة نوم هادئة حتى يشعر طفلك بأنه مسموع.",
+    today_placeholder: "مثل: سقطت من الدراجة لكنها كانت شجاعة جداً، أكلنا آيس كريم في الحديقة",
+    today_mood_default: "كيف كان اليوم؟ (اختياري)",
+    mood_joyful: "مبهج وسعيد",
+    mood_brave: "شجاع وفخور",
+    mood_nervous: "متوتر أو قلق",
+    mood_tired: "متعب أو عصبي",
+    mood_exciting: "مشغول ومثير",
+    mood_quiet: "هادئ ولطيف",
+    mood_mixed: "مزيج من المشاعر",
+    today_btn: "حوّل اليوم إلى قصة",
+    library_title: "مكتبة القصص",
+    library_hint: "القصص المحفوظة لهذا الطفل.",
+    settings_title: "الإعدادات",
+    account_heading: "الحساب",
+    manage_children: "إدارة الأطفال",
+    log_out: "تسجيل الخروج",
+    story_language_heading: "لغة القصص",
+    story_language_hint: "ستُكتب القصص باللغة التي تختارها.",
+    legal_heading: "قانوني",
+    privacy_policy: "سياسة الخصوصية",
+    terms_of_service: "شروط الخدمة",
+    danger_zone: "منطقة خطر",
+    danger_hint: "حذف حسابك وجميع بياناتك نهائياً.",
+    delete_account: "حذف حسابي",
+    home_nav: "الرئيسية",
+    library_nav: "المكتبة",
+    settings_nav: "الإعدادات",
+    loading_text: "جارٍ كتابة قصتك…",
+    loading_sub: "يستغرق هذا عادةً 10–20 ثانية",
+    your_story: "قصتك",
+    read_story: "قراءة القصة",
+    save_to_library: "★ حفظ في المكتبة",
+    saved: "تم الحفظ!",
+    could_not_save: "تعذّر الحفظ",
+    reading_subtitle: "قصة صُنعت خصيصاً لك",
+    continue_tomorrow: "متابعة غداً",
+    privacy_title: "سياسة الخصوصية",
+    terms_title: "شروط الخدمة",
+    story_for: "قصة لـ {{name}}",
+    active: "نشط",
+    select_child: "اختيار",
+    edit: "تعديل",
+    remove: "إزالة",
+    lang_saved_status: "✓ القصص باللغة",
+    alert_email_password: "يرجى إدخال بريدك الإلكتروني وكلمة المرور.",
+    alert_password_length: "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.",
+    alert_add_child: "يرجى إضافة طفل واختياره أولاً.",
+    alert_add_beats: "يرجى مشاركة 2–3 لحظات من يوم طفلك أولاً.",
+    alert_add_idea: "يرجى إدخال فكرة للقصة.",
+    alert_save_child_name: "يرجى إدخال اسم الطفل.",
+    alert_save_child_age: "يرجى إدخال عمر صحيح (1–18).",
+    alert_max_children: "يمكنك إضافة {{max}} أطفال كحد أقصى في حساب واحد.",
+    alert_delete_logged_in: "يجب أن تكون مسجلاً للدخول لحذف حسابك.",
+    alert_delete_cancel: "تم إلغاء حذف الحساب.",
+    alert_delete_confirm: "لحذف حسابك نهائياً، اكتب DELETE:",
+    alert_delete_password: "يرجى إدخال كلمة المرور للتأكيد:",
+    alert_account_deleted: "تم حذف حسابك.",
+    alert_logout_confirm: "تسجيل الخروج؟",
+    alert_reset_email: "يرجى كتابة بريدك الإلكتروني في حقل البريد أولاً.",
+    alert_reset_sent: "أرسلنا رابط إعادة التعيين إلى {{email}}.",
+    alert_remove_child_fail: "تعذّر إزالة الطفل. يرجى المحاولة مرة أخرى.",
+    alert_save_child_fail: "تعذّر حفظ الطفل. يرجى المحاولة مرة أخرى.",
+    alert_remove_story_fail: "تعذّر إزالة القصة. يرجى المحاولة مرة أخرى.",
+    alert_lang_save_fail: "تعذّر حفظ تفضيل اللغة. يرجى المحاولة مرة أخرى.",
+  },
+  "hi": {
+    tagline: "जादुई कहानियाँ, बस आपके बच्चे के लिए बनाई गई",
+    auth_subtitle: "सुंदर, व्यक्तिगत रात की कहानियाँ बनाएं जिन्हें आपका बच्चा संजोएगा — सुरक्षित, शांत और उम्र के अनुसार।",
+    email_placeholder: "ईमेल पता",
+    password_placeholder: "पासवर्ड",
+    sign_up: "साइन अप करें",
+    log_in: "लॉग इन करें",
+    forgot_password: "पासवर्ड भूल गए?",
+    sample_story_btn: "★ एक नमूना कहानी पढ़ें",
+    trust_line: "7 दिन का मुफ़्त ट्रायल · फिर £2.99/माह · प्रति सप्ताह 10 कहानियाँ · कोई विज्ञापन नहीं",
+    auth_legal: "साइन अप करके आप हमारी",
+    auth_terms: "शर्तें",
+    auth_and: "और",
+    auth_privacy: "गोपनीयता नीति",
+    lang_subtitle: "आप कहानियाँ किस भाषा में चाहते हैं?",
+    lang_hint: "आप इसे सेटिंग्स में कभी भी बदल सकते हैं",
+    continue_btn: "जारी रखें",
+    back_btn: "← वापस",
+    paywall_title: "आपका मुफ़्त ट्रायल समाप्त हो गया",
+    paywall_hint: "व्यक्तिगत रात की कहानियाँ बनाते रहें जो आपके बच्चे को पसंद आएंगी।",
+    paywall_perk1: "हर हफ़्ते 10 जादुई कहानियाँ",
+    paywall_perk2: "आज की कहानी, मध्यम और लंबी कहानियाँ",
+    paywall_perk3: "पूरी कहानी लाइब्रेरी और श्रृंखला की निरंतरता",
+    paywall_perk4: "12 भाषाएं · सुरक्षित · कोई विज्ञापन नहीं",
+    subscribe_btn: "सदस्यता शुरू करें — £2.99/माह",
+    paywall_note: "आपकी सहेजी गई कहानियाँ हमेशा आपकी हैं — कभी भी पढ़ें।",
+    welcome_title: "DreamTalez में आपका स्वागत है ★",
+    welcome_hint: "जादुई कहानियाँ बनाना शुरू करने के लिए अपना पहला बच्चा जोड़ें।",
+    add_first_child: "अपना पहला बच्चा जोड़ें",
+    change_btn: "बदलें",
+    story_today_title: "आज की कहानी",
+    story_today_desc: "अपने बच्चे के असली दिन को एक शांत रात की कहानी में बदलें",
+    story_today_badge: "रोज़ की आदत",
+    medium_story: "मध्यम कहानी",
+    medium_story_desc: "6–7 मिनट की व्यक्तिगत रात की कहानी",
+    long_story: "लंबी कहानी",
+    long_story_desc: "आपके बच्चे के लिए एक लंबा साहसिक कार्य (~10 मिनट)",
+    surprise_me: "🎲 मुझे आश्चर्यचकित करें",
+    my_idea: "✏️ मेरा विचार",
+    children_title: "बच्चे",
+    add_child_heading: "बच्चा जोड़ें",
+    edit_child_heading: "बच्चा संपादित करें",
+    add_child_hint: "कहानियाँ उनकी उम्र, रुचियों और रूप-रंग के अनुसार व्यक्तिगत बनाई जाती हैं।",
+    child_name_placeholder: "बच्चे का पहला नाम",
+    age_placeholder: "उम्र",
+    gender_default: "लिंग",
+    gender_girl: "लड़की",
+    gender_boy: "लड़का",
+    gender_neutral: "बताना पसंद नहीं",
+    interests_placeholder: "रुचियाँ (जैसे डायनासोर, परियाँ, अंतरिक्ष)",
+    appearance_placeholder: "रूप-रंग (जैसे लंबे काले बाल, हरी आँखें)",
+    save_child: "बच्चा सहेजें",
+    update_child: "बच्चा अपडेट करें",
+    cancel: "रद्द करें",
+    create_story_title: "कहानी बनाएं",
+    medium_my_idea: "मध्यम कहानी — मेरा विचार",
+    long_my_idea: "लंबी कहानी — मेरा विचार",
+    create_hint: "आज रात की कहानी किस बारे में होनी चाहिए?",
+    create_placeholder: "जैसे एक बहादुर राजकुमारी जो अपने बेबी ड्रैगन को बचाती है",
+    create_btn: "मेरी कहानी बनाएं",
+    today_page_title: "आज की कहानी",
+    today_hint: "आज के 2–3 पल साझा करें। हम उन्हें एक शांत रात की कहानी में बुनेंगे।",
+    today_placeholder: "जैसे वह साइकिल से गिरी लेकिन बहुत बहादुर थी, हमने पार्क में आइसक्रीम खाई",
+    today_mood_default: "आज कैसा लगा? (वैकल्पिक)",
+    mood_joyful: "खुशी और उमंग",
+    mood_brave: "बहादुर और गर्वित",
+    mood_nervous: "घबराहट या चिंता",
+    mood_tired: "थकान या चिड़चिड़ापन",
+    mood_exciting: "व्यस्त और रोमांचक",
+    mood_quiet: "शांत और कोमल",
+    mood_mixed: "मिली-जुली भावनाएं",
+    today_btn: "आज को कहानी में बदलें",
+    library_title: "कहानी लाइब्रेरी",
+    library_hint: "इस बच्चे की सहेजी गई कहानियाँ।",
+    settings_title: "सेटिंग्स",
+    account_heading: "खाता",
+    manage_children: "बच्चों का प्रबंधन",
+    log_out: "लॉग आउट",
+    story_language_heading: "कहानी की भाषा",
+    story_language_hint: "कहानियाँ आपकी चुनी हुई भाषा में लिखी जाएंगी।",
+    legal_heading: "कानूनी",
+    privacy_policy: "गोपनीयता नीति",
+    terms_of_service: "सेवा की शर्तें",
+    danger_zone: "खतरनाक क्षेत्र",
+    danger_hint: "अपना खाता और सारा डेटा स्थायी रूप से हटाएं।",
+    delete_account: "मेरा खाता हटाएं",
+    home_nav: "होम",
+    library_nav: "लाइब्रेरी",
+    settings_nav: "सेटिंग्स",
+    loading_text: "आपकी कहानी लिखी जा रही है…",
+    loading_sub: "इसमें आमतौर पर 10–20 सेकंड लगते हैं",
+    your_story: "आपकी कहानी",
+    read_story: "कहानी पढ़ें",
+    save_to_library: "★ लाइब्रेरी में सहेजें",
+    saved: "सहेज लिया!",
+    could_not_save: "सहेजा नहीं जा सका",
+    reading_subtitle: "बस आपके लिए बनाई गई कहानी",
+    continue_tomorrow: "कल जारी रखें",
+    privacy_title: "गोपनीयता नीति",
+    terms_title: "सेवा की शर्तें",
+    story_for: "{{name}} के लिए कहानी",
+    active: "सक्रिय",
+    select_child: "चुनें",
+    edit: "संपादित करें",
+    remove: "हटाएं",
+    lang_saved_status: "✓ कहानियाँ इस भाषा में:",
+    alert_email_password: "कृपया अपना ईमेल और पासवर्ड दर्ज करें।",
+    alert_password_length: "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
+    alert_add_child: "कृपया पहले एक बच्चा जोड़ें और चुनें।",
+    alert_add_beats: "कृपया पहले बच्चे के दिन के 2–3 पल साझा करें।",
+    alert_add_idea: "कृपया एक कहानी का विचार दर्ज करें।",
+    alert_save_child_name: "कृपया बच्चे का नाम दर्ज करें।",
+    alert_save_child_age: "कृपया एक वैध आयु दर्ज करें (1–18)।",
+    alert_max_children: "एक खाते में अधिकतम {{max}} बच्चे हो सकते हैं।",
+    alert_delete_logged_in: "खाता हटाने के लिए आपको लॉग इन होना आवश्यक है।",
+    alert_delete_cancel: "खाता हटाना रद्द कर दिया गया।",
+    alert_delete_confirm: "अपना खाता स्थायी रूप से हटाने के लिए DELETE टाइप करें:",
+    alert_delete_password: "पुष्टि के लिए अपना पासवर्ड दर्ज करें:",
+    alert_account_deleted: "आपका खाता हटा दिया गया है।",
+    alert_logout_confirm: "लॉग आउट करें?",
+    alert_reset_email: "कृपया पहले ईमेल बॉक्स में अपना ईमेल पता टाइप करें।",
+    alert_reset_sent: "हमने {{email}} पर एक रीसेट लिंक भेजा है।",
+    alert_remove_child_fail: "बच्चा नहीं हटाया जा सका। कृपया फिर कोशिश करें।",
+    alert_save_child_fail: "बच्चा सहेजा नहीं जा सका। कृपया फिर कोशिश करें।",
+    alert_remove_story_fail: "कहानी नहीं हटाई जा सकी। कृपया फिर कोशिश करें।",
+    alert_lang_save_fail: "भाषा प्राथमिकता सहेजी नहीं जा सकी। कृपया फिर कोशिश करें।",
+  },
+  "ur": {
+    tagline: "جادوئی کہانیاں، صرف آپ کے بچے کے لیے بنائی گئی",
+    auth_subtitle: "خوبصورت، ذاتی رات کی کہانیاں بنائیں جنہیں آپ کا بچہ سنبھال کے رکھے گا — محفوظ، پرسکون اور عمر کے مناسب۔",
+    email_placeholder: "ای میل پتہ",
+    password_placeholder: "پاس ورڈ",
+    sign_up: "سائن اپ کریں",
+    log_in: "لاگ ان کریں",
+    forgot_password: "پاس ورڈ بھول گئے؟",
+    sample_story_btn: "★ ایک نمونہ کہانی پڑھیں",
+    trust_line: "7 دن کا مفت ٹرائل · پھر £2.99/ماہ · ہر ہفتے 10 کہانیاں · کوئی اشتہار نہیں",
+    auth_legal: "سائن اپ کر کے آپ ہماری",
+    auth_terms: "شرائط",
+    auth_and: "اور",
+    auth_privacy: "رازداری کی پالیسی",
+    lang_subtitle: "آپ کہانیاں کس زبان میں چاہتے ہیں؟",
+    lang_hint: "آپ یہ کسی بھی وقت ترتیبات میں تبدیل کر سکتے ہیں",
+    continue_btn: "جاری رکھیں",
+    back_btn: "واپس →",
+    paywall_title: "آپ کا مفت ٹرائل ختم ہو گیا",
+    paywall_hint: "ذاتی رات کی کہانیاں بنانا جاری رکھیں جو آپ کا بچہ پسند کرے گا۔",
+    paywall_perk1: "ہر ہفتے 10 جادوئی کہانیاں",
+    paywall_perk2: "آج کی کہانی، درمیانی اور لمبی کہانیاں",
+    paywall_perk3: "مکمل کہانی لائبریری اور سیریز کا تسلسل",
+    paywall_perk4: "12 زبانیں · محفوظ · کوئی اشتہار نہیں",
+    subscribe_btn: "سبسکرائب شروع کریں — £2.99/ماہ",
+    paywall_note: "آپ کی محفوظ کہانیاں ہمیشہ آپ کی ہیں — کسی بھی وقت پڑھیں۔",
+    welcome_title: "DreamTalez میں خوش آمدید ★",
+    welcome_hint: "جادوئی کہانیاں بنانا شروع کرنے کے لیے اپنا پہلا بچہ شامل کریں۔",
+    add_first_child: "اپنا پہلا بچہ شامل کریں",
+    change_btn: "تبدیل کریں",
+    story_today_title: "آج کی کہانی",
+    story_today_desc: "اپنے بچے کے اصل دن کو ایک پرسکون رات کی کہانی میں بدلیں",
+    story_today_badge: "روزانہ کی عادت",
+    medium_story: "درمیانی کہانی",
+    medium_story_desc: "6–7 منٹ کی ذاتی رات کی کہانی",
+    long_story: "لمبی کہانی",
+    long_story_desc: "آپ کے بچے کے لیے ایک لمبا سفر (~10 منٹ)",
+    surprise_me: "🎲 مجھے حیران کریں",
+    my_idea: "✏️ میرا خیال",
+    children_title: "بچے",
+    add_child_heading: "بچہ شامل کریں",
+    edit_child_heading: "بچہ ترمیم کریں",
+    add_child_hint: "کہانیاں ان کی عمر، دلچسپیوں اور ظاہری شکل کے مطابق ذاتی بنائی جاتی ہیں۔",
+    child_name_placeholder: "بچے کا پہلا نام",
+    age_placeholder: "عمر",
+    gender_default: "جنس",
+    gender_girl: "لڑکی",
+    gender_boy: "لڑکا",
+    gender_neutral: "بتانا پسند نہیں",
+    interests_placeholder: "دلچسپیاں (جیسے ڈائنوسار، پریاں، خلا)",
+    appearance_placeholder: "ظاہری شکل (جیسے لمبے کالے بال، سبز آنکھیں)",
+    save_child: "بچہ محفوظ کریں",
+    update_child: "بچہ اپ ڈیٹ کریں",
+    cancel: "منسوخ کریں",
+    create_story_title: "کہانی بنائیں",
+    medium_my_idea: "درمیانی کہانی — میرا خیال",
+    long_my_idea: "لمبی کہانی — میرا خیال",
+    create_hint: "آج رات کی کہانی کس بارے میں ہونی چاہیے؟",
+    create_placeholder: "جیسے ایک بہادر شہزادی جو اپنے بچے ڈریگن کو بچاتی ہے",
+    create_btn: "میری کہانی بنائیں",
+    today_page_title: "آج کی کہانی",
+    today_hint: "آج کے 2–3 لمحات شیئر کریں۔ ہم انہیں ایک پرسکون رات کی کہانی میں بُنیں گے۔",
+    today_placeholder: "جیسے وہ سائیکل سے گری لیکن بہت بہادر تھی، ہم نے پارک میں آئس کریم کھائی",
+    today_mood_default: "آج کیسا لگا؟ (اختیاری)",
+    mood_joyful: "خوشی اور مسرت",
+    mood_brave: "بہادر اور فخرمند",
+    mood_nervous: "گھبراہٹ یا پریشانی",
+    mood_tired: "تھکاوٹ یا چڑچڑاپن",
+    mood_exciting: "مصروف اور پرجوش",
+    mood_quiet: "پرسکون اور نرم",
+    mood_mixed: "ملے جلے جذبات",
+    today_btn: "آج کو کہانی میں بدلیں",
+    library_title: "کہانی لائبریری",
+    library_hint: "اس بچے کی محفوظ کہانیاں۔",
+    settings_title: "ترتیبات",
+    account_heading: "اکاؤنٹ",
+    manage_children: "بچوں کا نظم کریں",
+    log_out: "لاگ آؤٹ",
+    story_language_heading: "کہانی کی زبان",
+    story_language_hint: "کہانیاں آپ کی منتخب زبان میں لکھی جائیں گی۔",
+    legal_heading: "قانونی",
+    privacy_policy: "رازداری کی پالیسی",
+    terms_of_service: "خدمت کی شرائط",
+    danger_zone: "خطرناک علاقہ",
+    danger_hint: "اپنا اکاؤنٹ اور تمام ڈیٹا مستقل طور پر حذف کریں۔",
+    delete_account: "میرا اکاؤنٹ حذف کریں",
+    home_nav: "ہوم",
+    library_nav: "لائبریری",
+    settings_nav: "ترتیبات",
+    loading_text: "آپ کی کہانی لکھی جا رہی ہے…",
+    loading_sub: "اس میں عموماً 10–20 سیکنڈ لگتے ہیں",
+    your_story: "آپ کی کہانی",
+    read_story: "کہانی پڑھیں",
+    save_to_library: "★ لائبریری میں محفوظ کریں",
+    saved: "محفوظ ہو گیا!",
+    could_not_save: "محفوظ نہیں ہو سکا",
+    reading_subtitle: "صرف آپ کے لیے بنائی گئی کہانی",
+    continue_tomorrow: "کل جاری رکھیں",
+    privacy_title: "رازداری کی پالیسی",
+    terms_title: "خدمت کی شرائط",
+    story_for: "{{name}} کے لیے کہانی",
+    active: "فعال",
+    select_child: "منتخب کریں",
+    edit: "ترمیم",
+    remove: "ہٹائیں",
+    lang_saved_status: "✓ کہانیاں اس زبان میں:",
+    alert_email_password: "براہ کرم اپنا ای میل اور پاس ورڈ درج کریں۔",
+    alert_password_length: "پاس ورڈ کم از کم 6 حروف کا ہونا چاہیے۔",
+    alert_add_child: "براہ کرم پہلے ایک بچہ شامل کریں اور منتخب کریں۔",
+    alert_add_beats: "براہ کرم پہلے بچے کے دن کے 2–3 لمحات شیئر کریں۔",
+    alert_add_idea: "براہ کرم کہانی کا کوئی خیال درج کریں۔",
+    alert_save_child_name: "براہ کرم بچے کا نام درج کریں۔",
+    alert_save_child_age: "براہ کرم ایک درست عمر درج کریں (1–18)۔",
+    alert_max_children: "ایک اکاؤنٹ میں زیادہ سے زیادہ {{max}} بچے ہو سکتے ہیں۔",
+    alert_delete_logged_in: "اکاؤنٹ حذف کرنے کے لیے آپ کو لاگ ان ہونا ضروری ہے۔",
+    alert_delete_cancel: "اکاؤنٹ حذف کرنا منسوخ کر دیا گیا۔",
+    alert_delete_confirm: "اپنا اکاؤنٹ مستقل طور پر حذف کرنے کے لیے DELETE ٹائپ کریں:",
+    alert_delete_password: "تصدیق کے لیے اپنا پاس ورڈ درج کریں:",
+    alert_account_deleted: "آپ کا اکاؤنٹ حذف کر دیا گیا ہے۔",
+    alert_logout_confirm: "لاگ آؤٹ کریں؟",
+    alert_reset_email: "براہ کرم پہلے ای میل باکس میں اپنا ای میل پتہ ٹائپ کریں۔",
+    alert_reset_sent: "ہم نے {{email}} پر ری سیٹ لنک بھیج دیا ہے۔",
+    alert_remove_child_fail: "بچہ نہیں ہٹایا جا سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+    alert_save_child_fail: "بچہ محفوظ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+    alert_remove_story_fail: "کہانی نہیں ہٹائی جا سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+    alert_lang_save_fail: "زبان کی ترجیح محفوظ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+  },
+};
+/* eslint-enable quote-props */
+
+// en-US inherits from en-GB (dialect differences handled separately)
+UI_STRINGS["en-US"] = UI_STRINGS["en-GB"];
+
+/**
+ * Translate a UI key into the current language, with optional {{var}} substitution.
+ * Falls back to en-GB, then the raw key, so nothing ever breaks silently.
+ */
+function t(key, vars) {
+  const lang = getCurrentLanguage();
+  const strings = UI_STRINGS[lang] || UI_STRINGS["en-GB"];
+  let str = strings[key] ?? UI_STRINGS["en-GB"][key] ?? key;
+  if (vars) {
+    Object.keys(vars).forEach((k) => {
+      str = str.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), vars[k]);
+    });
+  }
+  return str;
+}
+
+/**
+ * Apply the current UI language to every labelled element in the DOM.
+ * Call this after language changes and after initial boot.
+ */
+function applyUILanguage() {
+  const lang = getCurrentLanguage();
+  const els = document.querySelectorAll("[data-i18n]");
+
+  // Set document direction and lang attribute
+  document.documentElement.lang = lang;
+  document.documentElement.dir = RTL_LANGUAGES.has(lang) ? "rtl" : "ltr";
+
+  // Translate all text-content elements
+  els.forEach((el) => {
+    const val = t(el.dataset.i18n);
+    if (val !== undefined) el.textContent = val;
+  });
+
+  // Translate all placeholder attributes
+  document.querySelectorAll("[data-i18n-ph]").forEach((el) => {
+    const val = t(el.dataset.i18nPh);
+    if (val !== undefined) el.placeholder = val;
+  });
+
+  // Translate aria-labels
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    const val = t(el.dataset.i18nAria);
+    if (val !== undefined) el.setAttribute("aria-label", val);
+  });
+
+  // Refresh settings language status if visible
+  const sStatus = $("settingsLangStatus");
+  if (sStatus && sStatus.textContent) {
+    sStatus.textContent = `${t("lang_saved_status")} ${LANGUAGE_LABELS[lang] || lang}`;
+  }
+}
+
 async function saveLanguageToFirestore(langCode) {
+  // Always persist locally first — instant, works offline, survives CSP issues
+  try { localStorage.setItem(LS_LANG_KEY, langCode); } catch {}
   if (!currentUser) return;
   try {
     const { doc, setDoc, getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
@@ -290,6 +1746,11 @@ async function loadUserProfile() {
       return { isNewUser: true };
     }
     const data = snap.data();
+    // language === null means signup created the doc but the user hasn't
+    // chosen a language yet — treat as new user and show the language screen.
+    if (data.language === null) {
+      return { isNewUser: true };
+    }
     if (data.language && SUPPORTED_LANGUAGES.includes(data.language)) {
       cachedLanguage = data.language;
       // Keep cachedDialect in sync for en-GB/en-US
@@ -317,6 +1778,8 @@ function matchReplacementCase(source, replacement) {
 
 function applyDialectToText(text, dialect = getCurrentDialect()) {
   if (!text) return "";
+  // Dialect substitution only applies to English variants
+  if (!["en-GB", "en-US"].includes(dialect)) return String(text);
 
   const replacements = DIALECT_PAIRS
     .map(([british, american]) => dialect === DIALECT_AMERICAN ? [british, american] : [american, british])
@@ -378,7 +1841,7 @@ async function saveStoryDialect(nextDialect) {
     cachedDialect = previousDialect;
     renderDialectControls();
     console.error("Saving dialect preference failed:", error);
-    alert("Could not save language preference. Please try again.");
+    alert(t("alert_lang_save_fail"));
   }
 }
 
@@ -2850,7 +4313,7 @@ function interestMatchesWorld(worldKey, interests) {
 }
 
 function scoreInterestMatch(worldKey, interests) {
-  if (!interests || !interests.length) return false;
+  if (!interests || !interests.length) return 0;
   const aliases = themeAliases[worldKey] || [];
   const needles = [worldKey.toLowerCase(), ...aliases.map((a) => a.toLowerCase())];
   let bestScore = 0;
@@ -3472,7 +4935,7 @@ function detectProceduralAssemblyIssues(story, { name, discovery, goal, subj, cu
       .some((term) => normalizedStory.includes(term));
     const fidelityTerms = extractQuickWishFidelityTerms(ideaText);
     const missingFidelityTerms = fidelityTerms.filter((term) => {
-      const pattern = new RegExp(`\b${escapeRegExp(term)}\b`, "i");
+      const pattern = new RegExp(`\\b${escapeRegExp(term)}\\b`, "i");
       return !pattern.test(text);
     });
 
@@ -4491,7 +5954,7 @@ function buildOfflineIdeaArc(name, companion, customIdea, goal, flyingSceneKey =
 
   const lower = idea.toLowerCase();
 
-  if (/\bfly|flying|glide|gliding|soar|soaring\b/.test(lower)) {
+  if (/\b(fly|flying|glide|gliding|soar|soaring)\b/.test(lower)) {
     const backdrop = pickFlyingBackdrop(lower, flyingSceneKey);
     return {
       setupLine: `${name} had one special hope tonight: to fly in a calm, magical way ${backdrop.setup} and ${goal}.`,
@@ -4508,7 +5971,7 @@ function buildOfflineIdeaArc(name, companion, customIdea, goal, flyingSceneKey =
     };
   }
 
-  if (/\bsuperhero|hero|cape|power|powers\b/.test(lower)) {
+  if (/\b(superhero|hero|cape|power|powers)\b/.test(lower)) {
     return {
       setupLine: `${name} knew tonight's story was about being a gentle hero and ${goal}.`,
       incitingLine: `Even before the adventure fully began, ${name} could feel that tonight would call for a quiet kind of bravery.`,
@@ -4519,7 +5982,7 @@ function buildOfflineIdeaArc(name, companion, customIdea, goal, flyingSceneKey =
     };
   }
 
-  if (/\bswim|swimming|sea|ocean|underwater\b/.test(lower)) {
+  if (/\b(swim|swimming|sea|ocean|underwater)\b/.test(lower)) {
     return {
       setupLine: `${name} set out with one soft, exciting idea in mind: to swim through a magical bedtime adventure and ${goal}.`,
       incitingLine: `The night seemed to ripple open around that idea, inviting ${name} onward in the gentlest possible way.`,
@@ -5379,7 +6842,7 @@ function enterReadingMode() {
   const saveBtn = $("saveProgressBtn");
   if (!readingMode || !readingTitle || !readingText) return;
 
-  readingTitle.textContent = currentStoryTitle || "Your Story";
+  readingTitle.textContent = currentStoryTitle || t("your_story");
   readingText.textContent = formatStory(currentStoryText);
 
   // Show save button only for AI-generated Hero stories
@@ -5456,9 +6919,9 @@ function setupReadingModeEvents() {
   if (saveProgressBtn) {
     saveProgressBtn.addEventListener("click", () => {
       localStorage.setItem("readingScroll", readingMode.scrollTop || 0);
-      saveProgressBtn.textContent = "Saved!";
+      saveProgressBtn.textContent = t("saved");
       setTimeout(() => {
-        saveProgressBtn.textContent = "Continue Tomorrow";
+        saveProgressBtn.textContent = t("continue_tomorrow");
       }, 2000);
     });
   }
@@ -5523,15 +6986,15 @@ function navigateTo(page) {
   } else if (page === "today") {
     const child = getSelectedChild();
     const label = $("todayChildLabel");
-    if (label) label.textContent = child.name !== "a little one" ? `Story for ${child.name}` : "";
+    if (label) label.textContent = child.name !== "a little one" ? t("story_for", { name: child.name }) : "";
   } else if (page === "create") {
     const child = getSelectedChild();
     const label = $("createChildLabel");
     const titleEl = $("createPageTitle");
     const lengthInput = $("createLength");
     const length = lengthInput?.value || "medium";
-    if (label) label.textContent = child.name !== "a little one" ? `Story for ${child.name}` : "";
-    if (titleEl) titleEl.textContent = length === "long" ? "Long Story — My Idea" : "Medium Story — My Idea";
+    if (label) label.textContent = child.name !== "a little one" ? t("story_for", { name: child.name }) : "";
+    if (titleEl) titleEl.textContent = length === "long" ? t("long_my_idea") : t("medium_my_idea");
   } else if (page === "library") {
     renderLibrary();
     renderLibraryChildFilter();
@@ -5547,8 +7010,11 @@ function navigateTo(page) {
       });
     }
     const sStatus = $("settingsLangStatus");
-    if (sStatus) sStatus.textContent = `✓ Stories are in ${LANGUAGE_LABELS[getCurrentLanguage()] || getCurrentLanguage()}`;
+    if (sStatus) sStatus.textContent = `${t("lang_saved_status")} ${LANGUAGE_LABELS[getCurrentLanguage()] || getCurrentLanguage()}`;
   }
+
+  // Re-apply translations so page-setup functions can't override them
+  applyUILanguage();
 
   // Scroll to top of the new page
   const targetEl = $(targetId);
@@ -5633,7 +7099,7 @@ function renderChildrenList() {
 
     const selectBtn = document.createElement("button");
     selectBtn.type = "button";
-    selectBtn.textContent = index === selectedChildIndex ? "Active" : "Select";
+    selectBtn.textContent = index === selectedChildIndex ? t("active") : t("select_child");
     selectBtn.disabled = index === selectedChildIndex;
     selectBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -5643,7 +7109,7 @@ function renderChildrenList() {
 
     const editBtn = document.createElement("button");
     editBtn.type = "button";
-    editBtn.textContent = "Edit";
+    editBtn.textContent = t("edit");
     editBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       editChildByIndex(index);
@@ -5652,7 +7118,7 @@ function renderChildrenList() {
     const delBtn = document.createElement("button");
     delBtn.type = "button";
     delBtn.className = "delete-child-btn";
-    delBtn.textContent = "Remove";
+    delBtn.textContent = t("remove");
     delBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       deleteChildByIndex(index);
@@ -5725,7 +7191,7 @@ async function deleteChildByIndex(index) {
     renderChildrenList();
   } catch (error) {
     console.error("Delete child failed:", error);
-    alert("Could not remove child. Please try again.");
+    alert(t("alert_remove_child_fail"));
   }
 }
 
@@ -5787,12 +7253,12 @@ async function signup() {
   const password = $("password")?.value || "";
 
   if (!email || !password) {
-    alert("Please enter your email and password.");
+    alert(t("alert_email_password"));
     return;
   }
 
   if (password.length < 6) {
-    alert("Password must be at least 6 characters.");
+    alert(t("alert_password_length"));
     return;
   }
 
@@ -5804,6 +7270,7 @@ async function signup() {
       children: [],
       storyDialect: DIALECT_BRITISH,
       storyLocale: DIALECT_BRITISH,
+      language: null, // null = new user who hasn't chosen a language yet
       createdAt: new Date().toISOString(),
     });
   } catch (error) {
@@ -5822,7 +7289,7 @@ async function login() {
   const password = $("password")?.value || "";
 
   if (!email || !password) {
-    alert("Please enter your email and password.");
+    alert(t("alert_email_password"));
     return;
   }
 
@@ -5850,13 +7317,13 @@ async function logout() {
 async function resetPassword() {
   const email = ($("email")?.value || "").trim();
   if (!email) {
-    alert("Please type your email address in the email box first, then tap 'Forgot password?' again.");
+    alert(t("alert_reset_email"));
     $("email")?.focus();
     return;
   }
   try {
     await sendPasswordResetEmail(auth, email);
-    alert(`We've sent a password reset link to ${email}. Check your inbox (and spam folder).`);
+    alert(t("alert_reset_sent", { email }));
   } catch (error) {
     console.error("Password reset failed:", error);
     const message =
@@ -5869,7 +7336,7 @@ async function resetPassword() {
 
 async function deleteAccount() {
   if (!currentUser) {
-    alert("You need to be logged in to delete your account.");
+    alert(t("alert_delete_logged_in"));
     return;
   }
 
@@ -5880,17 +7347,15 @@ async function deleteAccount() {
   );
   if (!confirm1) return;
 
-  const confirm2 = prompt(
-    'To confirm, type DELETE in capital letters:'
-  );
+  const confirm2 = prompt(t("alert_delete_confirm"));
   if (confirm2 !== "DELETE") {
-    alert("Account deletion cancelled.");
+    alert(t("alert_delete_cancel"));
     return;
   }
 
-  const password = prompt("Please enter your password to confirm:");
+  const password = prompt(t("alert_delete_password"));
   if (!password) {
-    alert("Account deletion cancelled.");
+    alert(t("alert_delete_cancel"));
     return;
   }
 
@@ -5905,7 +7370,7 @@ async function deleteAccount() {
     // Delete the auth account itself
     await deleteUser(currentUser);
 
-    alert("Your account has been deleted. We're sorry to see you go.");
+    alert(t("alert_account_deleted"));
     // onAuthStateChanged will handle the UI return to the auth screen
   } catch (error) {
     console.error("Account deletion failed:", error);
@@ -5930,9 +7395,9 @@ function setEditMode(index) {
   const saveBtn = $("saveChildBtn");
   const cancelBtn = $("cancelEditBtn");
   const heading = $("childFormHeading");
-  if (saveBtn) saveBtn.textContent = index === null ? "Save Child" : "Update Child";
+  if (saveBtn) saveBtn.textContent = index === null ? t("save_child") : t("update_child");
   if (cancelBtn) cancelBtn.classList.toggle("hidden", index === null);
-  if (heading) heading.textContent = index === null ? "Add a Child" : "Edit Child";
+  if (heading) heading.textContent = index === null ? t("add_child_heading") : t("edit_child_heading");
 }
 
 function clearChildForm() {
@@ -5955,7 +7420,7 @@ function cancelEditChild() {
 
 async function saveChild() {
   if (!currentUser) {
-    alert("Please log in first.");
+    alert(t("alert_delete_logged_in"));
     return;
   }
 
@@ -5970,19 +7435,19 @@ async function saveChild() {
   const appearance = ($("childAppearance")?.value || "").trim().slice(0, 200);
 
   if (!name) {
-    alert("Please enter a child's name.");
+    alert(t("alert_save_child_name"));
     return;
   }
 
   if (!age || isNaN(age) || age < 1 || age > 18) {
-    alert("Please enter a valid age (1–18).");
+    alert(t("alert_save_child_age"));
     return;
   }
 
   // Cap at 10 children per account — enough for big families + sleepover cousins
   const MAX_CHILDREN = 10;
   if (editingChildIndex === null && cachedChildren.length >= MAX_CHILDREN) {
-    alert(`You can have up to ${MAX_CHILDREN} children on one account. Please remove a profile before adding a new one.`);
+    alert(t("alert_max_children", { max: MAX_CHILDREN }));
     return;
   }
 
@@ -6023,7 +7488,7 @@ async function saveChild() {
     if (cachedChildren.length === 1) selectedChildIndex = 0;
   } catch (error) {
     console.error("Save child failed:", error);
-    alert("Could not save child. Please try again.");
+    alert(t("alert_save_child_fail"));
   }
 }
 
@@ -6219,9 +7684,12 @@ function renderLibrary() {
   });
 }
 
-/** Save a story into the library. Safe to call even if already saved — dedupes by id. */
+/** Save a story into the library. Safe to call even if already saved — dedupes by text+childName. */
 async function saveStoryToLibrary({ childName, title, text, mode }) {
   if (!currentUser || !childName || !text) return false;
+
+  // Dedup: don't save the same story twice (guards against auto-save re-runs)
+  if (cachedLibrary.some((s) => s.childName === childName && s.text === text)) return false;
 
   const entry = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -6255,7 +7723,7 @@ async function saveCurrentStoryToLibrary() {
   if (!currentStoryText || !currentStoryChildName) {
     if (btn) {
       btn.textContent = "Pick a child first";
-      setTimeout(() => (btn.textContent = "★ Save to Library"), 1800);
+      setTimeout(() => (btn.textContent = t("save_to_library")), 1800);
     }
     return;
   }
@@ -6267,7 +7735,7 @@ async function saveCurrentStoryToLibrary() {
   if (dupe) {
     if (btn) {
       btn.textContent = "Already saved";
-      setTimeout(() => (btn.textContent = "★ Save to Library"), 1800);
+      setTimeout(() => (btn.textContent = t("save_to_library")), 1800);
     }
     return;
   }
@@ -6280,7 +7748,7 @@ async function saveCurrentStoryToLibrary() {
   });
 
   if (btn) {
-    btn.textContent = ok ? "Saved!" : "Could not save";
+    btn.textContent = ok ? t("saved") : t("could_not_save");
     setTimeout(() => (btn.textContent = "★ Save to Library"), 1800);
   }
 }
@@ -6304,7 +7772,7 @@ async function deleteFromLibrary(id) {
     console.error("Library delete failed:", error);
     cachedLibrary = prev;
     renderLibrary();
-    alert("Could not remove the story. Please try again.");
+    alert(t("alert_remove_story_fail"));
   }
 }
 
@@ -6348,14 +7816,16 @@ async function handleGenerate(mode) {
     // ---- Story from Today: weave real day-beats into a gentle story ----
     const child = getSelectedChild();
     if (!child.name || child.name === "a little one") {
-      alert("Please add and choose a child first.");
+      alert(t("alert_add_child"));
+      generationInProgress = false;
       return;
     }
     const dayBeats = ($("todayBeats")?.value || "").trim().slice(0, 400);
     const dayMood = $("todayMood")?.value || "";
 
     if (!dayBeats) {
-      alert("Please share 2–3 things from your child's day so we can weave them into the story.");
+      alert(t("alert_add_beats"));
+      generationInProgress = false;
       return;
     }
 
@@ -6382,7 +7852,7 @@ async function handleGenerate(mode) {
     // ---- Surprise Me: random idea, child from profile ----
     const child = getSelectedChild();
     if (!child.name || child.name === "a little one") {
-      alert("Please add and choose a child first.");
+      alert(t("alert_add_child"));
       generationInProgress = false;
       return;
     }
@@ -6411,13 +7881,13 @@ async function handleGenerate(mode) {
     // ---- My Idea: parent's idea, child from profile ----
     const child = getSelectedChild();
     if (!child.name || child.name === "a little one") {
-      alert("Please add and choose a child first.");
+      alert(t("alert_add_child"));
       generationInProgress = false;
       return;
     }
     const rawIdea = ($("createIdea")?.value || "").trim();
     if (!rawIdea) {
-      alert("Please enter a story idea.");
+      alert(t("alert_add_idea"));
       generationInProgress = false;
       return;
     }
@@ -6467,6 +7937,13 @@ async function handleGenerate(mode) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      if (response.status === 429) {
+        const waitMins = Math.ceil((errorData.retryAfter || 300) / 60);
+        throw Object.assign(
+          new Error(errorData.error || `Too many requests. Please wait ${waitMins} minutes.`),
+          { rateLimited: true, waitMins }
+        );
+      }
       throw new Error(errorData.error || `Server error (${response.status})`);
     }
 
@@ -6483,7 +7960,7 @@ async function handleGenerate(mode) {
     const title = applyDialectToText(data?.title || `${payload.name}'s Bedtime Story`, payload.dialect);
 
     const storyChildName = getSelectedChild()?.name || payload.name;
-    const storyMode = (mode === "hero" || mode === "create") ? "hero" : mode === "today" ? "today" : "random";
+    const storyMode = mode === "create" ? "hero" : mode === "today" ? "today" : "random";
     displayStory(title, story, { childName: storyChildName, mode: storyMode });
 
     // Auto-save bespoke stories (Create/Hero + Today) — both are personal keepsakes.
@@ -6528,6 +8005,21 @@ async function handleGenerate(mode) {
 
     enterReadingMode();
   } catch (error) {
+    // Rate limit — show a clear message and stop (don't silently fall back)
+    if (error?.rateLimited) {
+      const banner = document.createElement("div");
+      banner.style.cssText =
+        "position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:14px 16px;font-size:14px;z-index:9999;cursor:pointer;";
+      banner.textContent = `Too many story requests — please wait about ${error.waitMins || 5} minutes before trying again.`;
+      banner.onclick = () => banner.remove();
+      document.body.prepend(banner);
+      setTimeout(() => banner.remove(), 8000);
+      hideLoading();
+      if (button) { button.disabled = false; button.textContent = originalText; }
+      generationInProgress = false;
+      return;
+    }
+
     if (!error?.proceduralFallback) {
       console.warn("AI generation unavailable, using procedural fallback.", error);
     }
@@ -6598,6 +8090,20 @@ async function handleGenerate(mode) {
     };
 
     console.log("API failed, falling back to procedural story engine");
+
+    // If the user selected a non-English language, warn them that the offline
+    // story will be in English (procedural engine is English-only).
+    const fallbackLang = getCurrentLanguage();
+    if (!["en-GB", "en-US"].includes(fallbackLang)) {
+      const langLabel = LANGUAGE_LABELS[fallbackLang] || fallbackLang;
+      const banner = document.createElement("div");
+      banner.style.cssText =
+        "position:fixed;top:0;left:0;right:0;background:#c0392b;color:#fff;text-align:center;padding:12px 16px;font-size:14px;z-index:9999;";
+      banner.textContent = `Story couldn't be generated in ${langLabel} right now — showing an English story instead. Please check your connection and try again.`;
+      document.body.prepend(banner);
+      setTimeout(() => banner.remove(), 7000);
+    }
+
     const quickWish = "";
     const quickFallbackChild = fallbackChild;
     const heroFallbackChild = heroIdea
@@ -6813,8 +8319,10 @@ if (langContinueBtn) {
   langContinueBtn.addEventListener("click", async () => {
     if (!selectedOnboardingLang) return;
     cachedLanguage = selectedOnboardingLang;
+    try { localStorage.setItem(LS_LANG_KEY, selectedOnboardingLang); } catch {}
     if (selectedOnboardingLang === "en-US") cachedDialect = "en-US";
     else cachedDialect = "en-GB";
+    applyUILanguage();
     await saveLanguageToFirestore(selectedOnboardingLang);
     await loadChildren();
     navigateTo("home");
@@ -6838,10 +8346,12 @@ if (settingsLangGrid) {
     settingsLangGrid.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("selected"));
     btn.classList.add("selected");
     cachedLanguage = langCode;
+    try { localStorage.setItem(LS_LANG_KEY, langCode); } catch {}
     if (langCode === "en-US") cachedDialect = "en-US";
     else cachedDialect = "en-GB";
+    applyUILanguage();
     await saveLanguageToFirestore(langCode);
     const status = $("settingsLangStatus");
-    if (status) status.textContent = `✓ Stories will be in ${LANGUAGE_LABELS[langCode] || langCode}`;
+    if (status) status.textContent = `${t("lang_saved_status")} ${LANGUAGE_LABELS[langCode] || langCode}`;
   });
 }

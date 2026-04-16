@@ -17,7 +17,7 @@
   const DB_VERSION = 1;
   const STORE_NAME = "stories";
   const TARGET_PER_SLOT = 1;          // stories to keep ready per child+mode
-  const BG_REQUEST_DELAY_MS = 6000;   // gap between background API calls
+  const BG_REQUEST_DELAY_MS = 10000;  // gap between background API calls
   const MAX_CHILDREN = 3;             // only pre-cache for first 3 children
   const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;  // 7 days
   const USED_TTL_MS = 24 * 60 * 60 * 1000;        // 1 day for used entries
@@ -246,6 +246,8 @@
   // ============================================================
 
   const BG_LOCK_KEY = "dreamtalez-bg-fill-running";
+  const BG_COOLDOWN_KEY = "dreamtalez-bg-fill-cooldown";
+  const BG_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes after a 429
   let bgFillRunning = false;
 
   async function scheduleBackgroundFill(children, getToken, dialect) {
@@ -253,6 +255,9 @@
     if (!navigator.onLine) return;
     if (bgFillRunning) return;
     if (sessionStorage.getItem(BG_LOCK_KEY)) return;
+    // Respect 429 cooldown — don't hammer the API after a rate limit
+    const cooldownUntil = Number(localStorage.getItem(BG_COOLDOWN_KEY) || 0);
+    if (Date.now() < cooldownUntil) return;
 
     const run = async () => {
       // Don't run during user-initiated generation
@@ -292,9 +297,16 @@
                   body: JSON.stringify(payload),
                 });
 
-                // Check rate limit headroom
+                // Stop immediately on rate limit — set a cooldown so we don't retry for 15 mins
+                if (res.status === 429) {
+                  localStorage.setItem(BG_COOLDOWN_KEY, String(Date.now() + BG_COOLDOWN_MS));
+                  console.warn("[StoryCache] 429 rate limit — background fill paused for 15 min");
+                  return; // exit the entire fill run
+                }
+
+                // Check rate limit headroom — stop if running low
                 const remaining = Number(res.headers.get("X-RateLimit-Remaining") ?? 99);
-                if (remaining < 4) break;
+                if (remaining < 6) break;
 
                 if (!res.ok) continue;
                 const data = await res.json();

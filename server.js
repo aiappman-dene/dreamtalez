@@ -196,8 +196,10 @@ function buildAiLimiter({ windowMs, max, routeLabel }) {
     },
     handler(req, res) {
       logEvent(`Rate limit hit on ${routeLabel} from ${req.ip}`);
+      res.setHeader("Retry-After", "300");
       return res.status(429).json({
         error: "Too many story requests right now. Please wait a few minutes and try again.",
+        retryAfter: 300,
       });
     },
   });
@@ -399,6 +401,7 @@ app.use(
           "https://*.firebaseio.com",
           "https://*.firebaseapp.com",
           "https://*.firebasestorage.app",
+          "https://www.gstatic.com",
           "https://identitytoolkit.googleapis.com",
           "https://securetoken.googleapis.com",
           "https://firestore.googleapis.com",

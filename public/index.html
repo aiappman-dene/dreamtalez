@@ -35,23 +35,23 @@
             <span class="brand-icon">&#9733;</span>
             <h1>DreamTalez</h1>
           </div>
-          <p class="tagline">Magical stories, made just for your child</p>
-          <p class="subtitle">Create beautiful, personalised bedtime stories your child will treasure — safe, calming, and age-appropriate.</p>
+          <p class="tagline" data-i18n="tagline">Magical stories, made just for your child</p>
+          <p class="subtitle" data-i18n="auth_subtitle">Create beautiful, personalised bedtime stories your child will treasure — safe, calming, and age-appropriate.</p>
 
           <form id="authForm" onsubmit="return false">
-            <input id="email" type="email" placeholder="Email address" autocomplete="email" required />
-            <input id="password" type="password" placeholder="Password" autocomplete="current-password" minlength="6" required />
+            <input id="email" type="email" placeholder="Email address" data-i18n-ph="email_placeholder" autocomplete="email" required />
+            <input id="password" type="password" placeholder="Password" data-i18n-ph="password_placeholder" autocomplete="current-password" minlength="6" required />
             <div class="auth-actions">
-              <button type="button" class="btn secondary" onclick="signup()">Sign Up</button>
-              <button type="button" class="btn primary" onclick="login()">Log In</button>
+              <button type="button" class="btn secondary" onclick="signup()" data-i18n="sign_up">Sign Up</button>
+              <button type="button" class="btn primary" onclick="login()" data-i18n="log_in">Log In</button>
             </div>
-            <button type="button" class="forgot-link" onclick="resetPassword()">Forgot password?</button>
+            <button type="button" class="forgot-link" onclick="resetPassword()" data-i18n="forgot_password">Forgot password?</button>
           </form>
 
-          <button id="sampleStoryBtn" type="button" class="btn ghost sample-btn">&#9733; Read a Sample Story</button>
+          <button id="sampleStoryBtn" type="button" class="btn ghost sample-btn" data-i18n="sample_story_btn">&#9733; Read a Sample Story</button>
 
-          <p class="trust-line">7-day free trial &bull; Then £2.99/month &bull; 10 stories per week &bull; No ads</p>
-          <p class="auth-legal">By signing up you agree to our <button type="button" class="inline-link" onclick="navigateTo('terms')">Terms</button> and <button type="button" class="inline-link" onclick="navigateTo('privacy')">Privacy Policy</button></p>
+          <p class="trust-line" data-i18n="trust_line">7-day free trial &bull; Then £2.99/month &bull; 10 stories per week &bull; No ads</p>
+          <p class="auth-legal"><span data-i18n="auth_legal">By signing up you agree to our</span> <button type="button" class="inline-link" onclick="navigateTo('terms')" data-i18n="auth_terms">Terms</button> <span data-i18n="auth_and">and</span> <button type="button" class="inline-link" onclick="navigateTo('privacy')" data-i18n="auth_privacy">Privacy Policy</button></p>
         </div>
       </div>
     </div>
@@ -63,8 +63,8 @@
         <div class="lang-header">
           <span class="brand-icon">&#9733;</span>
           <h1 class="lang-title">DreamTalez</h1>
-          <p class="lang-subtitle">What language would you like stories in?</p>
-          <p class="lang-hint">You can change this anytime in Settings</p>
+          <p class="lang-subtitle" data-i18n="lang_subtitle">What language would you like stories in?</p>
+          <p class="lang-hint" data-i18n="lang_hint">You can change this anytime in Settings</p>
         </div>
         <div class="lang-grid" id="langGrid">
           <button type="button" class="lang-btn" data-lang="en-GB">🇬🇧<span class="lang-en">English (UK)</span><span class="lang-native">English (UK)</span></button>
@@ -80,7 +80,7 @@
           <button type="button" class="lang-btn" data-lang="hi">🇮🇳<span class="lang-en">Hindi</span><span class="lang-native">हिन्दी</span></button>
           <button type="button" class="lang-btn" data-lang="ur">🇵🇰<span class="lang-en">Urdu</span><span class="lang-native">اردو</span></button>
         </div>
-        <button type="button" id="langContinueBtn" class="btn primary btn-lg lang-continue" disabled>Continue</button>
+        <button type="button" id="langContinueBtn" class="btn primary btn-lg lang-continue" disabled data-i18n="continue_btn">Continue</button>
       </div>
     </div>
 
@@ -98,33 +98,33 @@
               <h1>DreamTalez</h1>
             </div>
           </div>
-          <p class="tagline">Magical stories, made just for your child</p>
+          <p class="tagline" data-i18n="tagline">Magical stories, made just for your child</p>
           <p id="trialBanner" class="trial-banner hidden"></p>
         </div>
 
         <!-- Paywall -->
         <div id="paywallCard" class="card paywall-card hidden">
-          <h2>Your free trial has ended</h2>
-          <p class="hint">Continue creating personalised bedtime stories your child will love.</p>
+          <h2 data-i18n="paywall_title">Your free trial has ended</h2>
+          <p class="hint" data-i18n="paywall_hint">Continue creating personalised bedtime stories your child will love.</p>
           <div class="paywall-price">
             <span class="paywall-amount">£2.99</span>
             <span class="paywall-period">/month</span>
           </div>
           <ul class="paywall-perks">
-            <li>10 magical stories every week</li>
-            <li>Story From Today, Medium &amp; Long stories</li>
-            <li>Full Story Library &amp; series continuity</li>
-            <li>12 languages &bull; Safe &bull; No ads</li>
+            <li data-i18n="paywall_perk1">10 magical stories every week</li>
+            <li data-i18n="paywall_perk2">Story From Today, Medium &amp; Long stories</li>
+            <li data-i18n="paywall_perk3">Full Story Library &amp; series continuity</li>
+            <li data-i18n="paywall_perk4">12 languages &bull; Safe &bull; No ads</li>
           </ul>
-          <button id="subscribeBtn" class="btn primary btn-lg">Start Subscribing — £2.99/month</button>
-          <p class="hint paywall-note">Your saved stories stay yours — readable anytime.</p>
+          <button id="subscribeBtn" class="btn primary btn-lg" data-i18n="subscribe_btn">Start Subscribing — £2.99/month</button>
+          <p class="hint paywall-note" data-i18n="paywall_note">Your saved stories stay yours — readable anytime.</p>
         </div>
 
         <!-- Welcome banner (first-time) -->
         <div id="welcomeBanner" class="card welcome-banner hidden">
-          <h2>Welcome to DreamTalez &#9733;</h2>
-          <p class="hint">Add your first child to start creating magical stories.</p>
-          <button type="button" class="btn primary" onclick="navigateTo('children')">Add Your First Child</button>
+          <h2 data-i18n="welcome_title">Welcome to DreamTalez &#9733;</h2>
+          <p class="hint" data-i18n="welcome_hint">Add your first child to start creating magical stories.</p>
+          <button type="button" class="btn primary" onclick="navigateTo('children')" data-i18n="add_first_child">Add Your First Child</button>
         </div>
 
         <!-- Active child card -->
@@ -134,7 +134,7 @@
               <h2 id="activeChildName" class="child-card-name">Sophia</h2>
               <p id="activeChildMeta" class="child-card-meta">Age 6 &bull; Girl</p>
             </div>
-            <button type="button" class="btn ghost btn-sm" onclick="navigateTo('children')">Change</button>
+            <button type="button" class="btn ghost btn-sm" onclick="navigateTo('children')" data-i18n="change_btn">Change</button>
           </div>
           <p id="streakDisplay" class="streak-display hidden"></p>
         </div>
@@ -146,10 +146,10 @@
           <button type="button" class="story-choice-card story-choice-today" onclick="navigateTo('today')">
             <span class="choice-icon">&#9733;</span>
             <div class="choice-text">
-              <h3>Story From Today</h3>
-              <p>Turn your child's real day into a calming bedtime story</p>
+              <h3 data-i18n="story_today_title">Story From Today</h3>
+              <p data-i18n="story_today_desc">Turn your child's real day into a calming bedtime story</p>
             </div>
-            <span class="choice-badge">Daily habit</span>
+            <span class="choice-badge" data-i18n="story_today_badge">Daily habit</span>
           </button>
 
           <!-- Medium Story -->
@@ -157,13 +157,13 @@
             <div class="choice-top">
               <span class="choice-icon">&#128218;</span>
               <div class="choice-text">
-                <h3>Medium Story</h3>
-                <p>A 6–7 min personalised bedtime story</p>
+                <h3 data-i18n="medium_story">Medium Story</h3>
+                <p data-i18n="medium_story_desc">A 6–7 min personalised bedtime story</p>
               </div>
             </div>
             <div class="choice-hub-btns">
-              <button type="button" id="surpriseMediumBtn" class="btn ghost choice-hub-btn" onclick="handleGenerate('medium-surprise')">&#127922; Surprise Me</button>
-              <button type="button" class="btn ghost choice-hub-btn" onclick="openCreatePage('medium')">&#9999;&#65039; My Idea</button>
+              <button type="button" id="surpriseMediumBtn" class="btn ghost choice-hub-btn" onclick="handleGenerate('medium-surprise')" data-i18n="surprise_me">&#127922; Surprise Me</button>
+              <button type="button" class="btn ghost choice-hub-btn" onclick="openCreatePage('medium')" data-i18n="my_idea">&#9999;&#65039; My Idea</button>
             </div>
           </div>
 
@@ -172,13 +172,13 @@
             <div class="choice-top">
               <span class="choice-icon">&#128218;</span>
               <div class="choice-text">
-                <h3>Long Story</h3>
-                <p>A longer adventure (~10 min) for your child</p>
+                <h3 data-i18n="long_story">Long Story</h3>
+                <p data-i18n="long_story_desc">A longer adventure (~10 min) for your child</p>
               </div>
             </div>
             <div class="choice-hub-btns">
-              <button type="button" id="surpriseLongBtn" class="btn ghost choice-hub-btn" onclick="handleGenerate('long-surprise')">&#127922; Surprise Me</button>
-              <button type="button" class="btn ghost choice-hub-btn" onclick="openCreatePage('long')">&#9999;&#65039; My Idea</button>
+              <button type="button" id="surpriseLongBtn" class="btn ghost choice-hub-btn" onclick="handleGenerate('long-surprise')" data-i18n="surprise_me">&#127922; Surprise Me</button>
+              <button type="button" class="btn ghost choice-hub-btn" onclick="openCreatePage('long')" data-i18n="my_idea">&#9999;&#65039; My Idea</button>
             </div>
           </div>
 
@@ -194,8 +194,8 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="navigateTo('home')">&#8592; Back</button>
-          <h2 class="page-title">Children</h2>
+          <button type="button" class="back-btn" onclick="navigateTo('home')" data-i18n="back_btn">&#8592; Back</button>
+          <h2 class="page-title" data-i18n="children_title">Children</h2>
           <span class="page-header-spacer"></span>
         </div>
 
@@ -204,20 +204,20 @@
 
         <!-- Add / edit child form -->
         <div class="card" id="childFormCard">
-          <h2 id="childFormHeading">Add a Child</h2>
-          <p class="hint">Stories are personalised to their age, interests, and appearance.</p>
-          <input id="childName" type="text" placeholder="Child's first name" maxlength="50" />
-          <input id="childAge" type="number" placeholder="Age" min="1" max="18" />
-          <select id="childGender" aria-label="Gender">
-            <option value="">Gender</option>
-            <option value="girl">Girl</option>
-            <option value="boy">Boy</option>
-            <option value="neutral">Prefer not to say</option>
+          <h2 id="childFormHeading" data-i18n="add_child_heading">Add a Child</h2>
+          <p class="hint" data-i18n="add_child_hint">Stories are personalised to their age, interests, and appearance.</p>
+          <input id="childName" type="text" placeholder="Child's first name" data-i18n-ph="child_name_placeholder" maxlength="50" />
+          <input id="childAge" type="number" placeholder="Age" data-i18n-ph="age_placeholder" min="1" max="18" />
+          <select id="childGender" aria-label="Gender" data-i18n-aria="gender_default">
+            <option value="" data-i18n="gender_default">Gender</option>
+            <option value="girl" data-i18n="gender_girl">Girl</option>
+            <option value="boy" data-i18n="gender_boy">Boy</option>
+            <option value="neutral" data-i18n="gender_neutral">Prefer not to say</option>
           </select>
-          <input id="childInterests" type="text" placeholder="Interests (e.g. dinosaurs, fairies, space)" maxlength="200" />
-          <input id="childAppearance" type="text" placeholder="Appearance (e.g. long dark hair like Jasmine, green eyes)" maxlength="200" />
-          <button type="button" id="saveChildBtn" class="btn primary" onclick="saveChild()">Save Child</button>
-          <button type="button" id="cancelEditBtn" class="btn ghost btn-sm hidden" onclick="cancelEditChild()">Cancel</button>
+          <input id="childInterests" type="text" placeholder="Interests (e.g. dinosaurs, fairies, space)" data-i18n-ph="interests_placeholder" maxlength="200" />
+          <input id="childAppearance" type="text" placeholder="Appearance (e.g. long dark hair like Jasmine, green eyes)" data-i18n-ph="appearance_placeholder" maxlength="200" />
+          <button type="button" id="saveChildBtn" class="btn primary" onclick="saveChild()" data-i18n="save_child">Save Child</button>
+          <button type="button" id="cancelEditBtn" class="btn ghost btn-sm hidden" onclick="cancelEditChild()" data-i18n="cancel">Cancel</button>
         </div>
 
       </div>
@@ -230,17 +230,17 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="navigateTo('home')">&#8592; Back</button>
-          <h2 id="createPageTitle" class="page-title">Create a Story</h2>
+          <button type="button" class="back-btn" onclick="navigateTo('home')" data-i18n="back_btn">&#8592; Back</button>
+          <h2 id="createPageTitle" class="page-title" data-i18n="create_story_title">Create a Story</h2>
           <span class="page-header-spacer"></span>
         </div>
 
         <div class="card">
           <p id="createChildLabel" class="child-label"></p>
-          <p class="hint">What should the story be about tonight?</p>
-          <input id="createIdea" type="text" placeholder="e.g. a brave princess who saves her baby dragon" maxlength="200" />
+          <p class="hint" data-i18n="create_hint">What should the story be about tonight?</p>
+          <input id="createIdea" type="text" placeholder="e.g. a brave princess who saves her baby dragon" data-i18n-ph="create_placeholder" maxlength="200" />
           <input id="createLength" type="hidden" value="medium" />
-          <button type="button" id="generateCreateBtn" class="btn primary btn-lg" onclick="handleGenerate('create')">Create My Story</button>
+          <button type="button" id="generateCreateBtn" class="btn primary btn-lg" onclick="handleGenerate('create')" data-i18n="create_btn">Create My Story</button>
         </div>
 
       </div>
@@ -253,26 +253,26 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="navigateTo('home')">&#8592; Back</button>
-          <h2 class="page-title">Story From Today</h2>
+          <button type="button" class="back-btn" onclick="navigateTo('home')" data-i18n="back_btn">&#8592; Back</button>
+          <h2 class="page-title" data-i18n="today_page_title">Story From Today</h2>
           <span class="page-header-spacer"></span>
         </div>
 
         <div class="card">
           <p id="todayChildLabel" class="child-label"></p>
-          <p class="hint">Share 2–3 moments from today. We'll weave them into a calming bedtime story so your child feels heard and ready for sleep.</p>
-          <textarea id="todayBeats" placeholder="e.g. Sophia fell off her bike but was very brave, we had ice cream in the park, she helped her little brother with his puzzle" maxlength="400" rows="3"></textarea>
-          <select id="todayMood" aria-label="Overall tone of today">
-            <option value="" selected>How did today feel? (optional)</option>
-            <option value="joyful">Joyful &amp; happy</option>
-            <option value="brave">Brave &amp; proud</option>
-            <option value="nervous">Nervous or worried</option>
-            <option value="tired">Tired or grumpy</option>
-            <option value="exciting">Busy &amp; exciting</option>
-            <option value="quiet">Quiet &amp; gentle</option>
-            <option value="mixed">A mix of feelings</option>
+          <p class="hint" data-i18n="today_hint">Share 2–3 moments from today. We'll weave them into a calming bedtime story so your child feels heard and ready for sleep.</p>
+          <textarea id="todayBeats" placeholder="e.g. Sophia fell off her bike but was very brave, we had ice cream in the park, she helped her little brother with his puzzle" data-i18n-ph="today_placeholder" maxlength="400" rows="3"></textarea>
+          <select id="todayMood" aria-label="Overall tone of today" data-i18n-aria="today_mood_default">
+            <option value="" selected data-i18n="today_mood_default">How did today feel? (optional)</option>
+            <option value="joyful" data-i18n="mood_joyful">Joyful &amp; happy</option>
+            <option value="brave" data-i18n="mood_brave">Brave &amp; proud</option>
+            <option value="nervous" data-i18n="mood_nervous">Nervous or worried</option>
+            <option value="tired" data-i18n="mood_tired">Tired or grumpy</option>
+            <option value="exciting" data-i18n="mood_exciting">Busy &amp; exciting</option>
+            <option value="quiet" data-i18n="mood_quiet">Quiet &amp; gentle</option>
+            <option value="mixed" data-i18n="mood_mixed">A mix of feelings</option>
           </select>
-          <button type="button" id="generateTodayBtn" class="btn primary btn-lg" onclick="handleGenerate('today')">Turn Today into a Story</button>
+          <button type="button" id="generateTodayBtn" class="btn primary btn-lg" onclick="handleGenerate('today')" data-i18n="today_btn">Turn Today into a Story</button>
         </div>
 
       </div>
@@ -296,7 +296,7 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <h2 class="page-title">Story Library</h2>
+          <h2 class="page-title" data-i18n="library_title">Story Library</h2>
         </div>
 
         <!-- Child filter (if multiple children) -->
@@ -305,7 +305,7 @@
         </div>
 
         <div id="libraryCard">
-          <p id="libraryHint" class="hint library-hint">Saved stories for this child.</p>
+          <p id="libraryHint" class="hint library-hint" data-i18n="library_hint">Saved stories for this child.</p>
           <ul id="libraryList" class="library-list"></ul>
         </div>
 
@@ -319,19 +319,19 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <h2 class="page-title">Settings</h2>
+          <h2 class="page-title" data-i18n="settings_title">Settings</h2>
         </div>
 
         <div class="card">
-          <h2>Account</h2>
+          <h2 data-i18n="account_heading">Account</h2>
           <p id="settingsEmail" class="hint"></p>
-          <button type="button" class="btn secondary" onclick="navigateTo('children')">Manage Children</button>
-          <button type="button" class="btn ghost" onclick="logout()">Log Out</button>
+          <button type="button" class="btn secondary" onclick="navigateTo('children')" data-i18n="manage_children">Manage Children</button>
+          <button type="button" class="btn ghost" onclick="logout()" data-i18n="log_out">Log Out</button>
         </div>
 
         <div class="card">
-          <h2>Story Language</h2>
-          <p class="hint">Stories will be written in your chosen language.</p>
+          <h2 data-i18n="story_language_heading">Story Language</h2>
+          <p class="hint" data-i18n="story_language_hint">Stories will be written in your chosen language.</p>
           <div class="settings-lang-grid" id="settingsLangGrid">
             <button type="button" class="lang-btn lang-btn-sm" data-lang="en-GB">🇬🇧<span class="lang-en">English (UK)</span></button>
             <button type="button" class="lang-btn lang-btn-sm" data-lang="en-US">🇺🇸<span class="lang-en">English (US)</span></button>
@@ -350,15 +350,15 @@
         </div>
 
         <div class="card">
-          <h2>Legal</h2>
-          <button type="button" class="btn ghost legal-link" onclick="navigateTo('privacy')">Privacy Policy</button>
-          <button type="button" class="btn ghost legal-link" onclick="navigateTo('terms')">Terms of Service</button>
+          <h2 data-i18n="legal_heading">Legal</h2>
+          <button type="button" class="btn ghost legal-link" onclick="navigateTo('privacy')" data-i18n="privacy_policy">Privacy Policy</button>
+          <button type="button" class="btn ghost legal-link" onclick="navigateTo('terms')" data-i18n="terms_of_service">Terms of Service</button>
         </div>
 
         <div class="card account-card">
-          <h2>Danger Zone</h2>
-          <p class="hint">Permanently delete your account and all data.</p>
-          <button type="button" class="btn ghost btn-sm danger-link" onclick="deleteAccount()">Delete my account</button>
+          <h2 data-i18n="danger_zone">Danger Zone</h2>
+          <p class="hint" data-i18n="danger_hint">Permanently delete your account and all data.</p>
+          <button type="button" class="btn ghost btn-sm danger-link" onclick="deleteAccount()" data-i18n="delete_account">Delete my account</button>
         </div>
 
         <p class="hint settings-version">DreamTalez v1.0.0</p>
@@ -373,13 +373,13 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="closeStoryCard()">&#8592; Back</button>
-          <h2 class="page-title">Privacy Policy</h2>
+          <button type="button" class="back-btn" onclick="closeStoryCard()" data-i18n="back_btn">&#8592; Back</button>
+          <h2 class="page-title" data-i18n="privacy_title">Privacy Policy</h2>
           <span class="page-header-spacer"></span>
         </div>
 
         <div class="card legal-card">
-          <p class="legal-updated">Last updated: 7 April 2025</p>
+          <p class="legal-updated">Last updated: 12 April 2026</p>
 
           <h3>1. Who We Are</h3>
           <p>DreamTalez ("we", "us", "our") is a mobile application that generates personalised bedtime stories for children aged 2&ndash;12 using artificial intelligence. We are committed to protecting the privacy of our users and, in particular, the children for whom stories are created.</p>
@@ -447,13 +447,13 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="closeStoryCard()">&#8592; Back</button>
-          <h2 class="page-title">Terms of Service</h2>
+          <button type="button" class="back-btn" onclick="closeStoryCard()" data-i18n="back_btn">&#8592; Back</button>
+          <h2 class="page-title" data-i18n="terms_title">Terms of Service</h2>
           <span class="page-header-spacer"></span>
         </div>
 
         <div class="card legal-card">
-          <p class="legal-updated">Last updated: 7 April 2025</p>
+          <p class="legal-updated">Last updated: 12 April 2026</p>
 
           <h3>1. Acceptance of Terms</h3>
           <p>By downloading, installing, or using DreamTalez ("the App"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the App.</p>
@@ -528,15 +528,15 @@
     <nav id="bottomNav" class="bottom-nav hidden">
       <button type="button" class="nav-item active" data-page="home" onclick="navigateTo('home')">
         <span class="nav-icon">&#9750;</span>
-        <span class="nav-label">Home</span>
+        <span class="nav-label" data-i18n="home_nav">Home</span>
       </button>
       <button type="button" class="nav-item" data-page="library" onclick="navigateTo('library')">
         <span class="nav-icon">&#9776;</span>
-        <span class="nav-label">Library</span>
+        <span class="nav-label" data-i18n="library_nav">Library</span>
       </button>
       <button type="button" class="nav-item" data-page="settings" onclick="navigateTo('settings')">
         <span class="nav-icon">&#9881;</span>
-        <span class="nav-label">Settings</span>
+        <span class="nav-label" data-i18n="settings_nav">Settings</span>
       </button>
     </nav>
 
@@ -550,8 +550,8 @@
           <span class="star star-2">&#9733;</span>
           <span class="star star-3">&#9733;</span>
         </div>
-        <p class="loading-text">Writing your story...</p>
-        <p class="loading-sub">This usually takes 10–20 seconds</p>
+        <p class="loading-text" data-i18n="loading_text">Writing your story...</p>
+        <p class="loading-sub" data-i18n="loading_sub">This usually takes 10–20 seconds</p>
       </div>
     </div>
 
@@ -561,16 +561,16 @@
     <div id="storyCard" class="page hidden">
       <div class="page-scroll">
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="closeStoryCard()">&#8592; Back</button>
-          <h2 class="page-title">Your Story</h2>
+          <button type="button" class="back-btn" onclick="closeStoryCard()" data-i18n="back_btn">&#8592; Back</button>
+          <h2 class="page-title" data-i18n="your_story">Your Story</h2>
           <span class="page-header-spacer"></span>
         </div>
         <div class="card">
           <h2 id="storyTitle">Your Story</h2>
           <div id="storyOutput" class="story-output"></div>
           <div class="story-actions">
-            <button type="button" class="btn primary" onclick="enterReadingMode()">Read Story</button>
-            <button type="button" id="saveToLibraryBtn" class="btn secondary hidden" onclick="saveCurrentStoryToLibrary()">&#9733; Save to Library</button>
+            <button type="button" class="btn primary" onclick="enterReadingMode()" data-i18n="read_story">Read Story</button>
+            <button type="button" id="saveToLibraryBtn" class="btn secondary hidden" onclick="saveCurrentStoryToLibrary()" data-i18n="save_to_library">&#9733; Save to Library</button>
           </div>
         </div>
       </div>
@@ -592,13 +592,13 @@
 
     <div class="reading-content">
       <h1 id="readingTitle" class="reading-title"></h1>
-      <p class="reading-subtitle">A story made just for you</p>
+      <p class="reading-subtitle" data-i18n="reading_subtitle">A story made just for you</p>
       <div id="readingText" class="reading-text"></div>
-      <button id="saveProgressBtn" class="btn secondary save-btn hidden">Continue Tomorrow</button>
+      <button id="saveProgressBtn" class="btn secondary save-btn hidden" data-i18n="continue_tomorrow">Continue Tomorrow</button>
     </div>
   </div>
 
   <script src="/story-cache.js"></script>
-  <script type="module" src="/app.js?v=20260408c"></script>
+  <script type="module" src="/app.js?v=20260416b"></script>
 </body>
 </html>
