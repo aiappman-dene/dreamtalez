@@ -220,7 +220,7 @@ body::before {
   position: absolute;
   top: 50%;
   right: 2px;
-  width: 90px;
+  width: 160px;
   height: 1.5px;
   background: linear-gradient(to left, rgba(255,255,255,0.85), transparent);
   transform: translateY(-50%);
@@ -229,8 +229,8 @@ body::before {
 @keyframes shootStar {
   0%, 18%   { opacity: 0; transform: translate(0, 0); }
   18.5%     { opacity: 1; }
-  25%       { opacity: 0; transform: translate(240px, 175px); }
-  100%      { opacity: 0; transform: translate(240px, 175px); }
+  25%       { opacity: 0; transform: translate(100vw, 78vh); }
+  100%      { opacity: 0; transform: translate(100vw, 78vh); }
 }
 
 .shooting-star:nth-child(1) { top:  6%; left:  8%; animation: shootStar 13s ease-in infinite; animation-delay:  1.0s; }
