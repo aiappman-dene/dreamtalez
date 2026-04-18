@@ -126,8 +126,11 @@
         <div id="activeChildCard" class="home-hero hidden">
           <div class="home-hero-glow"></div>
 
-          <!-- Illustrated child reading — right side -->
-          <div class="hero-illustration" aria-hidden="true">
+          <!-- Hero illustration image -->
+          <img src="/hero.png" class="hero-img" alt="" aria-hidden="true" />
+
+          <!-- Illustrated child reading — right side (SVG fallback hidden when image loads) -->
+          <div class="hero-illustration hero-illustration-fallback" aria-hidden="true" style="display:none">
             <svg viewBox="0 0 170 250" xmlns="http://www.w3.org/2000/svg" class="hero-child-svg">
               <defs>
                 <radialGradient id="hBookAmb" cx="50%" cy="58%" r="52%">
