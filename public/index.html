@@ -125,6 +125,118 @@
         <!-- ── HERO SECTION ── -->
         <div id="activeChildCard" class="home-hero hidden">
           <div class="home-hero-glow"></div>
+
+          <!-- Illustrated child reading — right side -->
+          <div class="hero-illustration" aria-hidden="true">
+            <svg viewBox="0 0 170 250" xmlns="http://www.w3.org/2000/svg" class="hero-child-svg">
+              <defs>
+                <radialGradient id="hBookAmb" cx="50%" cy="58%" r="52%">
+                  <stop offset="0%" stop-color="#ffcc40" stop-opacity="0.5"/>
+                  <stop offset="55%" stop-color="#ff8020" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#7b20ff" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="hPageL" cx="72%" cy="48%" r="62%">
+                  <stop offset="0%" stop-color="#fff8dc"/>
+                  <stop offset="100%" stop-color="#ffd060"/>
+                </radialGradient>
+                <radialGradient id="hPageR" cx="28%" cy="48%" r="62%">
+                  <stop offset="0%" stop-color="#fff3c0"/>
+                  <stop offset="100%" stop-color="#ffb820"/>
+                </radialGradient>
+                <filter id="hGlow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="2.5" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+
+              <!-- Curtain left -->
+              <path d="M0 0 Q18 60 8 130 Q4 180 12 250 L0 250 Z" fill="rgba(60,20,120,0.55)"/>
+              <!-- Curtain right -->
+              <path d="M170 0 Q152 60 162 130 Q166 180 158 250 L170 250 Z" fill="rgba(60,20,120,0.55)"/>
+
+              <!-- Ambient warm glow from book -->
+              <ellipse cx="85" cy="168" rx="78" ry="58" fill="url(#hBookAmb)" class="hglow-pulse"/>
+
+              <!-- Blanket -->
+              <path d="M15 225 Q85 208 155 225 Q155 255 85 255 Q15 255 15 225 Z" fill="rgba(70,25,140,0.6)"/>
+              <path d="M10 228 Q85 212 160 228" stroke="rgba(140,100,255,0.35)" stroke-width="2" fill="none"/>
+
+              <!-- Body / lying down torso -->
+              <ellipse cx="90" cy="210" rx="38" ry="14" fill="#c07858" opacity="0.55"/>
+
+              <!-- Arm reaching to book -->
+              <path d="M58 205 Q68 195 84 188" stroke="#c07858" stroke-width="9" stroke-linecap="round" fill="none"/>
+
+              <!-- Open book — left page -->
+              <path d="M38 162 Q62 146 86 155 L86 188 Q62 183 38 198 Z" fill="url(#hPageL)" filter="url(#hGlow)"/>
+              <!-- Open book — right page -->
+              <path d="M134 162 Q110 146 86 155 L86 188 Q110 183 134 198 Z" fill="url(#hPageR)" filter="url(#hGlow)"/>
+              <!-- Spine -->
+              <line x1="86" y1="155" x2="86" y2="188" stroke="#cc8820" stroke-width="1.5" opacity="0.8"/>
+              <!-- Text lines on pages -->
+              <line x1="48" y1="167" x2="76" y2="161" stroke="rgba(100,65,15,0.22)" stroke-width="1.2"/>
+              <line x1="48" y1="174" x2="76" y2="169" stroke="rgba(100,65,15,0.22)" stroke-width="1.2"/>
+              <line x1="48" y1="181" x2="76" y2="177" stroke="rgba(100,65,15,0.22)" stroke-width="1.2"/>
+              <line x1="96" y1="161" x2="124" y2="167" stroke="rgba(100,65,15,0.22)" stroke-width="1.2"/>
+              <line x1="96" y1="169" x2="124" y2="174" stroke="rgba(100,65,15,0.22)" stroke-width="1.2"/>
+              <line x1="96" y1="177" x2="124" y2="181" stroke="rgba(100,65,15,0.22)" stroke-width="1.2"/>
+
+              <!-- Child head -->
+              <circle cx="72" cy="138" r="26" fill="#d49268"/>
+              <!-- Ear -->
+              <ellipse cx="48" cy="140" rx="5" ry="7" fill="#c27a55"/>
+
+              <!-- Hair — dark, swept up into bun -->
+              <path d="M47 124 Q62 100 92 110 Q96 124 86 130 Q74 118 50 126 Z" fill="#2a1510"/>
+              <path d="M72 106 Q82 100 92 108" stroke="#3d2015" stroke-width="3" fill="none" stroke-linecap="round"/>
+              <!-- Hair bun -->
+              <circle cx="90" cy="112" r="11" fill="#2a1510"/>
+              <circle cx="90" cy="112" r="7" fill="#341a12"/>
+              <!-- Star hair clip -->
+              <polygon points="90,104 91.5,108 95.5,108 92.5,110.5 93.5,114.5 90,112 86.5,114.5 87.5,110.5 84.5,108 88.5,108" fill="#ffd060" opacity="0.9"/>
+
+              <!-- Eye looking down -->
+              <ellipse cx="74" cy="140" rx="3.5" ry="2.8" fill="#2a1508"/>
+              <circle cx="74.5" cy="139.5" r="1" fill="rgba(255,255,255,0.45)"/>
+              <!-- Eyelashes -->
+              <path d="M68 137 Q71.5 133 78 137" stroke="#2a1508" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+              <!-- Nose -->
+              <path d="M69 146 Q72 150 77 147" stroke="#b56840" stroke-width="1.2" fill="none"/>
+              <!-- Cheek blush -->
+              <ellipse cx="83" cy="148" rx="7" ry="4" fill="#ff9070" opacity="0.25"/>
+              <!-- Smile -->
+              <path d="M68 152 Q72 156 78 153" stroke="#9a5030" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+              <!-- Teddy bear (small, right side) -->
+              <circle cx="140" cy="200" r="14" fill="rgba(180,120,60,0.65)"/>
+              <circle cx="130" cy="190" r="8" fill="rgba(180,120,60,0.65)"/>
+              <circle cx="150" cy="190" r="8" fill="rgba(180,120,60,0.65)"/>
+              <circle cx="130" cy="190" r="5" fill="rgba(160,100,45,0.65)"/>
+              <circle cx="150" cy="190" r="5" fill="rgba(160,100,45,0.65)"/>
+              <circle cx="140" cy="202" r="6" fill="rgba(160,100,45,0.65)"/>
+              <circle cx="137" cy="198" r="1.5" fill="rgba(80,40,10,0.6)"/>
+              <circle cx="143" cy="198" r="1.5" fill="rgba(80,40,10,0.6)"/>
+              <path d="M137 203 Q140 206 143 203" stroke="rgba(80,40,10,0.5)" stroke-width="1.2" fill="none"/>
+
+              <!-- Sparkles from book -->
+              <g class="hero-sparks">
+                <text x="118" y="122" font-size="14" fill="#ffd060" opacity="0.95">✨</text>
+                <text x="28" y="132" font-size="10" fill="#ffd060" opacity="0.7">✦</text>
+                <text x="142" y="148" font-size="11" fill="#fff" opacity="0.8">★</text>
+                <text x="20" y="158" font-size="8" fill="#ffaa30" opacity="0.6">✦</text>
+                <text x="136" y="172" font-size="10" fill="#ffd060" opacity="0.8">✨</text>
+                <text x="30" y="175" font-size="8" fill="#fff" opacity="0.5">★</text>
+              </g>
+
+              <!-- Top stars -->
+              <text x="148" y="38" font-size="13" fill="#ffd060" opacity="0.55">★</text>
+              <text x="12" y="48" font-size="9" fill="#fff" opacity="0.45">✦</text>
+              <text x="130" y="68" font-size="10" fill="#ffd060" opacity="0.6">✨</text>
+              <text x="8" y="82" font-size="8" fill="#ffd060" opacity="0.4">★</text>
+              <text x="155" y="90" font-size="8" fill="#fff" opacity="0.5">✦</text>
+            </svg>
+          </div>
+
           <div class="home-hero-content">
             <p id="homeGreeting" class="home-greeting"></p>
             <h1 id="heroTitle" class="home-hero-title"></h1>
