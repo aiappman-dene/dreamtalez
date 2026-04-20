@@ -36,7 +36,7 @@ import {
   assertStoryQuality,
   isStoryValid,
 } from "./story-quality.js";
-import { createCheckoutSession } from "./stripe.js";
+// import { createCheckoutSession } from "./stripe.js"; // re-enable when Stripe keys are set
 
 // =============================================================================
 // Config
@@ -651,9 +651,8 @@ app.post(
 // =============================================================================
 
 app.options("/api/checkout", corsMiddleware);
-app.post("/api/checkout", corsMiddleware, requireAiAuth, (req, res) => {
-  logEvent(`Stripe checkout requested by uid:${req.authUser?.uid || "anon"}`);
-  return createCheckoutSession(req, res);
+app.post("/api/checkout", corsMiddleware, (req, res) => {
+  res.json({ disabled: true, message: "Payments coming soon" });
 });
 
 // =============================================================================

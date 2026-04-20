@@ -5854,7 +5854,13 @@ async function recordStoryUsed() {
 }
 
 /** Placeholder subscribe handler (payment wiring comes later). */
+const STRIPE_ENABLED = false; // set true once Stripe keys are live on Render
+
 async function handleSubscribe() {
+  if (!STRIPE_ENABLED) {
+    alert("Payments are coming soon 🚀");
+    return;
+  }
   const btn = $("subscribeBtn");
   if (btn) { btn.disabled = true; btn.textContent = "Loading…"; }
 
