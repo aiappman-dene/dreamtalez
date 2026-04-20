@@ -360,6 +360,12 @@ const UI_STRINGS = {
     settings_nav: "Settings",
     loading_text: "Writing your story…",
     loading_sub: "This usually takes 10–20 seconds",
+    creating_btn: "Creating…",
+    read_again: "Read again",
+    pick_child_first: "Pick a child first",
+    already_saved: "Already saved",
+    safety_message: "Let's keep stories kind and magical ✨",
+    ready_to_tap: "Ready — tap a story to begin ✨",
     your_story: "Your Story",
     read_story: "Read Story",
     save_to_library: "★ Save to Library",
@@ -521,6 +527,12 @@ const UI_STRINGS = {
     account_nav: "Compte",
     settings_nav: "Paramètres",
     loading_text: "Écriture de votre histoire…",
+    creating_btn: "Création…",
+    read_again: "Lire à nouveau",
+    pick_child_first: "Choisissez un enfant d'abord",
+    already_saved: "Déjà sauvegardé",
+    safety_message: "Gardons les histoires douces et magiques ✨",
+    ready_to_tap: "Prêt — appuyez pour commencer ✨",
     loading_sub: "Cela prend généralement 10–20 secondes",
     your_story: "Votre histoire",
     read_story: "Lire l'histoire",
@@ -683,6 +695,12 @@ const UI_STRINGS = {
     account_nav: "Cuenta",
     settings_nav: "Ajustes",
     loading_text: "Escribiendo tu cuento…",
+    creating_btn: "Creando…",
+    read_again: "Leer de nuevo",
+    pick_child_first: "Elige un niño primero",
+    already_saved: "Ya guardado",
+    safety_message: "Mantengamos los cuentos amables y mágicos ✨",
+    ready_to_tap: "Listo — toca para empezar ✨",
     loading_sub: "Esto suele tardar 10–20 segundos",
     your_story: "Tu cuento",
     read_story: "Leer el cuento",
@@ -845,6 +863,12 @@ const UI_STRINGS = {
     account_nav: "Conta",
     settings_nav: "Definições",
     loading_text: "A escrever a sua história…",
+    creating_btn: "A criar…",
+    read_again: "Ler novamente",
+    pick_child_first: "Escolha uma criança primeiro",
+    already_saved: "Já guardado",
+    safety_message: "Mantenhamos as histórias gentis e mágicas ✨",
+    ready_to_tap: "Pronto — toque para começar ✨",
     loading_sub: "Normalmente demora 10–20 segundos",
     your_story: "A sua história",
     read_story: "Ler a história",
@@ -1007,6 +1031,12 @@ const UI_STRINGS = {
     account_nav: "Konto",
     settings_nav: "Einstellungen",
     loading_text: "Deine Geschichte wird geschrieben…",
+    creating_btn: "Erstellen…",
+    read_again: "Nochmal lesen",
+    pick_child_first: "Wähle zuerst ein Kind",
+    already_saved: "Bereits gespeichert",
+    safety_message: "Lass uns Geschichten freundlich und magisch halten ✨",
+    ready_to_tap: "Bereit — tippe um zu beginnen ✨",
     loading_sub: "Das dauert normalerweise 10–20 Sekunden",
     your_story: "Deine Geschichte",
     read_story: "Geschichte lesen",
@@ -1169,6 +1199,12 @@ const UI_STRINGS = {
     account_nav: "Account",
     settings_nav: "Impostazioni",
     loading_text: "Scrittura della tua storia…",
+    creating_btn: "Creazione…",
+    read_again: "Leggi di nuovo",
+    pick_child_first: "Scegli prima un bambino",
+    already_saved: "Già salvato",
+    safety_message: "Manteniamo le storie gentili e magiche ✨",
+    ready_to_tap: "Pronto — tocca per iniziare ✨",
     loading_sub: "Di solito ci vogliono 10–20 secondi",
     your_story: "La tua storia",
     read_story: "Leggi la storia",
@@ -1331,6 +1367,12 @@ const UI_STRINGS = {
     account_nav: "アカウント",
     settings_nav: "設定",
     loading_text: "お話を書いています…",
+    creating_btn: "作成中…",
+    read_again: "もう一度読む",
+    pick_child_first: "まず子供を選んでください",
+    already_saved: "保存済み",
+    safety_message: "お話を優しく魔法のようにしましょう ✨",
+    ready_to_tap: "準備完了 — タップして始めましょう ✨",
     loading_sub: "通常10〜20秒かかります",
     your_story: "あなたのお話",
     read_story: "お話を読む",
@@ -1493,6 +1535,12 @@ const UI_STRINGS = {
     account_nav: "账户",
     settings_nav: "设置",
     loading_text: "正在写您的故事…",
+    creating_btn: "创建中…",
+    read_again: "再次阅读",
+    pick_child_first: "请先选择一个孩子",
+    already_saved: "已保存",
+    safety_message: "让我们保持故事温柔和神奇 ✨",
+    ready_to_tap: "准备好了 — 点击开始 ✨",
     loading_sub: "通常需要10–20秒",
     your_story: "您的故事",
     read_story: "阅读故事",
@@ -1655,6 +1703,12 @@ const UI_STRINGS = {
     account_nav: "الحساب",
     settings_nav: "الإعدادات",
     loading_text: "جارٍ كتابة قصتك…",
+    creating_btn: "جارٍ الإنشاء…",
+    read_again: "اقرأ مرة أخرى",
+    pick_child_first: "اختر طفلاً أولاً",
+    already_saved: "تم الحفظ مسبقاً",
+    safety_message: "لنبقِ القصص لطيفة وسحرية ✨",
+    ready_to_tap: "جاهز — اضغط للبدء ✨",
     loading_sub: "يستغرق هذا عادةً 10–20 ثانية",
     your_story: "قصتك",
     read_story: "قراءة القصة",
@@ -1817,6 +1871,12 @@ const UI_STRINGS = {
     account_nav: "खाता",
     settings_nav: "सेटिंग्स",
     loading_text: "आपकी कहानी लिखी जा रही है…",
+    creating_btn: "बनाया जा रहा है…",
+    read_again: "फिर से पढ़ें",
+    pick_child_first: "पहले एक बच्चा चुनें",
+    already_saved: "पहले से सहेजा गया",
+    safety_message: "आइए कहानियों को दयालु और जादुई रखें ✨",
+    ready_to_tap: "तैयार — शुरू करने के लिए टैप करें ✨",
     loading_sub: "इसमें आमतौर पर 10–20 सेकंड लगते हैं",
     your_story: "आपकी कहानी",
     read_story: "कहानी पढ़ें",
@@ -1979,6 +2039,12 @@ const UI_STRINGS = {
     account_nav: "اکاؤنٹ",
     settings_nav: "ترتیبات",
     loading_text: "آپ کی کہانی لکھی جا رہی ہے…",
+    creating_btn: "بنایا جا رہا ہے…",
+    read_again: "دوبارہ پڑھیں",
+    pick_child_first: "پہلے ایک بچہ منتخب کریں",
+    already_saved: "پہلے سے محفوظ",
+    safety_message: "آئیں کہانیوں کو مہربان اور جادوئی رکھیں ✨",
+    ready_to_tap: "تیار — شروع کرنے کے لیے ٹیپ کریں ✨",
     loading_sub: "اس میں عموماً 10–20 سیکنڈ لگتے ہیں",
     your_story: "آپ کی کہانی",
     read_story: "کہانی پڑھیں",
@@ -8159,7 +8225,7 @@ function renderLibrary() {
 
     const readBtn = document.createElement("button");
     readBtn.type = "button";
-    readBtn.textContent = "Read again";
+    readBtn.textContent = t("read_again");
     readBtn.addEventListener("click", () => reReadFromLibrary(item.id));
 
     const delBtn = document.createElement("button");
@@ -8216,7 +8282,7 @@ async function saveCurrentStoryToLibrary() {
   const btn = $("saveToLibraryBtn");
   if (!currentStoryText || !currentStoryChildName) {
     if (btn) {
-      btn.textContent = "Pick a child first";
+      btn.textContent = t("pick_child_first");
       setTimeout(() => (btn.textContent = t("save_to_library")), 1800);
     }
     return;
@@ -8228,7 +8294,7 @@ async function saveCurrentStoryToLibrary() {
   );
   if (dupe) {
     if (btn) {
-      btn.textContent = "Already saved";
+      btn.textContent = t("already_saved");
       setTimeout(() => (btn.textContent = t("save_to_library")), 1800);
     }
     return;
@@ -8313,7 +8379,7 @@ function showSafetyMessage() {
     "border-radius:20px;padding:12px 22px;font-size:14px;font-weight:600;" +
     "z-index:9999;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,0.5);" +
     "text-align:center;max-width:90vw;white-space:normal;";
-  toast.textContent = "Let's keep stories kind and magical ✨";
+  toast.textContent = t("safety_message");
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
@@ -8473,7 +8539,7 @@ async function handleGenerate(mode) {
   }
   if (button) {
     button.disabled = true;
-    button.textContent = "Creating...";
+    button.textContent = t("creating_btn");
   }
 
   // 90-second hard timeout — protects against the phone sleeping mid-generation
@@ -8972,7 +9038,7 @@ document.addEventListener("visibilitychange", () => {
       "background:rgba(30,20,60,0.95);color:#fff;border:1px solid rgba(123,97,255,0.4);" +
       "border-radius:20px;padding:10px 20px;font-size:13px;font-weight:600;" +
       "z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);";
-    toast.textContent = "Ready — tap a story to begin ✨";
+    toast.textContent = t("ready_to_tap");
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
   }
