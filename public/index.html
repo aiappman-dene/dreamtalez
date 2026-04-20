@@ -97,6 +97,66 @@
     </div>
 
     <!-- ================================================================== -->
+    <!-- ONBOARDING WIZARD (new users: name → age/gender → interests)       -->
+    <!-- ================================================================== -->
+    <div id="pageWizard" class="page hidden">
+      <div class="page-scroll wizard-page">
+        <div class="wizard-brand">&#128218;&#10024; DreamTalez</div>
+
+        <div class="wizard-progress">
+          <div class="wizard-dot active" id="wDot1"></div>
+          <div class="wizard-dot" id="wDot2"></div>
+          <div class="wizard-dot" id="wDot3"></div>
+        </div>
+
+        <!-- Step 1: Name -->
+        <div class="wizard-step" id="wizardStep1">
+          <h2 class="wizard-prompt">What's your child's name?</h2>
+          <p class="wizard-hint">Every story will be written just for them ✨</p>
+          <input id="wizardName" class="wizard-input" type="text" placeholder="e.g. Sophia" maxlength="50" autocomplete="off" />
+          <button class="wizard-next-btn" id="wizardNext1" onclick="wizardNext(1)" disabled>Continue &rarr;</button>
+        </div>
+
+        <!-- Step 2: Age + Gender -->
+        <div class="wizard-step hidden" id="wizardStep2">
+          <h2 class="wizard-prompt" id="wizardStep2Title">How old is <span id="wizardNameDisplay"></span>?</h2>
+          <p class="wizard-hint">Stories are tailored to their age and imagination.</p>
+          <div class="wizard-age-gender">
+            <input id="wizardAge" class="wizard-input" type="number" placeholder="Age" min="1" max="18" />
+          </div>
+          <div class="wizard-gender-row">
+            <button class="wizard-gender-btn" data-gender="girl" onclick="wizardSelectGender(this)">&#128105; Girl</button>
+            <button class="wizard-gender-btn" data-gender="boy" onclick="wizardSelectGender(this)">&#128104; Boy</button>
+            <button class="wizard-gender-btn" data-gender="neutral" onclick="wizardSelectGender(this)">&#127752; Other</button>
+          </div>
+          <button class="wizard-next-btn" id="wizardNext2" onclick="wizardNext(2)" disabled>Continue &rarr;</button>
+        </div>
+
+        <!-- Step 3: Interests -->
+        <div class="wizard-step hidden" id="wizardStep3">
+          <h2 class="wizard-prompt">What does <span id="wizardNameDisplay3"></span> love?</h2>
+          <p class="wizard-hint">Pick a few — we'll weave them into every story.</p>
+          <div class="wizard-interests" id="wizardChips">
+            <button class="wizard-chip" data-interest="dinosaurs" onclick="wizardToggleChip(this)">&#129430; Dinosaurs</button>
+            <button class="wizard-chip" data-interest="space" onclick="wizardToggleChip(this)">&#127775; Space</button>
+            <button class="wizard-chip" data-interest="fairies" onclick="wizardToggleChip(this)">&#10024; Fairies</button>
+            <button class="wizard-chip" data-interest="animals" onclick="wizardToggleChip(this)">&#128062; Animals</button>
+            <button class="wizard-chip" data-interest="pirates" onclick="wizardToggleChip(this)">&#9875; Pirates</button>
+            <button class="wizard-chip" data-interest="dragons" onclick="wizardToggleChip(this)">&#129409; Dragons</button>
+            <button class="wizard-chip" data-interest="mermaids" onclick="wizardToggleChip(this)">&#129400; Mermaids</button>
+            <button class="wizard-chip" data-interest="superheroes" onclick="wizardToggleChip(this)">&#129464; Superheroes</button>
+            <button class="wizard-chip" data-interest="princesses" onclick="wizardToggleChip(this)">&#128081; Princesses</button>
+            <button class="wizard-chip" data-interest="robots" onclick="wizardToggleChip(this)">&#129302; Robots</button>
+            <button class="wizard-chip" data-interest="magic" onclick="wizardToggleChip(this)">&#129984; Magic</button>
+            <button class="wizard-chip" data-interest="sport" onclick="wizardToggleChip(this)">&#9917; Sport</button>
+          </div>
+          <button class="wizard-next-btn" id="wizardNext3" onclick="wizardFinish()" disabled>Create First Story &#10024;</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================================================================== -->
     <!-- HOME PAGE                                                           -->
     <!-- ================================================================== -->
     <div id="pageHome" class="page hidden">
@@ -643,6 +703,15 @@
         </div>
         <p class="loading-text" data-i18n="loading_text">Writing your story...</p>
         <p id="loadingStep" class="loading-step"></p>
+        <div class="skeleton-story" aria-hidden="true">
+          <div class="skeleton-line sk-title"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line sk-short"></div>
+          <div class="skeleton-line sk-medium"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line sk-short"></div>
+          <div class="skeleton-line sk-medium"></div>
+        </div>
         <p class="loading-sub" data-i18n="loading_sub">This usually takes 10–20 seconds</p>
       </div>
     </div>
@@ -692,6 +761,6 @@
   </div>
 
   <script src="/story-cache.js"></script>
-  <script type="module" src="/app.js?v=20260420d"></script>
+  <script type="module" src="/app.js?v=20260420e"></script>
 </body>
 </html>

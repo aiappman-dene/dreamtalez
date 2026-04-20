@@ -7371,6 +7371,7 @@ function enterReadingMode() {
 
   readingMode.classList.remove("hidden");
   document.body.style.overflow = "hidden"; // Prevent background scroll
+  trackEvent("story_read", { childName: child?.name, mode: currentStoryMode });
 
   // Restore saved scroll position
   const saved = localStorage.getItem("readingScroll");
@@ -7459,10 +7460,213 @@ function setupReadingModeEvents() {
 }
 
 // =============================================================================
+// Analytics — fire-and-forget event ping
+// =============================================================================
+
+function trackEvent(event, data = {}) {
+  try {
+    fetch("/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event, data, ts: Date.now() }),
+    }).catch(() => {});
+  } catch {}
+}
+
+// =============================================================================
+// Return User Detection
+// =============================================================================
+
+function checkReturnUser() {
+  try {
+    const lastVisit = localStorage.getItem("dt-last-visit");
+    const today = new Date().toDateString();
+    if (lastVisit && lastVisit !== today) {
+      trackEvent("returned_next_day");
+      // Show a warm welcome-back toast after the home page settles
+      setTimeout(() => {
+        const child = getSelectedChild();
+        const name = child?.name && child.name !== "a little one" ? ` ${child.name}` : "";
+        const toast = document.createElement("div");
+        toast.style.cssText =
+          "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);" +
+          "background:rgba(30,20,60,0.97);color:#fff;border:1px solid rgba(255,208,96,0.4);" +
+          "border-radius:20px;padding:12px 22px;font-size:14px;font-weight:600;" +
+          "z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.45);" +
+          "text-align:center;";
+        toast.textContent = `🌙 Welcome back! Ready for${name}'s story tonight?`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+      }, 1800);
+    }
+    localStorage.setItem("dt-last-visit", today);
+  } catch {}
+}
+
+// =============================================================================
+// Hot Story Cache (localStorage, 10-min TTL)
+// Serves the 2nd+ surprise story INSTANTLY — zero loading time.
+// After each generated story, a replacement is silently pre-generated
+// so the next tap feels like magic.
+// =============================================================================
+
+const HOT_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+function _hotKey(childName, length) {
+  return `dt-hot-${childName}-${length}`;
+}
+
+function getHotCachedStory(childName, length) {
+  try {
+    const raw = localStorage.getItem(_hotKey(childName, length));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Date.now() - parsed.ts > HOT_CACHE_TTL) {
+      localStorage.removeItem(_hotKey(childName, length));
+      return null;
+    }
+    return parsed;
+  } catch { return null; }
+}
+
+function saveHotCachedStory(childName, length, title, text) {
+  try {
+    localStorage.setItem(_hotKey(childName, length), JSON.stringify({ title, text, ts: Date.now() }));
+  } catch {}
+}
+
+function clearHotCachedStory(childName, length) {
+  try { localStorage.removeItem(_hotKey(childName, length)); } catch {}
+}
+
+async function preloadHotStory(child, storyLength) {
+  if (!currentUser || !child?.name || child.name === "a little one") return;
+  if (generationInProgress) return;
+  if (getHotCachedStory(child.name, storyLength)) return; // already cached
+
+  try {
+    const token = await currentUser.getIdToken();
+    if (!token) return;
+    const baseInterests = child.interests?.length
+      ? child.interests.join(", ")
+      : "adventure, animals, magic";
+    const res = await fetch("/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+      body: JSON.stringify({
+        name: formatName(child.name),
+        age: String(child.age || 5),
+        interests: enrichInterestsWithContext(baseInterests, child),
+        length: storyLength,
+        mode: "random",
+        language: getCurrentLanguage(),
+        dialect: cachedDialect,
+        appearance: child.appearance || undefined,
+        personalWorld: buildPersonalWorld(child),
+      }),
+    });
+    const remaining = Number(res.headers.get("X-RateLimit-Remaining") ?? 99);
+    if (remaining < 4) return;
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data?.fallback || !data?.story) return;
+    saveHotCachedStory(child.name, storyLength,
+      data.title || `${child.name}'s Story`,
+      applyDialectToText(data.story, getCurrentLanguage())
+    );
+  } catch { /* silent — user never knows this ran */ }
+}
+
+// =============================================================================
+// Onboarding Wizard (new users: name → age/gender → interests → first story)
+// =============================================================================
+
+const _wizardData = { name: "", age: 5, gender: "", interests: [] };
+
+function wizardNext(step) {
+  if (step === 1) {
+    const nameVal = ($("wizardName")?.value || "").trim();
+    if (!nameVal) return;
+    _wizardData.name = nameVal;
+    const displays = document.querySelectorAll("#wizardNameDisplay, #wizardNameDisplay3");
+    displays.forEach((el) => { el.textContent = nameVal; });
+    $("wizardStep1")?.classList.add("hidden");
+    $("wizardStep2")?.classList.remove("hidden");
+    _wizardDots(2);
+  } else if (step === 2) {
+    const age = parseInt($("wizardAge")?.value || "5");
+    if (!age || age < 1 || age > 18) return;
+    _wizardData.age = age;
+    $("wizardStep2")?.classList.add("hidden");
+    $("wizardStep3")?.classList.remove("hidden");
+    _wizardDots(3);
+  }
+}
+window.wizardNext = wizardNext;
+
+function wizardSelectGender(btn) {
+  document.querySelectorAll(".wizard-gender-btn").forEach((b) => b.classList.remove("selected"));
+  btn.classList.add("selected");
+  _wizardData.gender = btn.dataset.gender || "";
+  const btn2 = $("wizardNext2");
+  const age = parseInt($("wizardAge")?.value || "0");
+  if (btn2) btn2.disabled = !(age >= 1 && age <= 18);
+}
+window.wizardSelectGender = wizardSelectGender;
+
+function wizardToggleChip(chip) {
+  const interest = chip.dataset.interest;
+  if (!interest) return;
+  const idx = _wizardData.interests.indexOf(interest);
+  if (idx === -1) {
+    _wizardData.interests.push(interest);
+    chip.classList.add("selected");
+  } else {
+    _wizardData.interests.splice(idx, 1);
+    chip.classList.remove("selected");
+  }
+  const btn3 = $("wizardNext3");
+  if (btn3) btn3.disabled = _wizardData.interests.length === 0;
+}
+window.wizardToggleChip = wizardToggleChip;
+
+function _wizardDots(active) {
+  for (let i = 1; i <= 3; i++) {
+    const dot = $(`wDot${i}`);
+    if (!dot) continue;
+    dot.classList.toggle("active", i === active);
+    dot.classList.toggle("done", i < active);
+  }
+}
+
+async function wizardFinish() {
+  // Save child to Firestore using existing saveChild machinery
+  const { name, age, gender, interests } = _wizardData;
+  if (!name || !interests.length) return;
+
+  try { localStorage.setItem("dt-wizard-done", "1"); } catch {}
+  trackEvent("onboarding_wizard_complete", { name, age, gender, interests: interests.length });
+
+  // Temporarily populate the child form fields and call saveChild
+  const nameEl = $("childName"); if (nameEl) nameEl.value = name;
+  const ageEl = $("childAge"); if (ageEl) ageEl.value = String(age);
+  const genderEl = $("childGender"); if (genderEl) genderEl.value = gender;
+  const interestsEl = $("childInterests"); if (interestsEl) interestsEl.value = interests.join(", ");
+
+  await saveChild(); // saves to Firestore + updates cachedChildren
+  navigateTo("home");
+
+  // Immediately generate their first story
+  await new Promise((r) => setTimeout(r, 400)); // let home settle
+  handleGenerate("medium-surprise");
+}
+window.wizardFinish = wizardFinish;
+
+// =============================================================================
 // UI — Page Navigation
 // =============================================================================
 
-const ALL_PAGES = ["authScreen", "pageLanguage", "pageIntro", "pageHome", "pageChildren", "pageCreate", "pageToday", "pageLibrary", "pageSettings", "pagePrivacy", "pageTerms", "storyCard"];
+const ALL_PAGES = ["authScreen", "pageLanguage", "pageIntro", "pageWizard", "pageHome", "pageChildren", "pageCreate", "pageToday", "pageLibrary", "pageSettings", "pagePrivacy", "pageTerms", "storyCard"];
 
 function navigateTo(page) {
   previousPage = currentPage;
@@ -7473,6 +7677,7 @@ function navigateTo(page) {
     auth: "authScreen",
     language: "pageLanguage",
     intro: "pageIntro",
+    wizard: "pageWizard",
     home: "pageHome",
     children: "pageChildren",
     create: "pageCreate",
@@ -7493,7 +7698,7 @@ function navigateTo(page) {
   // Bottom nav visibility + active state
   const nav = $("bottomNav");
   if (nav) {
-    nav.classList.toggle("hidden", page === "auth" || page === "intro");
+    nav.classList.toggle("hidden", page === "auth" || page === "intro" || page === "wizard");
     nav.querySelectorAll(".nav-item").forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.page === page);
     });
@@ -8550,6 +8755,21 @@ async function handleGenerate(mode) {
       return;
     }
     const storyLength = mode === "long-surprise" ? "long" : "medium";
+
+    // ── Hot cache hit → serve instantly, zero wait ──
+    const hotStory = getHotCachedStory(child.name, storyLength);
+    if (hotStory) {
+      clearHotCachedStory(child.name, storyLength);
+      displayStory(hotStory.title, hotStory.text, { childName: child.name, mode: "random" });
+      recordStoryUsed();
+      try { localStorage.setItem("dt-first-story", "1"); } catch {}
+      enterReadingMode();
+      generationInProgress = false;
+      trackEvent("story_served_from_hot_cache", { mode, childName: child.name });
+      setTimeout(() => preloadHotStory(child, storyLength), 800);
+      return;
+    }
+
     const baseInterests = child.interests?.length
       ? child.interests.join(", ")
       : pick(interestsByAge[getAgeGroup(child.age || 5)]);
@@ -8912,7 +9132,14 @@ async function handleGenerate(mode) {
     recordStoryUsed();
     // Mark first story as done so loading messages personalise correctly going forward
     try { localStorage.setItem("dt-first-story", "1"); } catch {}
+    trackEvent("story_generated", { mode, childName: getSelectedChild()?.name });
     enterReadingMode();
+    // Silently pre-generate the NEXT surprise story so the next tap is instant
+    if (mode === "medium-surprise" || mode === "long-surprise") {
+      const preloadChild = getSelectedChild();
+      const preloadLen = mode === "long-surprise" ? "long" : "medium";
+      setTimeout(() => preloadHotStory(preloadChild, preloadLen), 4000);
+    }
   } finally {
     hideLoading();
     if (button) {
@@ -9002,6 +9229,8 @@ onAuthStateChanged(auth, async (user) => {
     }
     await loadChildren();
     navigateTo("home");
+    checkReturnUser();
+    trackEvent("app_opened");
     // Start background cache fill once children are loaded
     if (window.StoryCache) {
       window.StoryCache.pruneOldEntries();
@@ -9011,7 +9240,7 @@ onAuthStateChanged(auth, async (user) => {
         getCurrentLanguage()
       );
       window.StoryCache.updateOfflineIndicator();
-      // After fill runs, auto-save any pre-generated stories to the library as bonus stories
+      // Wire up bonus story hook + drain any cached stories from prior session
       setTimeout(() => autoSaveCachedToLibrary(), 30000);
     }
   } else {
@@ -9134,13 +9363,20 @@ if (langContinueBtn) {
     applyUILanguage();
     await saveLanguageToFirestore(selectedOnboardingLang);
     await loadChildren();
-    navigateTo("home");
-    if (window.StoryCache) {
-      window.StoryCache.scheduleBackgroundFill(
-        cachedChildren,
-        () => currentUser?.getIdToken(),
-        getCurrentLanguage()
-      );
+    trackEvent("onboarding_language_selected", { lang: selectedOnboardingLang });
+    // New users with no children → show the wizard; returning users → home
+    const wizardDone = localStorage.getItem("dt-wizard-done") === "1";
+    if (!wizardDone && cachedChildren.length === 0) {
+      navigateTo("wizard");
+    } else {
+      navigateTo("home");
+      if (window.StoryCache) {
+        window.StoryCache.scheduleBackgroundFill(
+          cachedChildren,
+          () => currentUser?.getIdToken(),
+          getCurrentLanguage()
+        );
+      }
     }
   });
 }
@@ -9194,3 +9430,28 @@ document.addEventListener("visibilitychange", () => {
     setTimeout(() => toast.remove(), 4000);
   }
 });
+
+// =============================================================================
+// Wizard live-validation (enable Next button as user types)
+// =============================================================================
+
+const wizardNameInput = $("wizardName");
+if (wizardNameInput) {
+  wizardNameInput.addEventListener("input", () => {
+    const btn = $("wizardNext1");
+    if (btn) btn.disabled = wizardNameInput.value.trim().length < 1;
+  });
+  wizardNameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && wizardNameInput.value.trim()) wizardNext(1);
+  });
+}
+
+const wizardAgeInput = $("wizardAge");
+if (wizardAgeInput) {
+  wizardAgeInput.addEventListener("input", () => {
+    const age = parseInt(wizardAgeInput.value || "0");
+    const genderSelected = !!document.querySelector(".wizard-gender-btn.selected");
+    const btn = $("wizardNext2");
+    if (btn) btn.disabled = !(age >= 1 && age <= 18 && genderSelected);
+  });
+}

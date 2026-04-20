@@ -589,6 +589,19 @@ app.post(
 // Story generation endpoint
 // =============================================================================
 
+// =============================================================================
+// Analytics — fire-and-forget event logging
+// =============================================================================
+
+app.options("/track", corsMiddleware);
+app.post("/track", corsMiddleware, express.json({ limit: "4kb" }), (req, res) => {
+  const { event, data } = req.body || {};
+  if (!event || typeof event !== "string") return res.json({ ok: false });
+  const safe = event.replace(/[^a-z0-9_]/gi, "").slice(0, 64);
+  console.log(`[TRACK] ${safe}`, JSON.stringify(data || {}).slice(0, 200));
+  res.json({ ok: true });
+});
+
 app.options("/generate", corsMiddleware);
 app.post(
   "/generate",
