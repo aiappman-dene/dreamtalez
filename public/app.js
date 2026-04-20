@@ -275,7 +275,7 @@ const UI_STRINGS = {
     log_in: "Log In",
     forgot_password: "Forgot password?",
     sample_story_btn: "★ Read a Sample Story",
-    trust_line: "7-day free trial · Then £2.99/month · 10 stories per week · No ads",
+    trust_line: "7-day free trial · Then £3.99/month · 10 stories per week · No ads",
     auth_legal: "By signing up you agree to our",
     auth_terms: "Terms",
     auth_and: "and",
@@ -290,7 +290,7 @@ const UI_STRINGS = {
     paywall_perk2: "Story From Today, Medium & Long stories",
     paywall_perk3: "Full Story Library & series continuity",
     paywall_perk4: "12 languages · Safe · No ads",
-    subscribe_btn: "Start Subscribing — £2.99/month",
+    subscribe_btn: "Start Subscribing — £3.99/month",
     paywall_note: "Your saved stories stay yours — readable anytime.",
     welcome_title: "Welcome to DreamTalez ★",
     welcome_hint: "Add your first child to start creating magical stories.",
@@ -456,7 +456,7 @@ const UI_STRINGS = {
     log_in: "Se connecter",
     forgot_password: "Mot de passe oublié ?",
     sample_story_btn: "★ Lire une histoire d'exemple",
-    trust_line: "7 jours d'essai gratuit · Puis £2.99/mois · 10 histoires par semaine · Sans publicité",
+    trust_line: "7 jours d'essai gratuit · Puis £3.99/mois · 10 histoires par semaine · Sans publicité",
     auth_legal: "En vous inscrivant, vous acceptez nos",
     auth_terms: "Conditions",
     auth_and: "et notre",
@@ -471,7 +471,7 @@ const UI_STRINGS = {
     paywall_perk2: "Histoire du Jour, histoires Moyennes et Longues",
     paywall_perk3: "Bibliothèque complète et continuité des séries",
     paywall_perk4: "12 langues · Sûr · Sans publicité",
-    subscribe_btn: "S'abonner — £2.99/mois",
+    subscribe_btn: "S'abonner — £3.99/mois",
     paywall_note: "Vos histoires sauvegardées restent les vôtres — lisibles à tout moment.",
     welcome_title: "Bienvenue sur DreamTalez ★",
     welcome_hint: "Ajoutez votre premier enfant pour commencer à créer des histoires magiques.",
@@ -624,7 +624,7 @@ const UI_STRINGS = {
     log_in: "Iniciar sesión",
     forgot_password: "¿Olvidaste tu contraseña?",
     sample_story_btn: "★ Leer un cuento de muestra",
-    trust_line: "7 días de prueba gratuita · Luego £2.99/mes · 10 cuentos por semana · Sin anuncios",
+    trust_line: "7 días de prueba gratuita · Luego £3.99/mes · 10 cuentos por semana · Sin anuncios",
     auth_legal: "Al registrarte, aceptas nuestros",
     auth_terms: "Términos",
     auth_and: "y nuestra",
@@ -639,7 +639,7 @@ const UI_STRINGS = {
     paywall_perk2: "Historia de Hoy, cuentos Medianos y Largos",
     paywall_perk3: "Biblioteca completa y continuidad de series",
     paywall_perk4: "12 idiomas · Seguro · Sin anuncios",
-    subscribe_btn: "Suscribirse — £2.99/mes",
+    subscribe_btn: "Suscribirse — £3.99/mes",
     paywall_note: "Tus historias guardadas son tuyas para siempre — legibles en cualquier momento.",
     welcome_title: "Bienvenido a DreamTalez ★",
     welcome_hint: "Añade tu primer hijo para empezar a crear cuentos mágicos.",
@@ -792,7 +792,7 @@ const UI_STRINGS = {
     log_in: "Entrar",
     forgot_password: "Esqueceu a palavra-passe?",
     sample_story_btn: "★ Ler uma história de exemplo",
-    trust_line: "7 dias de prova gratuita · Depois £2.99/mês · 10 histórias por semana · Sem anúncios",
+    trust_line: "7 dias de prova gratuita · Depois £3.99/mês · 10 histórias por semana · Sem anúncios",
     auth_legal: "Ao registar-se, aceita os nossos",
     auth_terms: "Termos",
     auth_and: "e a nossa",
@@ -807,7 +807,7 @@ const UI_STRINGS = {
     paywall_perk2: "História de Hoje, histórias Médias e Longas",
     paywall_perk3: "Biblioteca completa e continuidade de séries",
     paywall_perk4: "12 idiomas · Seguro · Sem anúncios",
-    subscribe_btn: "Subscrever — £2.99/mês",
+    subscribe_btn: "Subscrever — £3.99/mês",
     paywall_note: "As suas histórias guardadas ficam suas — legíveis a qualquer momento.",
     welcome_title: "Bem-vindo ao DreamTalez ★",
     welcome_hint: "Adicione o seu primeiro filho para começar a criar histórias mágicas.",
@@ -960,7 +960,7 @@ const UI_STRINGS = {
     log_in: "Anmelden",
     forgot_password: "Passwort vergessen?",
     sample_story_btn: "★ Eine Beispielgeschichte lesen",
-    trust_line: "7 Tage kostenlose Testversion · Dann £2.99/Monat · 10 Geschichten pro Woche · Keine Werbung",
+    trust_line: "7 Tage kostenlose Testversion · Dann £3.99/Monat · 10 Geschichten pro Woche · Keine Werbung",
     auth_legal: "Mit der Anmeldung stimmst du unseren",
     auth_terms: "Nutzungsbedingungen",
     auth_and: "und unserer",
@@ -975,7 +975,7 @@ const UI_STRINGS = {
     paywall_perk2: "Geschichte von Heute, Mittellange & Lange Geschichten",
     paywall_perk3: "Vollständige Story-Bibliothek & Serienkontinuität",
     paywall_perk4: "12 Sprachen · Sicher · Keine Werbung",
-    subscribe_btn: "Abonnieren — £2.99/Monat",
+    subscribe_btn: "Abonnieren — £3.99/Monat",
     paywall_note: "Deine gespeicherten Geschichten gehören dir — jederzeit lesbar.",
     welcome_title: "Willkommen bei DreamTalez ★",
     welcome_hint: "Füge dein erstes Kind hinzu, um magische Geschichten zu erstellen.",
@@ -1128,7 +1128,7 @@ const UI_STRINGS = {
     log_in: "Accedi",
     forgot_password: "Password dimenticata?",
     sample_story_btn: "★ Leggi una storia di esempio",
-    trust_line: "7 giorni di prova gratuita · Poi £2.99/mese · 10 storie a settimana · Nessuna pubblicità",
+    trust_line: "7 giorni di prova gratuita · Poi £3.99/mese · 10 storie a settimana · Nessuna pubblicità",
     auth_legal: "Registrandoti, accetti i nostri",
     auth_terms: "Termini",
     auth_and: "e la nostra",
@@ -1143,7 +1143,7 @@ const UI_STRINGS = {
     paywall_perk2: "Storia di Oggi, storie Medie e Lunghe",
     paywall_perk3: "Libreria completa e continuità delle serie",
     paywall_perk4: "12 lingue · Sicuro · Nessuna pubblicità",
-    subscribe_btn: "Abbonati — £2.99/mese",
+    subscribe_btn: "Abbonati — £3.99/mese",
     paywall_note: "Le tue storie salvate rimangono tue — leggibili in qualsiasi momento.",
     welcome_title: "Benvenuto su DreamTalez ★",
     welcome_hint: "Aggiungi il tuo primo bambino per iniziare a creare storie magiche.",
@@ -1296,7 +1296,7 @@ const UI_STRINGS = {
     log_in: "ログイン",
     forgot_password: "パスワードをお忘れですか？",
     sample_story_btn: "★ サンプルのお話を読む",
-    trust_line: "7日間無料体験 · その後 £2.99/月 · 週10話 · 広告なし",
+    trust_line: "7日間無料体験 · その後 £3.99/月 · 週10話 · 広告なし",
     auth_legal: "登録することで以下に同意します：",
     auth_terms: "利用規約",
     auth_and: "および",
@@ -1311,7 +1311,7 @@ const UI_STRINGS = {
     paywall_perk2: "今日のお話、中編・長編のお話",
     paywall_perk3: "完全なお話ライブラリとシリーズの継続",
     paywall_perk4: "12言語 · 安全 · 広告なし",
-    subscribe_btn: "サブスクリプションを始める — £2.99/月",
+    subscribe_btn: "サブスクリプションを始める — £3.99/月",
     paywall_note: "保存したお話はいつでも読めます。",
     welcome_title: "DreamTalez へようこそ ★",
     welcome_hint: "最初のお子様を追加して魔法のお話を作り始めましょう。",
@@ -1464,7 +1464,7 @@ const UI_STRINGS = {
     log_in: "登录",
     forgot_password: "忘记密码？",
     sample_story_btn: "★ 阅读示例故事",
-    trust_line: "7天免费试用 · 之后 £2.99/月 · 每周10个故事 · 无广告",
+    trust_line: "7天免费试用 · 之后 £3.99/月 · 每周10个故事 · 无广告",
     auth_legal: "注册即表示您同意我们的",
     auth_terms: "服务条款",
     auth_and: "和",
@@ -1479,7 +1479,7 @@ const UI_STRINGS = {
     paywall_perk2: "今日故事、中篇和长篇故事",
     paywall_perk3: "完整故事库和系列连续性",
     paywall_perk4: "12种语言 · 安全 · 无广告",
-    subscribe_btn: "开始订阅 — £2.99/月",
+    subscribe_btn: "开始订阅 — £3.99/月",
     paywall_note: "您保存的故事永远属于您 — 随时可阅读。",
     welcome_title: "欢迎使用 DreamTalez ★",
     welcome_hint: "添加您的第一个孩子，开始创作神奇故事。",
@@ -1632,7 +1632,7 @@ const UI_STRINGS = {
     log_in: "تسجيل الدخول",
     forgot_password: "نسيت كلمة المرور؟",
     sample_story_btn: "★ قراءة قصة نموذجية",
-    trust_line: "7 أيام تجربة مجانية · ثم £2.99/شهر · 10 قصص أسبوعياً · بلا إعلانات",
+    trust_line: "7 أيام تجربة مجانية · ثم £3.99/شهر · 10 قصص أسبوعياً · بلا إعلانات",
     auth_legal: "بالتسجيل، أنت توافق على",
     auth_terms: "شروط الخدمة",
     auth_and: "و",
@@ -1647,7 +1647,7 @@ const UI_STRINGS = {
     paywall_perk2: "قصة اليوم، والقصص المتوسطة والطويلة",
     paywall_perk3: "مكتبة قصص كاملة واستمرارية السلاسل",
     paywall_perk4: "12 لغة · آمن · بلا إعلانات",
-    subscribe_btn: "ابدأ الاشتراك — £2.99/شهر",
+    subscribe_btn: "ابدأ الاشتراك — £3.99/شهر",
     paywall_note: "قصصك المحفوظة لك دائماً — يمكن قراءتها في أي وقت.",
     welcome_title: "مرحباً بك في DreamTalez ★",
     welcome_hint: "أضف طفلك الأول لبدء إنشاء قصص سحرية.",
@@ -1800,7 +1800,7 @@ const UI_STRINGS = {
     log_in: "लॉग इन करें",
     forgot_password: "पासवर्ड भूल गए?",
     sample_story_btn: "★ एक नमूना कहानी पढ़ें",
-    trust_line: "7 दिन का मुफ़्त ट्रायल · फिर £2.99/माह · प्रति सप्ताह 10 कहानियाँ · कोई विज्ञापन नहीं",
+    trust_line: "7 दिन का मुफ़्त ट्रायल · फिर £3.99/माह · प्रति सप्ताह 10 कहानियाँ · कोई विज्ञापन नहीं",
     auth_legal: "साइन अप करके आप हमारी",
     auth_terms: "शर्तें",
     auth_and: "और",
@@ -1815,7 +1815,7 @@ const UI_STRINGS = {
     paywall_perk2: "आज की कहानी, मध्यम और लंबी कहानियाँ",
     paywall_perk3: "पूरी कहानी लाइब्रेरी और श्रृंखला की निरंतरता",
     paywall_perk4: "12 भाषाएं · सुरक्षित · कोई विज्ञापन नहीं",
-    subscribe_btn: "सदस्यता शुरू करें — £2.99/माह",
+    subscribe_btn: "सदस्यता शुरू करें — £3.99/माह",
     paywall_note: "आपकी सहेजी गई कहानियाँ हमेशा आपकी हैं — कभी भी पढ़ें।",
     welcome_title: "DreamTalez में आपका स्वागत है ★",
     welcome_hint: "जादुई कहानियाँ बनाना शुरू करने के लिए अपना पहला बच्चा जोड़ें।",
@@ -1968,7 +1968,7 @@ const UI_STRINGS = {
     log_in: "لاگ ان کریں",
     forgot_password: "پاس ورڈ بھول گئے؟",
     sample_story_btn: "★ ایک نمونہ کہانی پڑھیں",
-    trust_line: "7 دن کا مفت ٹرائل · پھر £2.99/ماہ · ہر ہفتے 10 کہانیاں · کوئی اشتہار نہیں",
+    trust_line: "7 دن کا مفت ٹرائل · پھر £3.99/ماہ · ہر ہفتے 10 کہانیاں · کوئی اشتہار نہیں",
     auth_legal: "سائن اپ کر کے آپ ہماری",
     auth_terms: "شرائط",
     auth_and: "اور",
@@ -1983,7 +1983,7 @@ const UI_STRINGS = {
     paywall_perk2: "آج کی کہانی، درمیانی اور لمبی کہانیاں",
     paywall_perk3: "مکمل کہانی لائبریری اور سیریز کا تسلسل",
     paywall_perk4: "12 زبانیں · محفوظ · کوئی اشتہار نہیں",
-    subscribe_btn: "سبسکرائب شروع کریں — £2.99/ماہ",
+    subscribe_btn: "سبسکرائب شروع کریں — £3.99/ماہ",
     paywall_note: "آپ کی محفوظ کہانیاں ہمیشہ آپ کی ہیں — کسی بھی وقت پڑھیں۔",
     welcome_title: "DreamTalez میں خوش آمدید ★",
     welcome_hint: "جادوئی کہانیاں بنانا شروع کرنے کے لیے اپنا پہلا بچہ شامل کریں۔",
@@ -5854,9 +5854,30 @@ async function recordStoryUsed() {
 }
 
 /** Placeholder subscribe handler (payment wiring comes later). */
-function handleSubscribe() {
-  alert("Subscription coming soon. Payment will be wired in the next step.");
-  // Future: open Stripe checkout, flip cachedTrial.status to "paid" on success.
+async function handleSubscribe() {
+  const btn = $("subscribeBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Loading…"; }
+
+  try {
+    const token = currentUser ? await currentUser.getIdToken() : null;
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch("/api/checkout", { method: "POST", headers });
+    const data = await res.json();
+
+    if (data.url) {
+      trackEvent("checkout_started");
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || "No checkout URL returned");
+    }
+  } catch (err) {
+    console.error("Checkout error:", err);
+    alert("Could not start checkout. Please try again.");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = t("subscribe_btn"); }
+  }
 }
 
 /** Build a continuation header to prepend to customIdea on night 2+. */
@@ -7463,6 +7484,73 @@ function setupReadingModeEvents() {
 // Analytics — fire-and-forget event ping
 // =============================================================================
 
+// Fetch with a hard client-side timeout — matches the 90s server-side budget.
+// Merges Content-Type into headers automatically; throws a clear error on timeout.
+async function fetchWithTimeout(url, options = {}, timeoutMs = 90000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+    });
+  } catch (err) {
+    if (err.name === "AbortError") throw new Error("Request timed out");
+    throw err;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+// Poll /api/job/:jobId every 3s until the story is ready (max 5 min).
+async function pollJob(jobId, maxWaitMs = 5 * 60 * 1000) {
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    await new Promise((r) => setTimeout(r, 3000));
+    try {
+      const res = await fetch(`/api/job/${jobId}`);
+      const data = await res.json();
+      if (data.status === "done") return data;
+      if (data.status === "failed" || data.status === "expired") {
+        throw Object.assign(new Error("AI unavailable, using procedural fallback."), { proceduralFallback: true });
+      }
+      // status === "pending" — keep polling
+    } catch (err) {
+      if (err.proceduralFallback) throw err;
+      // Network blip — keep trying
+    }
+  }
+  throw Object.assign(new Error("AI unavailable, using procedural fallback."), { proceduralFallback: true });
+}
+
+// When the phone wakes and the app becomes visible again, resume polling
+// any in-progress job rather than leaving the user on a blank loading screen.
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState !== "visible") return;
+  const pendingJobId = localStorage.getItem("dt-pending-job");
+  if (!pendingJobId || !generationInProgress) return;
+
+  try {
+    const data = await pollJob(pendingJobId);
+    localStorage.removeItem("dt-pending-job");
+    if (data?.story) {
+      const story = applyDialectToText(data.story, getCurrentLanguage());
+      const title = applyDialectToText(data.title || "Your Story", getCurrentLanguage());
+      const child = getSelectedChild();
+      displayStory(title, story, { childName: child?.name, mode: currentStoryMode || "random" });
+      hideLoading();
+      generationInProgress = false;
+      enterReadingMode();
+    }
+  } catch {
+    // If resume fails, leave the loading screen — the main flow's catch will handle it
+  }
+});
+
 function trackEvent(event, data = {}) {
   try {
     fetch("/track", {
@@ -7481,7 +7569,9 @@ function checkReturnUser() {
   try {
     const lastVisit = localStorage.getItem("dt-last-visit");
     const today = new Date().toDateString();
-    if (lastVisit && lastVisit !== today) {
+    if (!lastVisit) {
+      trackEvent("first_open");
+    } else if (lastVisit !== today) {
       trackEvent("returned_next_day");
       // Show a warm welcome-back toast after the home page settles
       setTimeout(() => {
@@ -8856,48 +8946,52 @@ async function handleGenerate(mode) {
     button.textContent = t("creating_btn");
   }
 
-  // 90-second hard timeout — protects against the phone sleeping mid-generation
-  // and leaving the app stuck on the loading spinner forever.
-  const abortController = new AbortController();
-  const fetchTimeout = setTimeout(() => abortController.abort(), 90000);
-
   try {
     // All modes hit the AI pipeline when online.
-    // Network failures fall through to the procedural catch block
-    // so bedtime always happens offline too.
-    const response = await fetch("/generate", {
+    // Network failures fall through to the procedural catch block.
+    // Job-based flow: POST returns a jobId immediately, we poll until done.
+    // If the phone sleeps mid-poll, visibilitychange resumes it automatically.
+    const initResponse = await fetchWithTimeout("/generate", {
       method: "POST",
       headers: await buildAuthenticatedJsonHeaders(),
       body: JSON.stringify(payload),
-      signal: abortController.signal,
-    });
-    clearTimeout(fetchTimeout);
+    }, 15000);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+    if (!initResponse.ok) {
+      const errorData = await initResponse.json().catch(() => ({}));
       if (errorData?.unsafe) {
-        // Server-side safety block — show friendly message, no procedural fallback
         hideLoading();
         if (button) { button.disabled = false; button.textContent = originalText; }
         generationInProgress = false;
         showSafetyMessage();
         return;
       }
-      if (response.status === 429) {
+      if (initResponse.status === 429) {
         const waitMins = Math.ceil((errorData.retryAfter || 300) / 60);
         throw Object.assign(
           new Error(errorData.error || `Too many requests. Please wait ${waitMins} minutes.`),
           { rateLimited: true, waitMins }
         );
       }
-      throw new Error(errorData.error || `Server error (${response.status})`);
+      throw new Error(errorData.error || `Server error (${initResponse.status})`);
     }
 
-    const data = await response.json();
+    const initData = await initResponse.json();
+    if (initData?.fallback) {
+      throw Object.assign(new Error("AI unavailable, using procedural fallback."), { proceduralFallback: true });
+    }
+
+    // Save jobId so phone-sleep resume works
+    const jobId = initData?.jobId;
+    if (!jobId) throw new Error("No jobId returned from server");
+    localStorage.setItem("dt-pending-job", jobId);
+
+    // Poll until done (up to 5 minutes, 3s intervals)
+    const data = await pollJob(jobId);
+    localStorage.removeItem("dt-pending-job");
+
     if (data?.fallback) {
-      throw Object.assign(new Error("AI unavailable, using procedural fallback."), {
-        proceduralFallback: true,
-      });
+      throw Object.assign(new Error("AI unavailable, using procedural fallback."), { proceduralFallback: true });
     }
 
     const story = typeof data?.story === "string" && data.story.trim()
@@ -8951,9 +9045,8 @@ async function handleGenerate(mode) {
 
     enterReadingMode();
   } catch (error) {
-    clearTimeout(fetchTimeout);
+    localStorage.removeItem("dt-pending-job");
 
-    // Fetch was aborted (90s timeout or phone slept) — reset cleanly, let user retry
     if (error?.name === "AbortError") {
       hideLoading();
       if (button) { button.disabled = false; button.textContent = originalText; }
@@ -9231,6 +9324,11 @@ onAuthStateChanged(auth, async (user) => {
     navigateTo("home");
     checkReturnUser();
     trackEvent("app_opened");
+    // Second-session retention metric — fires once per user on their return visit
+    if (localStorage.getItem("dt-first-story") && !localStorage.getItem("dt-returned-once")) {
+      localStorage.setItem("dt-returned-once", "1");
+      trackEvent("user_returned");
+    }
     // Start background cache fill once children are loaded
     if (window.StoryCache) {
       window.StoryCache.pruneOldEntries();

@@ -13,6 +13,7 @@ import { getAuth as getAdminAuth } from "firebase-admin/auth";
 import { body, validationResult } from "express-validator";
 import fs from "fs";
 import https from "https";
+import crypto from "crypto";
 import path from "path";
 import {
   STORY_SYSTEM_PROMPT,
@@ -33,7 +34,9 @@ import {
   normalizeStoryOutput,
   detectStoryQualityIssues,
   assertStoryQuality,
+  isStoryValid,
 } from "./story-quality.js";
+import { createCheckoutSession } from "./stripe.js";
 
 // =============================================================================
 // Config
@@ -246,6 +249,10 @@ function isUnsafeForChildren(text) {
   return SAFETY_PATTERN.test(text);
 }
 
+function getSafeFallbackStory(name) {
+  return `${name} snuggled into bed as the stars twinkled softly above.\n\nTonight was a peaceful night filled with gentle dreams, kind thoughts, and a quiet sense of magic.\n\nAs the moon smiled down, ${name} drifted into a calm and happy sleep, ready for a new adventure tomorrow.`;
+}
+
 function isStoryOutputSafe(story) {
   if (!story) return false;
   return !SAFETY_PATTERN.test(story);
@@ -387,6 +394,56 @@ async function callClaudeWithRetry(options, retries = 2) {
       await new Promise((r) => setTimeout(r, delay));
     }
   }
+}
+
+// Outer pipeline timeout — wraps any promise and rejects after ms with SERVER_TIMEOUT.
+// This is separate from the per-call AbortController inside callClaude so we can
+// cap the total pipeline time (all stages combined) independently of each call.
+async function generateWithTimeout(promise, ms = 85000) {
+  let timeout;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeout = setTimeout(() => reject(new Error("SERVER_TIMEOUT")), ms);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeout));
+}
+
+// =============================================================================
+// Job Store — in-memory, 10-minute TTL
+// Allows clients to disconnect (phone sleep) and reconnect to collect results.
+// =============================================================================
+
+const jobStore = new Map(); // jobId → { status, story, title, error, createdAt }
+const JOB_TTL_MS = 10 * 60 * 1000;
+
+function createJob() {
+  const jobId = crypto.randomUUID();
+  jobStore.set(jobId, { status: "pending", createdAt: Date.now() });
+  setTimeout(() => jobStore.delete(jobId), JOB_TTL_MS);
+  return jobId;
+}
+
+function resolveJob(jobId, story, title) {
+  const job = jobStore.get(jobId);
+  if (job) jobStore.set(jobId, { ...job, status: "done", story, title });
+}
+
+function failJob(jobId, errorMsg) {
+  const job = jobStore.get(jobId);
+  if (job) jobStore.set(jobId, { ...job, status: "failed", error: errorMsg });
+}
+
+// Retry wrapper: calls callClaudeWithRetry up to (retries+1) times, validates each
+// result, and falls back to a safe story if all attempts fail or time out.
+async function generateStorySafe(options, name, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const story = await generateWithTimeout(callClaudeWithRetry(options), 85000);
+      if (isStoryValid(story)) return story;
+    } catch (e) {
+      logEvent(`generateStorySafe retry ${i}: ${e.message}`);
+    }
+  }
+  return getSafeFallbackStory(name);
 }
 
 function isAiProviderUnavailableError(error) {
@@ -590,6 +647,16 @@ app.post(
 // =============================================================================
 
 // =============================================================================
+// Stripe — subscription checkout
+// =============================================================================
+
+app.options("/api/checkout", corsMiddleware);
+app.post("/api/checkout", corsMiddleware, requireAiAuth, (req, res) => {
+  logEvent(`Stripe checkout requested by uid:${req.authUser?.uid || "anon"}`);
+  return createCheckoutSession(req, res);
+});
+
+// =============================================================================
 // Analytics — fire-and-forget event logging
 // =============================================================================
 
@@ -679,13 +746,6 @@ app.post(
 
       logEvent(`Generating ${mode} story for "${cleanName}" (age ${cleanAge}), interests: "${cleanInterests}"${cleanIdea ? `, idea: "${cleanIdea}"` : ""}${cleanWish ? `, wish: "${cleanWish}"` : ""}, length: ${length}, dialect: ${cleanDialect}`);
 
-      // ================================================================
-      // 4-STAGE PIPELINE: Generate → Edit → Validate → Output
-      // With regeneration trigger if validator detects unfixable issues.
-      // Max 1 regeneration to prevent infinite loops.
-      // ================================================================
-
-      // Sanitize global inspiration ideas (max 5, each max 100 chars)
       const cleanGlobalInspiration = Array.isArray(globalInspiration)
         ? globalInspiration
             .slice(0, 5)
@@ -694,169 +754,138 @@ app.post(
         : [];
 
       const storyInputs = {
-        name: cleanName,
-        age: cleanAge,
-        interests: cleanInterests,
-        length,
-        language: cleanLanguage,
-        dialect: cleanDialect,
-        customIdea: cleanIdea,
-        seriesContext: cleanSeriesContext,
-        childWish: cleanWish,
-        appearance: cleanAppearance,
-        dayBeats: cleanBeats,
-        dayMood: cleanMood,
+        name: cleanName, age: cleanAge, interests: cleanInterests, length,
+        language: cleanLanguage, dialect: cleanDialect, customIdea: cleanIdea,
+        seriesContext: cleanSeriesContext, childWish: cleanWish,
+        appearance: cleanAppearance, dayBeats: cleanBeats, dayMood: cleanMood,
         globalInspiration: cleanGlobalInspiration.length ? cleanGlobalInspiration : undefined,
       };
-      // Tiered model selection: Sonnet for hero/long/medium, Haiku for short.
-      const modelConfig = getModelConfig({ mode, length });
-      logEvent(`Model config for "${cleanName}": ${modelConfig.model} @ temp ${modelConfig.temperature}`);
 
-      const storyMaxTokens = getStoryTokenBudget(length, "story", cleanLanguage);
-      const editorMaxTokens = getStoryTokenBudget(length, "editor", cleanLanguage);
-      const validatorMaxTokens = getStoryTokenBudget(length, "validator", cleanLanguage);
-      const titleMaxTokens = getStoryTokenBudget(length, "title", cleanLanguage);
+      // Create job, respond immediately so the client connection can close.
+      // Phone can sleep — the pipeline keeps running on the server.
+      const jobId = createJob();
+      res.json({ jobId });
 
-      const MAX_ATTEMPTS = USE_FULL_AI_PIPELINE ? 2 : 1;
-      let finalStory = null;
-      let cleanTitle = null;
-
-      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        if (attempt > 1) {
-          logEvent(`Regeneration triggered for "${cleanName}" (attempt ${attempt})`);
-        }
-
-        // STAGE 1: Generate story
-        // STORY_SYSTEM_PROMPT enforces internal 5-stage validation with
-        // hidden PASS/FAIL gates. CONTEXT_LOCK in user prompt reinforces
-        // consistency rules from a second angle to prevent silent drift.
-        const storyPrompt = buildStoryPrompt(storyInputs);
-
-        const rawStory = await callClaudeWithRetry({
-          system: STORY_SYSTEM_PROMPT,
-          prompt: storyPrompt,
-          maxTokens: storyMaxTokens,
-          temperature: modelConfig.temperature,
-          model: modelConfig.model,
+      // Run pipeline in background — result stored in jobStore for client to poll.
+      runStoryPipeline(storyInputs, { mode, cleanName, cleanDialect, cleanInterests, cleanIdea, cleanWish, cleanSeriesContext, cleanBeats, length })
+        .then(({ story, title }) => resolveJob(jobId, story, title))
+        .catch((err) => {
+          logEvent(`Pipeline error for job ${jobId}: ${err.message}`);
+          failJob(jobId, "story_failed");
         });
 
-        logEvent(`Stage 1 complete (generate) for "${cleanName}" [attempt ${attempt}]`);
-
-        // STAGE 2: Senior editor pass — enforces quality AND consistency.
-        // In lean mode we stop here to keep Anthropic usage to two calls max.
-        const grammarPrompt = buildGrammarPrompt(rawStory, cleanDialect);
-        const editedStory = await callClaudeWithRetry({
-          system: EDITOR_SYSTEM_PROMPT,
-          prompt: grammarPrompt,
-          maxTokens: editorMaxTokens,
-          temperature: 0.2,
-          model: modelConfig.model,
-        });
-
-        if (!USE_FULL_AI_PIPELINE) {
-          logEvent(`Stage 2 complete (edit) for "${cleanName}" [attempt ${attempt}] [lean pipeline]`);
-          finalStory = finalizeStoryLocally(editedStory, cleanDialect, `Final story for ${cleanName}`);
-          cleanTitle = `${cleanName}'s Bedtime Story`;
-          break;
-        }
-
-        const titlePrompt = buildTitlePrompt(rawStory, cleanName, cleanDialect);
-        const title = await callClaudeWithRetry({
-          prompt: titlePrompt,
-          maxTokens: titleMaxTokens,
-          temperature: 0.4,
-          model: modelConfig.model,
-        });
-
-        logEvent(`Stage 2 complete (edit + title) for "${cleanName}" [attempt ${attempt}]`);
-
-        // STAGE 3: Final validation gate with hidden 0–10 scoring
-        // Returns story as-is if all scores >= 9
-        // Applies surgical fixes if scores < 9
-        // Returns "REGENERATE" if fundamentally broken
-        // Mode context enables idea integrity (hero) / interest utilisation (random) checks
-        const validationPrompt = buildValidationPrompt(editedStory, {
-          mode,
-          dialect: cleanDialect,
-          interests: cleanInterests,
-          customIdea: cleanIdea,
-          childWish: cleanWish,
-          seriesContext: cleanSeriesContext,
-          dayBeats: cleanBeats,
-        });
-
-        const validatorOutput = await callClaudeWithRetry({
-          system: VALIDATOR_SYSTEM_PROMPT,
-          prompt: validationPrompt,
-          maxTokens: validatorMaxTokens,
-          temperature: 0.1,
-          model: modelConfig.model,
-        });
-
-        logEvent(`Stage 3 complete (validate) for "${cleanName}" [attempt ${attempt}]`);
-
-        // Check for regeneration trigger
-        if (validatorOutput.trim() === "REGENERATE") {
-          logEvent(`Validator triggered REGENERATE for "${cleanName}" [attempt ${attempt}]`);
-          continue;
-        }
-
-        const validatorIssues = detectStoryQualityIssues(validatorOutput, { dialect: cleanDialect });
-        if (validatorIssues.length) {
-          logEvent(`Validator output still had issues for "${cleanName}" [attempt ${attempt}]: ${validatorIssues.join(" | ")}`);
-          continue;
-        }
-
-        // Story passed validation
-        finalStory = validatorOutput;
-        cleanTitle = title.replace(/["']/g, "").trim();
-        break;
-      }
-
-      if (!finalStory) {
-        throw new Error(`AI story pipeline could not produce a fully validated story for "${cleanName}".`);
-      }
-
-      finalStory = USE_FULL_AI_PIPELINE
-        ? await runDeliveryQaPass(finalStory, cleanDialect)
-        : finalizeStoryLocally(finalStory, cleanDialect, `Final story for ${cleanName}`);
-
-      if (USE_FULL_AI_PIPELINE) {
-        finalStory = assertStoryQuality(finalStory, {
-          dialect: cleanDialect,
-          label: `Final story for ${cleanName}`,
-        });
-      }
-
-      if (!cleanTitle) {
-        cleanTitle = `${cleanName}'s Bedtime Story`;
-      }
-
-      // OUTPUT SAFETY CHECK — scan before sending to client
-      if (!isStoryOutputSafe(finalStory)) {
-        logEvent(`UNSAFE output detected for "${cleanName}" — using safe fallback`);
-        finalStory = `${cleanName} curled up in a cosy meadow beneath a blanket of stars. Fireflies danced, the breeze hummed a gentle lullaby, and soon — with a happy heart — ${cleanName} drifted off to the most peaceful sleep.`;
-        cleanTitle = `${cleanName}'s Peaceful Night`;
-      }
-
-      logEvent(`Pipeline complete for "${cleanName}": "${cleanTitle}"`);
-      res.json({ story: finalStory, title: cleanTitle });
     } catch (error) {
-      logEvent(`SERVER ERROR: ${error.message}\n${error.stack}`);
-
-      if (isAiProviderUnavailableError(error)) {
-        logEvent(`Generate endpoint: AI unavailable, instructing client to use procedural fallback. Reason: ${error.message}`);
-        return res.json({ fallback: true, reason: "ai_unavailable" });
-      }
-
-      if (error.name === "AbortError") {
-        return res.status(504).json({ error: "Story generation timed out. Please try again." });
-      }
-
-      res.status(500).json({ error: "Something went wrong creating your story. Please try again." });
+      logEvent(`Generate endpoint error: ${error.message}`);
+      res.status(500).json({ error: "Something went wrong. Please try again." });
     }
   }
 );
+
+async function runStoryPipeline(storyInputs, { mode, cleanName, cleanDialect, cleanInterests, cleanIdea, cleanWish, cleanSeriesContext, cleanBeats, length }) {
+  const modelConfig = getModelConfig({ mode, length });
+  logEvent(`Model config for "${cleanName}": ${modelConfig.model} @ temp ${modelConfig.temperature}`);
+
+  const storyMaxTokens = getStoryTokenBudget(length, "story", storyInputs.language);
+  const editorMaxTokens = getStoryTokenBudget(length, "editor", storyInputs.language);
+  const validatorMaxTokens = getStoryTokenBudget(length, "validator", storyInputs.language);
+  const titleMaxTokens = getStoryTokenBudget(length, "title", storyInputs.language);
+
+  const MAX_ATTEMPTS = USE_FULL_AI_PIPELINE ? 2 : 1;
+  let finalStory = null;
+  let cleanTitle = null;
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    if (attempt > 1) logEvent(`Regeneration triggered for "${cleanName}" (attempt ${attempt})`);
+
+    const storyPrompt = buildStoryPrompt(storyInputs);
+    const rawStory = await callClaudeWithRetry({
+      system: STORY_SYSTEM_PROMPT, prompt: storyPrompt,
+      maxTokens: storyMaxTokens, temperature: modelConfig.temperature, model: modelConfig.model,
+    });
+    logEvent(`Stage 1 complete (generate) for "${cleanName}" [attempt ${attempt}]`);
+
+    const grammarPrompt = buildGrammarPrompt(rawStory, cleanDialect);
+    const editedStory = await callClaudeWithRetry({
+      system: EDITOR_SYSTEM_PROMPT, prompt: grammarPrompt,
+      maxTokens: editorMaxTokens, temperature: 0.2, model: modelConfig.model,
+    });
+
+    if (!USE_FULL_AI_PIPELINE) {
+      logEvent(`Stage 2 complete (edit) for "${cleanName}" [lean pipeline]`);
+      finalStory = finalizeStoryLocally(editedStory, cleanDialect, `Final story for ${cleanName}`);
+      cleanTitle = `${cleanName}'s Bedtime Story`;
+      break;
+    }
+
+    const titlePrompt = buildTitlePrompt(rawStory, cleanName, cleanDialect);
+    const title = await callClaudeWithRetry({
+      prompt: titlePrompt, maxTokens: titleMaxTokens, temperature: 0.4, model: modelConfig.model,
+    });
+    logEvent(`Stage 2 complete (edit + title) for "${cleanName}" [attempt ${attempt}]`);
+
+    const validationPrompt = buildValidationPrompt(editedStory, {
+      mode, dialect: cleanDialect, interests: cleanInterests, customIdea: cleanIdea,
+      childWish: cleanWish, seriesContext: cleanSeriesContext, dayBeats: cleanBeats,
+    });
+    const validatorOutput = await callClaudeWithRetry({
+      system: VALIDATOR_SYSTEM_PROMPT, prompt: validationPrompt,
+      maxTokens: validatorMaxTokens, temperature: 0.1, model: modelConfig.model,
+    });
+    logEvent(`Stage 3 complete (validate) for "${cleanName}" [attempt ${attempt}]`);
+
+    if (validatorOutput.trim() === "REGENERATE") {
+      logEvent(`Validator triggered REGENERATE for "${cleanName}" [attempt ${attempt}]`);
+      continue;
+    }
+    const validatorIssues = detectStoryQualityIssues(validatorOutput, { dialect: cleanDialect });
+    if (validatorIssues.length) {
+      logEvent(`Validator issues for "${cleanName}" [attempt ${attempt}]: ${validatorIssues.join(" | ")}`);
+      continue;
+    }
+
+    finalStory = validatorOutput;
+    cleanTitle = title.replace(/["']/g, "").trim();
+    break;
+  }
+
+  if (!finalStory) {
+    logEvent(`Pipeline exhausted for "${cleanName}" — serving safe fallback story`);
+    finalStory = getSafeFallbackStory(cleanName);
+    cleanTitle = `${cleanName}'s Bedtime Story`;
+  }
+
+  finalStory = USE_FULL_AI_PIPELINE
+    ? await runDeliveryQaPass(finalStory, cleanDialect)
+    : finalizeStoryLocally(finalStory, cleanDialect, `Final story for ${cleanName}`);
+
+  if (USE_FULL_AI_PIPELINE) {
+    finalStory = assertStoryQuality(finalStory, { dialect: cleanDialect, label: `Final story for ${cleanName}` });
+  }
+
+  if (!cleanTitle) cleanTitle = `${cleanName}'s Bedtime Story`;
+
+  if (!isStoryOutputSafe(finalStory)) {
+    logEvent(`UNSAFE output detected for "${cleanName}" — using safe fallback`);
+    finalStory = getSafeFallbackStory(cleanName);
+    cleanTitle = `${cleanName}'s Peaceful Night`;
+  }
+
+  logEvent(`Pipeline complete for "${cleanName}": "${cleanTitle}"`);
+  return { story: finalStory, title: cleanTitle };
+}
+
+// =============================================================================
+// Job polling endpoint — client calls this after phone wakes to collect result
+// =============================================================================
+
+app.options("/api/job/:jobId", corsMiddleware);
+app.get("/api/job/:jobId", corsMiddleware, (req, res) => {
+  const { jobId } = req.params;
+  if (!/^[0-9a-f-]{36}$/.test(jobId)) return res.status(400).json({ status: "invalid" });
+  const job = jobStore.get(jobId);
+  if (!job) return res.json({ status: "expired" });
+  res.json(job);
+});
 
 // =============================================================================
 // Start server

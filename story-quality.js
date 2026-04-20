@@ -168,8 +168,13 @@ export function detectStoryQualityIssues(text, { dialect } = {}) {
 
   // Accept standard Latin punctuation AND common non-Latin equivalents:
   // 。(CJK fullstop)  ！？(fullwidth)  ۔(Urdu/Arabic)  ।(Hindi danda)  」(CJK quote)
+  // Dialogue-ending paragraphs (contain a quote mark) are always valid.
+  // Allow 1 imperfect paragraph to avoid false failures on non-English or dialogue-heavy stories.
   const VALID_END_PUNCT = /[.!?"\u3002\uff01\uff1f\u06D4\u0964\u300D]$/;
-  if (paragraphs.some((paragraph) => !VALID_END_PUNCT.test(paragraph))) {
+  const badParagraphs = paragraphs.filter(
+    (p) => !VALID_END_PUNCT.test(p) && !p.includes('"') && !p.includes('\u300C') && !p.includes('\u300E')
+  );
+  if (badParagraphs.length > 1) {
     issues.push("At least one paragraph is missing proper ending punctuation.");
   }
 
@@ -196,6 +201,18 @@ export function detectStoryQualityIssues(text, { dialect } = {}) {
   }
 
   return issues;
+}
+
+// Simple boolean validator — used by the pipeline fallback guard and tests.
+// Less strict than assertStoryQuality: allows 1 imperfect paragraph and dialogue lines.
+export function isStoryValid(text) {
+  if (!text || text.length < 200) return false;
+  const paragraphs = text.split("\n").map((p) => p.trim()).filter(Boolean);
+  if (paragraphs.length < 2) return false;
+  const validParagraphs = paragraphs.filter(
+    (p) => /[.!?]$/.test(p) || p.includes('"') || p.length > 40
+  );
+  return validParagraphs.length >= paragraphs.length - 1;
 }
 
 export function assertStoryQuality(text, { dialect, label = "Story" } = {}) {
