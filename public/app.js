@@ -8927,42 +8927,52 @@ async function handleGenerate(mode) {
 // Bonus story auto-save — drain pre-cached stories into the user's library
 // =============================================================================
 
+/** Save one bonus story entry (from the offline cache) into the Firestore library. */
+async function saveBonusStoryEntry(entry) {
+  if (!currentUser || !entry?.childName || !entry?.text) return;
+  const child = cachedChildren.find((c) => c.name === entry.childName);
+  if (!child) return;
+  const saved = await saveStoryToLibrary({
+    childName: entry.childName,
+    title: entry.title || `${entry.childName}'s Bedtime Story`,
+    text: entry.text,
+    mode: entry.mode || "random",
+  });
+  if (saved) {
+    const msg = t("bonus_story_saved", { name: entry.childName });
+    const toast = document.createElement("div");
+    toast.style.cssText =
+      "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);" +
+      "background:rgba(30,20,60,0.95);color:#fff;border:1px solid rgba(123,97,255,0.4);" +
+      "border-radius:20px;padding:10px 20px;font-size:13px;font-weight:600;" +
+      "z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);";
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+}
+
+/**
+ * Drain any stories already sitting in IndexedDB into the library,
+ * then wire up the real-time hook so future background generations save immediately.
+ */
 async function autoSaveCachedToLibrary() {
   if (!window.StoryCache || !currentUser || !cachedChildren.length) return;
-  try {
-    const unused = await window.StoryCache.listAllUnused();
-    if (!unused.length) return;
 
-    for (const entry of unused) {
-      if (!entry.childName || !entry.text) continue;
-      // Only save for children in this account
-      const child = cachedChildren.find((c) => c.name === entry.childName);
-      if (!child) continue;
-      // Claim it (marks as used in IndexedDB so it won't be re-saved)
+  // Wire up the real-time hook: every future background-generated story
+  // fires saveBonusStoryEntry the moment it's written to IndexedDB.
+  window.StoryCache.onBonusStory = (entry) => saveBonusStoryEntry(entry);
+
+  // Also drain any stories that were pre-generated in a previous session
+  try {
+    const existing = await window.StoryCache.listAllUnused();
+    for (const entry of existing) {
       const claimed = await window.StoryCache.claimCachedStory(entry.childName, entry.mode);
-      if (!claimed) continue;
-      const saved = await saveStoryToLibrary({
-        childName: claimed.childName,
-        title: claimed.title,
-        text: claimed.text,
-        mode: claimed.mode || "random",
-      });
-      if (saved) {
-        const msg = t("bonus_story_saved", { name: claimed.childName });
-        const toast = document.createElement("div");
-        toast.style.cssText =
-          "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);" +
-          "background:rgba(30,20,60,0.95);color:#fff;border:1px solid rgba(123,97,255,0.4);" +
-          "border-radius:20px;padding:10px 20px;font-size:13px;font-weight:600;" +
-          "z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);";
-        toast.textContent = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
-      }
+      if (claimed) await saveBonusStoryEntry(claimed);
     }
     window.StoryCache.updateOfflineIndicator();
   } catch (err) {
-    console.warn("[autoSaveCached] failed:", err);
+    console.warn("[autoSaveCached] drain failed:", err);
   }
 }
 

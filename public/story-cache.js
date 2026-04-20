@@ -84,12 +84,16 @@
   // Write a story to the cache
   // ============================================================
 
+  // Called by app.js to receive every story the background fill generates.
+  // Set this to auto-save bonus stories to the Firestore library.
+  let onBonusStoryGenerated = null;
+
   async function writeStory(entry) {
     if (!dbAvailable) return;
     const db = await openDB();
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
-    await idbRequest(store.add({
+    const storyEntry = {
       childName: entry.childName || "",
       mode: entry.mode || "medium",
       length: entry.length || "medium",
@@ -99,7 +103,12 @@
       timestamp: Date.now(),
       used: false,
       payload: entry.payload || {},
-    }));
+    };
+    await idbRequest(store.add(storyEntry));
+    // Fire the bonus-story callback so app.js can save it to the library immediately
+    if (typeof onBonusStoryGenerated === "function") {
+      try { onBonusStoryGenerated(storyEntry); } catch {}
+    }
   }
 
   // ============================================================
@@ -406,6 +415,8 @@
     updateOfflineIndicator,
     pruneOldEntries,
     listAllUnused,
+    // app.js sets this to a function(entry) to receive bonus stories as they're generated
+    set onBonusStory(fn) { onBonusStoryGenerated = fn; },
   };
 
   // Open the DB eagerly so it's ready when needed
