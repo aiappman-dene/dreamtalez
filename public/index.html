@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="description" content="DreamTalez — Beautiful, personalised AI bedtime stories for children aged 2–12." />
   <meta name="theme-color" content="#060d1f" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>DreamTalez — Magical Bedtime Stories</title>
@@ -30,11 +32,26 @@
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Lexend:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="preload" href="/style.css?v=20260504d" as="style" onload="this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="/style.css?v=20260504d"></noscript>
-  <link rel="preload" href="/app.js?v=20260504d" as="script" />
-  <script type="module" src="/i18n.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Lexend:wght@400;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles/tokens.css?v=20260514f" />
+  <link rel="stylesheet" href="/styles/base.css?v=20260514f" />
+  <link rel="stylesheet" href="/styles/layout.css?v=20260514f" />
+  <link rel="stylesheet" href="/styles/components.css?v=20260514f" />
+  <link rel="stylesheet" href="/styles/animations.css?v=20260514f" />
+  <link rel="stylesheet" href="/styles/accessibility.css?v=20260514f" />
+  <link rel="stylesheet" href="/styles/modals.css?v=20260514f" />
+  <link rel="stylesheet" href="/styles/paywall.css?v=20260514f" />
+  <link rel="stylesheet" href="/styles/home.css?v=20260514f" />
+  <link rel="stylesheet" href="/components/motion-tokens.css?v=20260514f" />
+  <link rel="stylesheet" href="/components/loading.css?v=20260514f" />
+  <link rel="stylesheet" href="/components/story-reveal.css?v=20260514f" />
+  <link rel="stylesheet" href="/components/story-reading.css?v=20260514f" />
+  <link rel="stylesheet" href="/components/tonights-hero.css?v=20260514f" />
+  <link rel="stylesheet" href="/components/nav-polish.css?v=20260514f" />
+  <link rel="stylesheet" href="/components/atmosphere.css?v=20260514f" />
+  <link rel="stylesheet" href="/components/family-magic.css?v=20260514f" />
+  <link rel="preload" href="/app.js?v=20260520a" as="script" />
+  <script src="/app-bridge.js" defer></script>
   <script src="/consent.js" defer></script>
 </head>
 <body>
@@ -50,33 +67,13 @@
       </div>
       <div class="welcome-content">
         <div class="welcome-logo">DreamTalez <span class="welcome-sparkle">✨</span></div>
-        <h1 class="welcome-headline">A bedtime story made just for <br>your child. Every single night.</h1>
-        <p class="welcome-body">Bedtime stories create memories that <br>last a lifetime. We've built something <br>magical — original, personal stories <br>starring your child, ready in seconds.</p>
-        <div class="welcome-closing">Your story starts tonight. 🌙</div>
-        <button id="welcomeBeginBtn" class="welcome-begin-btn">Begin ✨</button>
+        <h1 class="welcome-headline" data-i18n="welcome_headline">A bedtime story made just for your child. Every single night.</h1>
+        <p class="welcome-body" data-i18n="welcome_body">Bedtime stories create memories that last a lifetime. We've built something magical — original, personal stories starring your child, ready in seconds.</p>
+        <div class="welcome-closing" data-i18n="welcome_closing">Your story starts tonight. 🌙</div>
+        <button id="welcomeBeginBtn" class="welcome-begin-btn" data-i18n="welcome_begin_btn">Begin ✨</button>
       </div>
     </div>
   <div class="app-shell">
-    <script>
-      // Auto-translate UI elements with data-i18n
-      function applyTranslations() {
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-          const key = el.getAttribute('data-i18n');
-          if (window.i18n) el.textContent = window.i18n.t(key);
-        });
-        document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-          const key = el.getAttribute('data-i18n-ph');
-          if (window.i18n) el.setAttribute('placeholder', window.i18n.t(key));
-        });
-      }
-      document.addEventListener('DOMContentLoaded', applyTranslations);
-      window.setAppLanguage = function(lang) {
-        if (window.i18n) {
-          window.i18n.setLang(lang);
-          applyTranslations();
-        }
-      };
-    </script>
 
     <!-- ================================================================== -->
     <!-- AUTH PAGE                                                           -->
@@ -88,22 +85,22 @@
             <span class="brand-icon">&#9733;</span>
             <h1>DreamTalez</h1>
           </div>
-          <p class="auth-night-tagline">Every night, a magical adventure<br>starring your child ✨</p>
+          <p class="auth-night-tagline" data-i18n="night_tagline">Every night, a new magical adventure starring your child ✨</p>
           <p class="subtitle" data-i18n="auth_subtitle">Create beautiful, personalised bedtime stories your child will treasure — safe, calming, and age-appropriate.</p>
 
-          <form id="authForm" onsubmit="return false">
+          <form id="authForm" >
             <input id="email" type="email" placeholder="Email address" data-i18n-ph="email_placeholder" autocomplete="email" required />
             <input id="password" type="password" placeholder="Password" data-i18n-ph="password_placeholder" autocomplete="current-password" minlength="6" required />
             <div class="auth-actions">
-              <button type="button" class="btn secondary" onclick="signup()" data-i18n="sign_up">Sign Up</button>
-              <button type="button" class="btn primary" onclick="login()" data-i18n="log_in">Log In</button>
+              <button type="button" class="btn secondary" data-action="signup" data-i18n="sign_up">Sign Up</button>
+              <button type="button" class="btn primary" data-action="login" data-i18n="log_in">Log In</button>
             </div>
-            <button type="button" id="authOneOffBtn" class="btn secondary btn-lg" onclick="buyOneStoryFromAuth()">&#9733; Try 1 story for 99p</button>
-            <button type="button" class="forgot-link" onclick="resetPassword()" data-i18n="forgot_password">Forgot password?</button>
+            <button type="button" id="authOneOffBtn" class="btn secondary btn-lg" data-action="buyOneStoryFromAuth" data-i18n="auth_oneoff_btn">&#9733; Try 1 story for 99p</button>
+            <button type="button" class="forgot-link" data-action="resetPassword" data-i18n="forgot_password">Forgot password?</button>
           </form>
 
-          <p class="trust-line" data-i18n="trust_line">Try 1 story for 99p &bull; Then &pound;4.99/month &bull; No ads</p>
-          <p class="auth-legal"><span data-i18n="auth_legal">By signing up you agree to our</span> <button type="button" class="inline-link" onclick="navigateTo('terms')" data-i18n="auth_terms">Terms</button> <span data-i18n="auth_and">and</span> <button type="button" class="inline-link" onclick="navigateTo('privacy')" data-i18n="auth_privacy">Privacy Policy</button> <span data-i18n="auth_and">and</span> <button type="button" class="inline-link" onclick="navigateTo('trust')">Trust &amp; Safety</button></p>
+          <p class="trust-line" data-i18n="trust_line">Try 1 story for 99p &bull; Then &pound;6.99/month &bull; No ads</p>
+          <p class="auth-legal"><span data-i18n="auth_legal">By signing up you agree to our</span> <button type="button" class="inline-link" data-action="navigate" data-arg="terms" data-i18n="auth_terms">Terms</button> <span data-i18n="auth_and">and</span> <button type="button" class="inline-link" data-action="navigate" data-arg="privacy" data-i18n="auth_privacy">Privacy Policy</button> <span data-i18n="auth_and">and</span> <button type="button" class="inline-link" data-action="navigate" data-arg="trust" data-i18n="auth_trust">Trust &amp; Safety</button></p>
         </div>
       </div>
     </div>
@@ -153,7 +150,7 @@
           A place where every child can become the hero of their own story — safe, magical, and personal every night.<br><br>
           Because the moments we share at bedtime are the ones they'll remember forever.
         </p>
-        <button type="button" class="intro-btn" onclick="beginFromIntro()">Begin</button>
+        <button type="button" class="intro-btn" data-action="beginFromIntro">Begin</button>
       </div>
     </div>
 
@@ -175,22 +172,22 @@
           <h2 class="wizard-prompt">What's your child's name?</h2>
           <p class="wizard-hint">Every story will be written just for them ✨</p>
           <input id="wizardName" class="wizard-input" type="text" placeholder="e.g. Sophia" maxlength="50" autocomplete="off" />
-          <button class="wizard-next-btn" id="wizardNext1" onclick="wizardNext(1)" disabled>Continue &rarr;</button>
+          <button class="wizard-next-btn" id="wizardNext1" data-action="wizardNext" data-arg="1" disabled>Continue &rarr;</button>
         </div>
 
         <!-- Step 2: Age + Gender -->
         <div class="wizard-step hidden" id="wizardStep2">
           <h2 class="wizard-prompt" id="wizardStep2Title">How old is <span id="wizardNameDisplay"></span>?</h2>
-          <p class="wizard-hint">Stories are tailored to their age and imagination.</p>
+          <p class="wizard-hint">We shape every story to their age — vocabulary, adventure, and magic. ✨</p>
           <div class="wizard-age-gender">
             <input id="wizardAge" class="wizard-input" type="number" placeholder="Age" min="1" max="18" />
           </div>
           <div class="wizard-gender-row">
-            <button class="wizard-gender-btn" data-gender="girl" onclick="wizardSelectGender(this)">&#128105; Girl</button>
-            <button class="wizard-gender-btn" data-gender="boy" onclick="wizardSelectGender(this)">&#128104; Boy</button>
-            <button class="wizard-gender-btn" data-gender="neutral" onclick="wizardSelectGender(this)">&#127752; Other</button>
+            <button class="wizard-gender-btn" data-gender="girl" data-action="wizardSelectGender">&#128105; Girl</button>
+            <button class="wizard-gender-btn" data-gender="boy" data-action="wizardSelectGender">&#128104; Boy</button>
+            <button class="wizard-gender-btn" data-gender="neutral" data-action="wizardSelectGender">&#127752; Other</button>
           </div>
-          <button class="wizard-next-btn" id="wizardNext2" onclick="wizardNext(2)" disabled>Continue &rarr;</button>
+          <button class="wizard-next-btn" id="wizardNext2" data-action="wizardNext" data-arg="2" disabled>Continue &rarr;</button>
         </div>
 
         <!-- Step 3: Interests -->
@@ -198,20 +195,20 @@
           <h2 class="wizard-prompt">What does <span id="wizardNameDisplay3"></span> love?</h2>
           <p class="wizard-hint">Pick a few — we'll weave them into every story.</p>
           <div class="wizard-interests" id="wizardChips">
-            <button class="wizard-chip" data-interest="dinosaurs" onclick="wizardToggleChip(this)">&#129430; Dinosaurs</button>
-            <button class="wizard-chip" data-interest="space" onclick="wizardToggleChip(this)">&#127775; Space</button>
-            <button class="wizard-chip" data-interest="fairies" onclick="wizardToggleChip(this)">&#10024; Fairies</button>
-            <button class="wizard-chip" data-interest="animals" onclick="wizardToggleChip(this)">&#128062; Animals</button>
-            <button class="wizard-chip" data-interest="pirates" onclick="wizardToggleChip(this)">&#9875; Pirates</button>
-            <button class="wizard-chip" data-interest="dragons" onclick="wizardToggleChip(this)">&#129409; Dragons</button>
-            <button class="wizard-chip" data-interest="mermaids" onclick="wizardToggleChip(this)">&#129400; Mermaids</button>
-            <button class="wizard-chip" data-interest="superheroes" onclick="wizardToggleChip(this)">&#129464; Superheroes</button>
-            <button class="wizard-chip" data-interest="princesses" onclick="wizardToggleChip(this)">&#128081; Princesses</button>
-            <button class="wizard-chip" data-interest="robots" onclick="wizardToggleChip(this)">&#129302; Robots</button>
-            <button class="wizard-chip" data-interest="magic" onclick="wizardToggleChip(this)">&#129984; Magic</button>
-            <button class="wizard-chip" data-interest="sport" onclick="wizardToggleChip(this)">&#9917; Sport</button>
+            <button class="wizard-chip" data-interest="dinosaurs" data-action="wizardToggleChip">&#129430; Dinosaurs</button>
+            <button class="wizard-chip" data-interest="space" data-action="wizardToggleChip">&#127775; Space</button>
+            <button class="wizard-chip" data-interest="fairies" data-action="wizardToggleChip">&#10024; Fairies</button>
+            <button class="wizard-chip" data-interest="animals" data-action="wizardToggleChip">&#128062; Animals</button>
+            <button class="wizard-chip" data-interest="pirates" data-action="wizardToggleChip">&#9875; Pirates</button>
+            <button class="wizard-chip" data-interest="dragons" data-action="wizardToggleChip">&#129409; Dragons</button>
+            <button class="wizard-chip" data-interest="mermaids" data-action="wizardToggleChip">&#129400; Mermaids</button>
+            <button class="wizard-chip" data-interest="superheroes" data-action="wizardToggleChip">&#129464; Superheroes</button>
+            <button class="wizard-chip" data-interest="princesses" data-action="wizardToggleChip">&#128081; Princesses</button>
+            <button class="wizard-chip" data-interest="robots" data-action="wizardToggleChip">&#129302; Robots</button>
+            <button class="wizard-chip" data-interest="magic" data-action="wizardToggleChip">&#129984; Magic</button>
+            <button class="wizard-chip" data-interest="sport" data-action="wizardToggleChip">&#9917; Sport</button>
           </div>
-          <button class="wizard-next-btn" id="wizardNext3" onclick="wizardFinish()" disabled>Create First Story &#10024;</button>
+          <button class="wizard-next-btn" id="wizardNext3" data-action="wizardFinish" disabled>Create First Story &#10024;</button>
         </div>
 
       </div>
@@ -225,116 +222,104 @@
 
         <!-- Paywall -->
         <div id="paywallCard" class="card paywall-card hidden">
-          <h2>&#10024; Every night, a magical adventure</h2>
-          <p class="paywall-sub">Personalised for your child. Beautiful every time.</p>
-          <p class="hint">A calm, magical bedtime story &mdash; 7&ndash;10 minutes long, starring your child by name &mdash; helping them relax, imagine, and drift into sleep.</p>
-          <button id="subscribeBtn" class="btn primary btn-lg" onclick="buyPremium()">&#127769; Unlimited Stories &mdash; &pound;4.99/month</button>
-          <p class="paywall-perks-note">New story every night &middot; Full library &middot; Every mode unlocked</p>
-          <p class="paywall-conversion">The full DreamTalez experience &#10024;</p>
-          <p class="paywall-divider">or try the magic first</p>
-          <button id="oneOffBtn" class="btn secondary btn-lg" onclick="buyOneStory()">&#9733; One magical story &mdash; 99p</button>
-          <p class="paywall-perks-note">Full 7&ndash;10 min story &middot; Starring your child &middot; Same magic, one night</p>
-          <button id="packBtn" class="btn ghost btn-lg paywall-pack hidden" onclick="buyPack()">&#10024; 10 more bedtime stories &mdash; &pound;1.99</button>
-          <p class="hint paywall-note">Your saved stories stay yours &mdash; readable anytime.</p>
+          <h2>&#10024; <span data-i18n="paywall_h2">Magical stories, night after night</span></h2>
+          <p class="paywall-sub" data-i18n="paywall_sub">Create ongoing adventures that continue where they left off.</p>
+          <p class="hint" data-i18n="paywall_hint_home">40 premium story adventures a month &mdash; starring your child by name &mdash; with memory, continuity, and a world that grows with every night.</p>
+          <button id="subscribeBtn" class="btn primary btn-lg" data-action="buyPremium" data-i18n="subscribe_home_btn">&#127769; Start the adventure &mdash; &pound;6.99/month</button>
+          <p class="paywall-perks-note" data-i18n="paywall_perks_note1">40 adventures/month &middot; Story continuity &middot; Premium memory &middot; No ads</p>
+          <p class="paywall-conversion" data-i18n="paywall_conversion">The full DreamTalez experience &#10024;</p>
+          <p class="paywall-divider" data-i18n="paywall_divider">or taste the magic first</p>
+          <button id="oneOffBtn" class="btn secondary btn-lg" data-action="buyOneStory" data-i18n="oneoff_home_btn">&#9733; Magical sample story &mdash; 99p</button>
+          <p class="paywall-perks-note" data-i18n="paywall_perks_note2">One bedtime taster &middot; Starring your child &middot; Preview the full magic</p>
+          <button id="packBtn" class="btn ghost btn-lg paywall-pack hidden" data-action="buyPack" data-i18n="pack_home_btn">&#10024; 10 more bedtime stories &mdash; &pound;1.99</button>
+          <p class="hint paywall-note" data-i18n="paywall_note">Your saved stories stay yours &mdash; readable anytime.</p>
         </div>
 
         <!-- Welcome banner (first-time / no children) -->
         <div id="welcomeBanner" class="card welcome-banner hidden">
           <h2 data-i18n="welcome_title">Welcome to DreamTalez &#9733;</h2>
           <p class="hint" data-i18n="welcome_hint">Add your first child to start creating magical stories.</p>
-          <button type="button" class="btn primary" onclick="navigateTo('children')" data-i18n="add_first_child">Add Your First Child</button>
+          <button type="button" class="btn primary" data-action="navigate" data-arg="children" data-i18n="add_first_child">Add Your First Child</button>
         </div>
 
-        <!-- ── APP HEADER (inside hero area) ── -->
-        <div id="activeChildCard" class="home-hero hidden">
+        <!-- ── HERO v2 ── -->
+        <div id="activeChildCard" class="home-hero-v2 hidden">
 
-          <!-- Full-bleed hero image -->
-          <!-- Hero image now set as background-image via JS for perfect fill and parity -->
+          <!-- Even image dim overlay — no radial gradients, no hotspots -->
+          <div class="hv2-overlay"></div>
 
-          <!-- Dark gradient overlay left→transparent -->
-          <div class="hero-overlay"></div>
-
-          <!-- Pink glow on right -->
-          <div class="hero-glow-right"></div>
-
-          <!-- App brand row (top of hero) -->
-          <div class="app-header">
-            <div class="app-brand">
-              <span class="app-brand-icon">&#128218;&#10024;</span>
+          <!-- Topbar: brand · teddy · premium -->
+          <div class="hv2-topbar">
+            <div class="hv2-brand">
+              <span class="hv2-brand-icon">&#128218;&#10024;</span>
               <div>
-                <span class="app-brand-name">DreamTalez</span>
-                <span class="app-brand-tag">Every night, a new magical adventure starring your child &#10024;</span>
+                <span class="hv2-brand-name">DreamTalez</span>
+                <span class="hv2-brand-tag" data-i18n="night_tagline">Every night, a new magical adventure starring your child &#10024;</span>
               </div>
             </div>
             <div class="teddy-counter-wrap">
               <button id="addTeddiesBtn" class="teddy-topup-btn" title="Stories remaining" disabled>🧸 <span id="teddyCount">--</span></button>
             </div>
-            <div id="premium-container"></div>
           </div>
 
-          <!-- Hero text content -->
-          <div class="home-hero-content">
-            <p id="homeGreeting" class="home-greeting-pill"></p>
-            <h1 id="heroTitle" class="home-hero-title"></h1>
-            <p class="hero-sub" data-i18n="hero_sub">Create a beautiful bedtime story in seconds</p>
+          <!-- Content block — pinned to bottom of hero -->
+          <div class="hv2-content">
+            <p id="homeGreeting" class="hv2-greeting"></p>
+            <h1 id="heroTitle" class="hv2-title"></h1>
+            <p class="hv2-sub" data-i18n="hero_sub">Create a beautiful bedtime story in seconds</p>
 
-            <div class="home-profile">
-              <div id="homeAvatar" class="home-avatar"></div>
-              <div class="home-profile-info">
-                <span id="activeChildName" class="home-profile-name"></span>
-                <span id="activeChildMeta" class="home-profile-meta"></span>
+            <div class="hv2-profile">
+              <div id="homeAvatar" class="hv2-avatar"></div>
+              <div class="hv2-profile-info">
+                <span id="activeChildName" class="hv2-name"></span>
+                <span id="activeChildMeta" class="hv2-meta"></span>
               </div>
-              <button type="button" class="btn-change" onclick="navigateTo('children')" data-i18n="change_btn">Change</button>
+              <button type="button" class="hv2-change-btn" data-action="navigate" data-arg="children" data-i18n="change_btn">Change</button>
             </div>
 
             <p id="streakDisplay" class="streak-display hidden"></p>
             <p id="trialBanner" class="trial-banner hidden"></p>
-
-            <!-- Removed 'Create New Story' button from hero section -->
           </div>
 
         </div>
 
-        <!-- ── STORY CARDS ── -->
-        <div id="storyChoices" class="story-section hidden">
-          <div class="story-container">
+        <!-- ── STORY CHOICES v2 ── -->
+        <div id="storyChoices" class="story-section-v2 hidden">
 
-            <!-- HERO INPUT (PRIMARY ACTION) -->
-            <div class="story-hero">
-              <h2>✨ Tell a Story</h2>
-              <p>What should tonight’s story be about?</p>
-
-              <div class="story-input-row">
-                <input id="storyInput" type="text" placeholder="A dragon who lost his magic..." />
-                <button onclick="startCustomStory()">Go</button>
-              </div>
+          <!-- Tell a Story prompt -->
+          <div class="sg-prompt">
+            <h2>&#10024; <span data-i18n="sg_tell_title">Tell a Story</span></h2>
+            <p data-i18n="sg_tell_sub">What should tonight’s story be about?</p>
+            <div class="story-input-row">
+              <input id="storyInput" type="text" placeholder="A dragon who lost his magic..." data-i18n-ph="sg_tell_ph" />
+              <button data-action="startCustomStory">Go</button>
             </div>
-
-            <!-- QUICK OPTIONS -->
-            <div class="quick-grid" id="quickGrid"></div>
-
-            <!-- FEELINGS (HIDDEN BY DEFAULT) -->
-            <div id="feelingsSection" class="hidden">
-              <div class="chip-row">
-                <button onclick="startFeeling('scared')">Feeling scared</button>
-                <button onclick="startFeeling('new friends')">Making friends</button>
-                <button onclick="startFeeling('left out')">Feeling left out</button>
-                <button onclick="startFeeling('worry')">Something worrying me</button>
-              </div>
-            </div>
-
-            <!-- WORLDS -->
-            <div class="worlds">
-              <h3>🌍 Magical Worlds <span class="worlds-note">(for example)</span></h3>
-              <div class="chip-row scroll">
-                <button onclick="startWorld('toyland')">Toyland</button>
-                <button onclick="startWorld('dragon')">Dragon</button>
-                <button onclick="startWorld('ocean')">Ocean</button>
-                <button onclick="startWorld('space')">Candy Planet</button>
-              </div>
-            </div>
-
           </div>
+
+          <!-- 2×2 story mode grid — filled by JS using .story-mode-card -->
+          <div class="story-mode-grid" id="quickGrid"></div>
+
+          <!-- Feelings chips (hidden by default) -->
+          <div id="feelingsSection" class="hidden">
+            <div class="sg-chip-row">
+              <button class="sg-chip" data-action="startFeeling" data-arg="scared" data-i18n="feeling_scared">Feeling scared</button>
+              <button class="sg-chip" data-action="startFeeling" data-arg="new friends" data-i18n="feeling_friends">Making friends</button>
+              <button class="sg-chip" data-action="startFeeling" data-arg="left out" data-i18n="feeling_leftout">Feeling left out</button>
+              <button class="sg-chip" data-action="startFeeling" data-arg="worry" data-i18n="feeling_worry">Something worrying me</button>
+            </div>
+          </div>
+
+          <!-- Magical Worlds -->
+          <div class="sg-worlds">
+            <h3>&#127757; <span data-i18n="worlds_title">Magical Worlds</span> <span style="font-size:0.72em;color:rgba(255,255,255,0.4);font-weight:600;" data-i18n="worlds_example">(for example)</span></h3>
+            <div class="sg-chip-row">
+              <button class="sg-chip" data-action="startWorld" data-arg="toyland" data-i18n="world_toyland">Toyland</button>
+              <button class="sg-chip" data-action="startWorld" data-arg="dragon" data-i18n="world_dragon">Dragon</button>
+              <button class="sg-chip" data-action="startWorld" data-arg="ocean" data-i18n="world_ocean">Ocean</button>
+              <button class="sg-chip" data-action="startWorld" data-arg="candy-planet" data-i18n="world_candy_planet">Candy Planet</button>
+            </div>
+          </div>
+
         </div>
 
         <!-- ── CONTINUE YOUR LAST STORY ── -->
@@ -346,8 +331,9 @@
               <strong id="continueTitle">Loading&hellip;</strong>
               <p id="continueMeta">Your last story</p>
             </div>
-            <button class="continue-play" id="continuePlayBtn" aria-label="Play story">&#9654;</button>
+            <button class="continue-play" id="continuePlayBtn" aria-label="Re-read story">&#9654;</button>
           </div>
+          <button id="continueStoryBtn" class="btn secondary btn-sm continue-sequel hidden" data-action="continueLastStory" data-i18n="continue_sequel_btn">&#10024; Continue the adventure tonight</button>
         </div>
 
       </div>
@@ -360,7 +346,7 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="navigateTo('home')" data-i18n="back_btn">&#8592; Back</button>
+          <button type="button" class="back-btn" data-action="navigate" data-arg="home" data-i18n="back_btn">&#8592; Back</button>
           <h2 class="page-title" data-i18n="children_title">Children</h2>
           <span class="page-header-spacer"></span>
         </div>
@@ -385,8 +371,8 @@
           <input id="childPet" type="text" placeholder="Pet name (optional, e.g. Biscuit the cat)" maxlength="60" />
           <input id="childBestFriend" type="text" placeholder="Best friend's name (optional, e.g. Zara)" maxlength="60" />
           <input id="childFavToy" type="text" placeholder="Favourite toy or object (optional, e.g. Teddy)" maxlength="60" />
-          <button type="button" id="saveChildBtn" class="btn primary" onclick="saveChild()" data-i18n="save_child">Save Child</button>
-          <button type="button" id="cancelEditBtn" class="btn ghost btn-sm hidden" onclick="cancelEditChild()" data-i18n="cancel">Cancel</button>
+          <button type="button" id="saveChildBtn" class="btn primary" data-action="saveChild" data-i18n="save_child">Save Child</button>
+          <button type="button" id="cancelEditBtn" class="btn ghost btn-sm hidden" data-action="cancelEditChild" data-i18n="cancel">Cancel</button>
         </div>
 
       </div>
@@ -399,7 +385,7 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="navigateTo('home')" data-i18n="back_btn">&#8592; Back</button>
+          <button type="button" class="back-btn" data-action="navigate" data-arg="home" data-i18n="back_btn">&#8592; Back</button>
           <h2 id="createPageTitle" class="page-title" data-i18n="create_story_title">Create a Story</h2>
           <span class="page-header-spacer"></span>
         </div>
@@ -409,7 +395,7 @@
           <p class="hint" data-i18n="create_hint">What should the story be about tonight?</p>
           <input id="createIdea" type="text" placeholder="e.g. a brave princess who saves her baby dragon" data-i18n-ph="create_placeholder" maxlength="200" />
           <input id="createLength" type="hidden" value="medium" />
-          <button type="button" id="generateCreateBtn" class="btn primary btn-lg" onclick="handleGenerate('create')" data-i18n="create_btn">Create My Story</button>
+          <button type="button" id="generateCreateBtn" class="btn primary btn-lg" data-action="handleGenerate" data-arg="create" data-i18n="create_btn">Create My Story</button>
         </div>
 
       </div>
@@ -422,7 +408,7 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="navigateTo('home')" data-i18n="back_btn">&#8592; Back</button>
+          <button type="button" class="back-btn" data-action="navigate" data-arg="home" data-i18n="back_btn">&#8592; Back</button>
           <h2 class="page-title" data-i18n="today_page_title">Story From Today</h2>
           <span class="page-header-spacer"></span>
         </div>
@@ -441,7 +427,7 @@
             <option value="quiet" data-i18n="mood_quiet">Quiet &amp; gentle</option>
             <option value="mixed" data-i18n="mood_mixed">A mix of feelings</option>
           </select>
-          <button type="button" id="generateTodayBtn" class="btn primary btn-lg" onclick="handleGenerate('today')" data-i18n="today_btn">Turn Today into a Story</button>
+          <button type="button" id="generateTodayBtn" class="btn primary btn-lg" data-action="handleGenerate" data-arg="today" data-i18n="today_btn">Turn Today into a Story</button>
         </div>
 
       </div>
@@ -475,7 +461,7 @@
 
         <div id="libraryCard">
           <p id="libraryHint" class="hint library-hint" data-i18n="library_hint">Saved stories for this child.</p>
-          <ul id="libraryList" class="library-list"></ul>
+          <div id="libraryList" class="library-list"></div>
         </div>
 
       </div>
@@ -487,17 +473,17 @@
     <div id="pageSettings" class="page hidden">
       <div class="page-scroll">
         <div class="card">
-          <h2>Accessibility</h2>
+          <h2 data-i18n="accessibility_heading">Accessibility</h2>
           <div class="accessibility-toggle-row">
             <label class="toggle-label">
               <input type="checkbox" id="dyslexiaToggle" />
               <span class="toggle-slider"></span>
-              Dyslexia Friendly Mode
+              <span data-i18n="dyslexia_mode">Dyslexia Friendly Mode</span>
             </label>
             <label class="toggle-label">
               <input type="checkbox" id="neuroToggle" />
               <span class="toggle-slider"></span>
-              Neurodivergent Friendly Mode
+              <span data-i18n="neuro_mode">Neurodivergent Friendly Mode</span>
             </label>
           </div>
         </div>
@@ -509,8 +495,8 @@
         <div class="card">
           <h2 data-i18n="account_heading">Account</h2>
           <p id="settingsEmail" class="hint"></p>
-          <button type="button" class="btn secondary" onclick="navigateTo('children')" data-i18n="manage_children">Manage Children</button>
-          <button type="button" class="btn ghost" onclick="logout()" data-i18n="log_out">Log Out</button>
+          <button type="button" class="btn secondary" data-action="navigate" data-arg="children" data-i18n="manage_children">Manage Children</button>
+          <button type="button" class="btn ghost" data-action="logout" data-i18n="log_out">Log Out</button>
         </div>
 
         <div class="card">
@@ -534,66 +520,81 @@
         </div>
 
         <div class="card">
-          <h2>Reading Experience</h2>
+          <h2 data-i18n="reading_exp_heading">Reading Experience</h2>
 
           <label class="toggle-label">
             <input type="checkbox" id="readingModeToggle" />
             <span class="toggle-slider"></span>
-            Page-style reading
+            <span data-i18n="reading_page_style">Page-style reading</span>
           </label>
 
-          <p class="hint">
+          <p class="hint" data-i18n="reading_page_hint">
             Reveal the story one section at a time for a book-like experience.
           </p>
         </div>
 
+        <div class="card notif-settings-card">
+          <h2>🔔 Bedtime Reminders</h2>
+          <p class="hint">A gentle nightly nudge when it's story time.</p>
+          <label class="toggle-label">
+            <input type="checkbox" id="notifToggle" />
+            <span class="toggle-slider"></span>
+            <span>Enable bedtime reminders</span>
+          </label>
+          <div class="notif-time-row hidden" id="notifTimeRow">
+            <label for="notifTime">Reminder time</label>
+            <input type="time" id="notifTime" value="19:30" />
+          </div>
+          <p class="notif-hint">We'll remind you gently — no spammy notifications, ever.</p>
+        </div>
+
         <div class="card safety-card">
-          <h2>&#128274; How DreamTalez keeps your child safe</h2>
-          <p class="hint">Four layers of protection, always on.</p>
+          <h2>&#128274; <span data-i18n="safety_heading">How DreamTalez keeps your child safe</span></h2>
+          <p class="hint" data-i18n="safety_subtitle">Four layers of protection, always on.</p>
           <div class="safety-layer">
             <span class="safety-icon">&#128101;</span>
             <div>
-              <strong>You control the content</strong>
-              <p>Stories come from your child's profile — their name, age, and interests. No strangers, no surprises.</p>
+              <strong data-i18n="safety_layer1_title">You control the content</strong>
+              <p data-i18n="safety_layer1_body">Stories come from your child's profile — their name, age, and interests. No strangers, no surprises.</p>
             </div>
           </div>
           <div class="safety-layer">
             <span class="safety-icon">&#9999;&#65039;</span>
             <div>
-              <strong>Word filter</strong>
-              <p>All input is scanned before reaching the AI. Anything inappropriate is blocked with a friendly message.</p>
+              <strong data-i18n="safety_layer2_title">Word filter</strong>
+              <p data-i18n="safety_layer2_body">All input is scanned before reaching the AI. Anything inappropriate is blocked with a friendly message.</p>
             </div>
           </div>
           <div class="safety-layer">
             <span class="safety-icon">&#129302;</span>
             <div>
-              <strong>AI safety instructions</strong>
-              <p>Claude (our AI) is instructed to write calm, age-appropriate bedtime stories every single time.</p>
+              <strong data-i18n="safety_layer3_title">AI safety instructions</strong>
+              <p data-i18n="safety_layer3_body">Claude (our AI) is instructed to write calm, age-appropriate bedtime stories every single time.</p>
             </div>
           </div>
           <div class="safety-layer">
             <span class="safety-icon">&#128270;</span>
             <div>
-              <strong>Output check</strong>
-              <p>Every story is scanned again before it reaches your child. Anything that fails is replaced with a safe fallback.</p>
+              <strong data-i18n="safety_layer4_title">Output check</strong>
+              <p data-i18n="safety_layer4_body">Every story is scanned again before it reaches your child. Anything that fails is replaced with a safe fallback.</p>
             </div>
           </div>
-          <p class="trust-footer">&#128274; No ads &bull; No tracking &bull; Your stories stay yours</p>
+          <p class="trust-footer">&#128274; <span data-i18n="trust_footer">No ads &bull; No tracking &bull; Your stories stay yours</span></p>
         </div>
 
         <div class="card">
           <h2 data-i18n="legal_heading">Legal</h2>
-          <button type="button" class="btn ghost legal-link" onclick="navigateTo('privacy')" data-i18n="privacy_policy">Privacy Policy</button>
-          <button type="button" class="btn ghost legal-link" onclick="navigateTo('terms')" data-i18n="terms_of_service">Terms of Service</button>
+          <button type="button" class="btn ghost legal-link" data-action="navigate" data-arg="privacy" data-i18n="privacy_policy">Privacy Policy</button>
+          <button type="button" class="btn ghost legal-link" data-action="navigate" data-arg="terms" data-i18n="terms_of_service">Terms of Service</button>
         </div>
 
         <div class="card account-card">
           <h2 data-i18n="danger_zone">Danger Zone</h2>
           <p class="hint" data-i18n="danger_hint">Permanently delete your account and all data.</p>
-          <button type="button" class="btn ghost btn-sm danger-link" onclick="deleteAccount()" data-i18n="delete_account">Delete my account</button>
+          <button type="button" class="btn ghost btn-sm danger-link" data-action="deleteAccount" data-i18n="delete_account">Delete my account</button>
         </div>
 
-        <p class="hint settings-version">DreamTalez v1.0.0</p>
+        <p class="hint settings-version" id="settingsVersion">DreamTalez</p>
 
       </div>
     </div>
@@ -605,68 +606,77 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="closeStoryCard()" data-i18n="back_btn">&#8592; Back</button>
+          <button type="button" class="back-btn" data-action="closeStoryCard" data-i18n="back_btn">&#8592; Back</button>
           <h2 class="page-title" data-i18n="privacy_title">Privacy Policy</h2>
           <span class="page-header-spacer"></span>
         </div>
 
         <div class="card legal-card">
-          <p class="legal-updated">Last updated: 12 April 2026</p>
+          <p class="legal-updated">Last updated: 14 May 2026</p>
 
           <h3>1. Who We Are</h3>
-          <p>DreamTalez ("we", "us", "our") is a mobile application that generates personalised bedtime stories for children aged 2&ndash;12 using artificial intelligence. We are committed to protecting the privacy of our users and, in particular, the children for whom stories are created.</p>
+          <p>DreamTalez is a family storytelling app that generates personalised bedtime stories for children aged 2&ndash;12. We are built around one principle: <strong>your family's stories are private, and they belong to you.</strong> We do not run advertising. We do not profile your children. We exist to serve your family.</p>
 
-          <h3>2. Information We Collect</h3>
-          <p><strong>Account information:</strong> When you sign up we collect your email address and a password (stored securely by Firebase Authentication).</p>
-          <p><strong>Child profiles:</strong> You may provide your child's first name, age, gender, interests, and a physical appearance description. This information is used solely to personalise stories and is stored in your private account.</p>
-          <p><strong>"Story from Today" entries:</strong> If you use the Story from Today feature, the day-summary text you enter is sent to our AI provider to generate a story. We do not store these entries after the story is generated.</p>
-          <p><strong>Generated stories:</strong> Stories you save to your Library are stored in your account so you can read them again.</p>
-          <p><strong>Usage data:</strong> We collect basic analytics such as story generation counts and reading streaks. We do not track browsing behaviour, location, or device identifiers.</p>
+          <h3>2. What We Collect</h3>
+          <p><strong>Account:</strong> Your email address. Your password is managed by Firebase Authentication and is never visible to us.</p>
+          <p><strong>Child profiles:</strong> First name, age, gender, interests, and optionally a brief appearance description &mdash; used only to personalise stories, stored only in your private account.</p>
+          <p><strong>Story from Today:</strong> The day-summary you enter is sent to our AI to generate a story. <strong>We do not store this text after the story is generated.</strong></p>
+          <p><strong>Saved stories:</strong> Stories you save to your Library are stored in your account and are never visible to other users.</p>
+          <p><strong>Usage counters:</strong> Story generation count and reading streak, used to manage your subscription. No behavioural tracking, no location, no device identifiers.</p>
+          <p><strong>Payment:</strong> Stripe processes payments. We store only a Stripe Customer ID &mdash; never your card number or CVV.</p>
 
-          <h3>3. How We Use Your Information</h3>
+          <h3>3. What We Do Not Collect</h3>
           <ul>
-            <li>To create personalised bedtime stories tailored to your child</li>
-            <li>To maintain your account and saved Story Library</li>
-            <li>To manage your subscription</li>
-            <li>To improve the quality of our story generation</li>
+            <li>Location data</li>
+            <li>Device identifiers or advertising IDs</li>
+            <li>Browsing behaviour or session recordings</li>
+            <li>Any data directly from children &mdash; only parents and guardians use the app</li>
           </ul>
-          <p>We never use your data for advertising. We do not sell, rent, or share your personal information with third parties for marketing purposes.</p>
 
-          <h3>4. Children's Privacy (COPPA &amp; GDPR-K)</h3>
-          <p>DreamTalez is designed for use by parents and guardians on behalf of their children. We do not knowingly collect personal information directly from children under 13.</p>
-          <p>All child profile information is entered and controlled by the parent or guardian. Children do not create accounts or interact with the app independently.</p>
-          <p>If you believe a child has provided us with personal information without parental consent, please contact us immediately and we will delete it.</p>
-
-          <h3>5. Third-Party Services</h3>
-          <p><strong>Firebase (Google):</strong> We use Firebase for authentication and data storage. Firebase processes your email address and stored data under Google's privacy policies.</p>
-          <p><strong>Anthropic (Claude AI):</strong> Story generation requests are sent to Anthropic's Claude API. These requests include the child's first name, age, interests, appearance description, and any story prompts you provide. Anthropic processes this data under their privacy policy and does not use it to train their models.</p>
-          <p>We do not use any advertising, tracking, or social media SDKs.</p>
-
-          <h3>6. Data Storage &amp; Security</h3>
-          <p>Your data is stored securely using Firebase Cloud Firestore with encryption at rest and in transit. Passwords are hashed and never stored in plain text. We use HTTPS for all communications.</p>
-
-          <h3>7. Your Rights</h3>
-          <p>You have the right to:</p>
+          <h3>4. How We Use Your Information</h3>
           <ul>
-            <li><strong>Access</strong> your personal data at any time through the app</li>
-            <li><strong>Correct</strong> your child profiles by editing them in the app</li>
-            <li><strong>Delete</strong> your account and all associated data at any time from Settings</li>
-            <li><strong>Export</strong> your stories by reading them within the app</li>
+            <li>To generate personalised bedtime stories for your child</li>
+            <li>To maintain your account and Story Library</li>
+            <li>To manage your subscription server-side</li>
+            <li>To operate securely and prevent abuse</li>
           </ul>
-          <p>When you delete your account, all data including child profiles, stories, streaks, and account information is permanently removed from our systems.</p>
+          <p><strong>We never use your data for advertising. We do not sell, rent, or trade your personal information. We do not use your data to train AI models.</strong></p>
 
-          <h3>8. Data Retention</h3>
-          <p>We retain your data for as long as your account is active. If you delete your account, all data is permanently deleted immediately. We do not retain backups of deleted accounts.</p>
+          <h3>5. Children's Privacy &mdash; COPPA &amp; GDPR-K</h3>
+          <p>DreamTalez is used by parents and guardians on behalf of their children. Children do not create accounts or interact with the app independently. All child data is controlled by the parent or guardian.</p>
+          <p>We do not knowingly collect personal information directly from children under 13 (or under 16 in the EEA). If you believe a child has submitted data without your consent, email <a href="mailto:privacy@dreamtalez.com">privacy@dreamtalez.com</a> and we will delete it immediately.</p>
 
-          <h3>9. International Users</h3>
-          <p>If you are located in the European Economic Area (EEA) or United Kingdom, we process your data under the legal basis of contractual necessity (to provide the service you signed up for) and legitimate interest (to improve our service). You have additional rights under GDPR including the right to data portability and the right to lodge a complaint with your local supervisory authority.</p>
+          <h3>6. AI Processing</h3>
+          <p>Stories are generated through our secure backend, which communicates with Anthropic (Claude AI). Your app never connects to Anthropic directly &mdash; all AI requests pass through our server. Anthropic does not use this data to train their models and processes it transiently.</p>
 
-          <h3>10. Changes to This Policy</h3>
-          <p>We may update this Privacy Policy from time to time. We will notify you of significant changes through the app. Your continued use of DreamTalez after changes constitutes acceptance of the updated policy.</p>
+          <h3>7. Third-Party Services</h3>
+          <p><strong>Firebase (Google):</strong> Authentication and Firestore storage. Data encrypted at rest and in transit.</p>
+          <p><strong>Stripe:</strong> Secure payment processing. PCI-DSS Level 1 certified.</p>
+          <p><strong>Anthropic:</strong> Story generation as described above.</p>
+          <p><strong>We use no advertising networks, no social media SDKs, and no tracking tools.</strong></p>
 
-          <h3>11. Contact Us</h3>
-          <p>If you have any questions about this Privacy Policy or your data, please contact us at:</p>
-          <p><strong>Email:</strong> privacy@dreamtalez.com</p>
+          <h3>8. Security</h3>
+          <p>All data is encrypted at rest and in transit via HTTPS. Your account is completely isolated from other users. All subscription validation and credit decisions are made server-side &mdash; the app cannot bypass access controls.</p>
+
+          <h3>9. Your Rights</h3>
+          <ul>
+            <li><strong>Access</strong> &mdash; view your data in the app at any time</li>
+            <li><strong>Correct</strong> &mdash; edit child profiles in Settings</li>
+            <li><strong>Delete</strong> &mdash; Settings &rsaquo; Delete Account removes everything immediately and permanently: profiles, stories, streaks, subscription, and your authentication account. No backup is retained.</li>
+            <li><strong>Portability</strong> &mdash; your stories can be read and copied within the app before deletion</li>
+          </ul>
+
+          <h3>10. Legal Bases (GDPR)</h3>
+          <p>For EEA and UK users: we process data on the basis of contractual necessity (service delivery), legitimate interest (security and abuse prevention), and consent (child profile data via parental consent flow). You may lodge a complaint with your national supervisory authority &mdash; UK users: <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a>.</p>
+
+          <h3>11. Data Retention</h3>
+          <p>Data is retained while your account is active. Account deletion is immediate and complete. We hold no backups of deleted accounts.</p>
+
+          <h3>12. Changes</h3>
+          <p>We will notify you in-app before making material changes. Continued use after notification constitutes acceptance.</p>
+
+          <h3>13. Contact</h3>
+          <p><strong>Email:</strong> <a href="mailto:privacy@dreamtalez.com">privacy@dreamtalez.com</a></p>
         </div>
 
       </div>
@@ -679,13 +689,13 @@
       <div class="page-scroll">
 
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="closeStoryCard()" data-i18n="back_btn">&#8592; Back</button>
+          <button type="button" class="back-btn" data-action="closeStoryCard" data-i18n="back_btn">&#8592; Back</button>
           <h2 class="page-title" data-i18n="terms_title">Terms of Service</h2>
           <span class="page-header-spacer"></span>
         </div>
 
         <div class="card legal-card">
-          <p class="legal-updated">Last updated: 12 April 2026</p>
+          <p class="legal-updated">Last updated: 14 May 2026</p>
 
           <h3>1. Acceptance of Terms</h3>
           <p>By downloading, installing, or using DreamTalez ("the App"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the App.</p>
@@ -758,36 +768,58 @@
     <!-- BOTTOM NAV BAR                                                      -->
     <!-- ================================================================== -->
     <nav id="bottomNav" class="bottom-nav hidden">
-      <button type="button" class="nav-item active" data-page="home" onclick="navigateTo('home')">
-        <span class="nav-icon">&#9750;</span>
+      <button type="button" class="nav-item active" data-page="home" data-action="navigate" data-arg="home">
+        <span class="nav-icon">&#127968;</span>
         <span class="nav-label" data-i18n="home_nav">Home</span>
       </button>
-      <button type="button" class="nav-item" data-page="library" onclick="navigateTo('library')">
-        <span class="nav-icon">&#9776;</span>
+      <button type="button" class="nav-item" data-page="library" data-action="navigate" data-arg="library">
+        <span class="nav-icon">&#128218;</span>
         <span class="nav-label" data-i18n="library_nav">Library</span>
       </button>
-      <button type="button" class="nav-create" aria-label="Create story" onclick="navigateTo('today')">+</button>
-      <button type="button" class="nav-item nav-item-fav" data-page="library" onclick="navigateTo('library')">
-        <span class="nav-icon">&#10084;</span>
-        <span class="nav-label" data-i18n="favourites_nav">Favourites</span>
-      </button>
-      <button type="button" class="nav-item" data-page="children" onclick="navigateTo('children')">
+      <button type="button" class="nav-create" aria-label="Create story" data-action="navigate" data-arg="today">+</button>
+      <button type="button" class="nav-item" data-page="children" data-action="navigate" data-arg="children">
         <span class="nav-icon">&#128100;</span>
-        <span class="nav-label" data-i18n="child_nav">My Child</span>
+        <span class="nav-label" data-i18n="child_nav">Children</span>
       </button>
-      <button type="button" class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+      <button type="button" class="nav-item" data-page="settings" data-action="navigate" data-arg="settings">
         <span class="nav-icon">&#9881;</span>
-        <span class="nav-label" data-i18n="account_nav">Account</span>
+        <span class="nav-label" data-i18n="account_nav">Settings</span>
       </button>
     </nav>
+
+    <!-- ================================================================== -->
+    <!-- SUBLIMINAL ATMOSPHERE                                               -->
+    <!-- Four dust motes drifting across the viewport on 32-42s cycles.      -->
+    <!-- Visibility bound to #bottomNav state via CSS sibling selector;      -->
+    <!-- max opacity ~0.22 — subliminal, never visible motion.               -->
+    <!-- See components/atmosphere.css for the rest of the polish layer.     -->
+    <!-- ================================================================== -->
+    <div id="dt-atmosphere" aria-hidden="true">
+      <span class="dt-mote m1"></span>
+      <span class="dt-mote m2"></span>
+      <span class="dt-mote m3"></span>
+      <span class="dt-mote m4"></span>
+    </div>
 
     <!-- ================================================================== -->
     <!-- LOADING OVERLAY (global)                                            -->
     <!-- ================================================================== -->
     <div id="story-loading" class="loading-overlay hidden" aria-live="polite" aria-busy="true">
+      <!-- Magical atmosphere: moonlight halo, drifting stars, lantern glow.
+           Static markup so the experience appears in one frame; CSS owns motion. -->
+      <div class="dt-loading-atmosphere" aria-hidden="true">
+        <div class="dt-loading-moonlight"></div>
+        <div class="dt-loading-star s1"></div>
+        <div class="dt-loading-star s2"></div>
+        <div class="dt-loading-star s3"></div>
+        <div class="dt-loading-star s4"></div>
+        <div class="dt-loading-star s5"></div>
+        <div class="dt-loading-star s6"></div>
+        <div class="dt-loading-lantern"></div>
+      </div>
       <div class="loading-content">
         <div class="glow-orb" aria-hidden="true"></div>
-        <p class="loading-title" data-i18n="loading_text">Creating your story...</p>
+        <p class="loading-title dt-loading-title" data-i18n="loading_text">Creating your story...</p>
         <p class="loading-sub" data-i18n="loading_sub">This will only take a moment ✨</p>
       </div>
     </div>
@@ -795,20 +827,44 @@
     <!-- ================================================================== -->
     <!-- PAYWALL MODAL                                                      -->
     <!-- ================================================================== -->
+    <!-- ================================================================== -->
+    <!-- DELETE ACCOUNT MODAL                                               -->
+    <!-- ================================================================== -->
+    <div id="deleteModal" class="paywall hidden" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+      <div class="paywall-card delete-modal-card">
+        <h2 id="deleteModalTitle">Delete Account</h2>
+        <p>This permanently removes everything — child profiles, saved stories, streaks, and your subscription. It cannot be undone.</p>
+        <div class="delete-modal-list">
+          <span>🧒 All child profiles</span>
+          <span>📚 All saved stories</span>
+          <span>💳 Subscription cancelled immediately</span>
+          <span>🔒 Account fully removed</span>
+        </div>
+        <label class="delete-modal-label" for="deletePasswordInput">Enter your password to confirm</label>
+        <input type="password" id="deletePasswordInput" class="delete-modal-input" placeholder="Your password" autocomplete="current-password" />
+        <p id="deleteModalError" class="delete-modal-error hidden"></p>
+        <div class="delete-modal-actions">
+          <button type="button" class="btn ghost" data-action="closeDeleteModal">Cancel</button>
+          <button type="button" class="btn danger-btn" id="deleteModalConfirmBtn" data-action="confirmDeleteAccount">Delete Account</button>
+        </div>
+      </div>
+    </div>
+
     <div id="paywall" class="paywall hidden" aria-modal="true" role="dialog" aria-labelledby="paywallTitle">
       <div class="paywall-card">
-        <h2 id="paywallTitle">Unlock More Stories</h2>
-        <p>Create magical bedtime stories anytime.</p>
+        <h2 id="paywallTitle">&#10024; Continue the bedtime magic</h2>
+        <p>Every night, a new adventure — personalised, remembered, and beautifully crafted just for your child.</p>
 
-        <button class="btn primary btn-lg" onclick="handleSubscribe('subscription')">
-          £4.99 / month — Unlimited Stories
+        <button class="btn primary btn-lg" data-action="handleSubscribe" data-arg="subscription">
+          &#127769; Start the adventure &mdash; &pound;6.99&thinsp;/&thinsp;month
+        </button>
+        <p class="paywall-perks-note">40 adventures/month &middot; Story continuity &middot; Keepsake rewards &middot; No ads</p>
+
+        <button class="btn secondary btn-lg" data-action="handleSubscribe" data-arg="pack">
+          &#10024; 10 more bedtime stories &mdash; &pound;1.99
         </button>
 
-        <button class="btn secondary btn-lg" onclick="handleSubscribe('pack')">
-          10 Stories for £1.99
-        </button>
-
-        <button class="btn ghost" onclick="closePaywall()">Maybe later</button>
+        <button class="btn ghost" data-action="closePaywall">Maybe later</button>
       </div>
     </div>
 
@@ -818,7 +874,7 @@
     <div id="storyCard" class="page hidden">
       <div class="page-scroll">
         <div class="page-header">
-          <button type="button" class="back-btn" onclick="closeStoryCard()" data-i18n="back_btn">&#8592; Back</button>
+          <button type="button" class="back-btn" data-action="closeStoryCard" data-i18n="back_btn">&#8592; Back</button>
           <h2 class="page-title" data-i18n="your_story">Your Story</h2>
           <span class="page-header-spacer"></span>
         </div>
@@ -826,8 +882,8 @@
           <h2 id="storyTitle">Your Story</h2>
           <div id="storyOutput" class="story-output"></div>
           <div class="story-actions">
-            <button type="button" class="btn primary" onclick="enterReadingMode()" data-i18n="read_story">Read Story</button>
-            <button type="button" id="saveToLibraryBtn" class="btn secondary hidden" onclick="saveCurrentStoryToLibrary()" data-i18n="save_to_library">&#9733; Save to Library</button>
+            <button type="button" class="btn primary" data-action="enterReadingMode" data-i18n="read_story">Read Story</button>
+            <button type="button" id="saveToLibraryBtn" class="btn secondary hidden" data-action="saveCurrentStoryToLibrary" data-i18n="save_to_library">&#9733; Save to Library</button>
           </div>
         </div>
       </div>
@@ -853,10 +909,67 @@
       <p class="reading-subtitle" data-i18n="reading_subtitle">A story made just for you</p>
       <div id="readingText" class="reading-text"></div>
       <button id="saveProgressBtn" class="btn secondary save-btn hidden" data-i18n="continue_tomorrow">Continue Tomorrow</button>
+      <button id="shareStoryBtn" class="btn ghost share-btn hidden" aria-label="Share this story">&#128139; Share this story</button>
     </div>
   </div>
 
+  <!-- ================================================================== -->
+  <!-- FAMILY MAGIC ONBOARDING MODAL                                      -->
+  <!-- ================================================================== -->
+  <div id="familyMagicModal" class="fm-modal-overlay hidden" aria-modal="true" aria-label="Family Magic setup" aria-hidden="true">
+    <div class="fm-modal">
+      <button class="fm-modal-close" data-action="closeFamilyMagicModal" aria-label="Close">&#10005;</button>
+
+      <div class="fm-modal-header">
+        <div class="fm-modal-icon">🏡</div>
+        <h2 class="fm-modal-title">Family Magic ✨</h2>
+        <p class="fm-modal-subtitle">Tell us who makes bedtime magical — we'll weave them into tonight's adventure.</p>
+      </div>
+
+      <!-- Section 1: Family members -->
+      <div class="fm-section">
+        <h3 class="fm-section-title">Who makes bedtime feel magical?</h3>
+        <div class="fm-member-row">
+          <input id="fmRelationship" class="fm-input" type="text" placeholder="e.g. Mum, Dad, Nana" maxlength="30" />
+          <input id="fmMemberName" class="fm-input" type="text" placeholder="Their name" maxlength="30" />
+          <button class="btn ghost fm-add-btn" data-action="addFamilyMember">Add</button>
+        </div>
+        <div id="fmMemberList" class="fm-member-list"></div>
+      </div>
+
+      <!-- Section 2: Comfort items -->
+      <div class="fm-section">
+        <h3 class="fm-section-title">What cozy thing comes on adventures too?</h3>
+        <div class="fm-comfort-grid">
+          <button class="fm-comfort-item" data-item="favourite blanket" data-action="toggleFmComfortItem">🛏️ Favourite blanket</button>
+          <button class="fm-comfort-item" data-item="teddy bear" data-action="toggleFmComfortItem">🧸 Teddy bear</button>
+          <button class="fm-comfort-item" data-item="night light" data-action="toggleFmComfortItem">🌟 Night light</button>
+          <button class="fm-comfort-item" data-item="favourite toy" data-action="toggleFmComfortItem">🧩 Favourite toy</button>
+          <button class="fm-comfort-item" data-item="moon mobile" data-action="toggleFmComfortItem">🌙 Moon mobile</button>
+          <button class="fm-comfort-item" data-item="favourite book" data-action="toggleFmComfortItem">📖 Favourite book</button>
+        </div>
+      </div>
+
+      <!-- Section 3: Cozy feeling -->
+      <div class="fm-section">
+        <h3 class="fm-section-title">What makes bedtime feel warm and safe?</h3>
+        <input id="fmCozyFeeling" class="fm-input fm-input-full" type="text" placeholder="e.g. Snuggled up with a hot chocolate" maxlength="100" />
+      </div>
+
+      <!-- Section 4: Magical place -->
+      <div class="fm-section">
+        <h3 class="fm-section-title">What magical place feels most exciting?</h3>
+        <input id="fmMagicalPlace" class="fm-input fm-input-full" type="text" placeholder="e.g. The Whispering Forest, the stars" maxlength="100" />
+      </div>
+
+      <button class="btn primary fm-save-btn" data-action="saveFamilyMagicSetup">&#10024; Start the adventure</button>
+    </div>
+  </div>
+
+  <script src="/crashlytics.js" defer></script>
+  <script src="/error-boundary.js" defer></script>
   <script src="/story-cache.js" defer></script>
-  <script type="module" src="/app.js?v=20260504d" defer></script>
+  <script type="module" src="/app.js?v=20260521a" defer></script>
 </body>
 </html>
+

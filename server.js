@@ -21,7 +21,8 @@ function isSupportedStoryLocale(lang) {
   const supported = [
     "en", "en-GB", "en-US",
     "fr", "es", "de", "it",
-    "ja", "zh", "hi"
+    "ja", "zh", "zh-CN", "hi",
+    "pt", "ar", "ur"
   ];
   return supported.includes(lang);
 }
@@ -96,6 +97,13 @@ import fs from "fs";
 import https from "https";
 import crypto from "crypto";
 
+// Cost protection & runtime safety
+import { budgetGuard, addSpend }  from "./middleware/budget-guard.js";
+import { requestTimeout }          from "./middleware/request-timeout.js";
+import { queueGuard }              from "./middleware/queue-guard.js";
+import { getCachedProfile, setCachedProfile, invalidateProfile } from "./cache/profile-cache.js";
+import RUNTIME_LIMITS              from "./config/runtime-limits.js";
+
 
 
 
@@ -104,7 +112,9 @@ import {
   EDITOR_SYSTEM_PROMPT,
   VALIDATOR_SYSTEM_PROMPT,
   DELIVERY_QA_SYSTEM_PROMPT,
+  BLUEPRINT_SYSTEM_PROMPT,
   buildStoryPrompt,
+  buildBlueprintPrompt,
   buildGrammarPrompt,
   buildValidationPrompt,
   buildDeliveryQaPrompt,
@@ -112,6 +122,18 @@ import {
   resolveLanguageCode,
   getDialectInstruction,
 } from "./prompts.js";
+import { applyBedtimeSoftness } from "./story-engine/orchestration/bedtime-softness-balancer.js";
+import { applyRhythm } from "./story-engine/orchestration/prose-rhythm-engine.js";
+import { buildAdaptiveStoryflow } from "./story-engine/orchestration/adaptive-storyflow-orchestrator.js";
+// Phase 5 — Global Scaling & Premiumization
+import { frameworkLoader } from "./story-engine/runtime/framework-loader.js";
+import { getLockedSystemPrompt } from "./story-engine/runtime/runtime-pipeline.js";
+import { calculateStoryQuality } from "./story-engine/analytics/story-quality-engine.js";
+import { buildStoryCompletionEvent, extractUsedComfortAnchors } from "./story-engine/analytics/retention-intelligence.js";
+import { PremiumQualityValidator } from "./story-engine/validation/premium-quality-validator.js";
+import { GlobalLocalizationValidator } from "./story-engine/validation/global-localization-validator.js";
+import { runStoryRuntime, applyPostProcessing } from "./story-engine/runtime/story-runtime.js";
+import { runValidationPipeline, splitStoryIntoSections } from "./story-engine/validation/validation-pipeline.js";
 
 import {
   normalizeStoryOutput,
@@ -119,7 +141,7 @@ import {
   assertStoryQuality,
   isStoryValid,
 } from "./story-quality.js";
-import { createCheckoutSession, handleWebhook, validateAndConsumeGuestOneoff } from "./stripe.js";
+import { createCheckoutSession, handleWebhook, validateAndConsumeGuestOneoff, cancelSubscription } from "./stripe.js";
 
 // =============================================================================
 // Environment / config
@@ -157,6 +179,17 @@ const app = express();
 // =============================
 app.use(corsMiddleware);
 
+// Request ID — short trace token attached to every request for log correlation.
+// Exposed as X-Request-Id so mobile clients can include it in support reports.
+app.use((req, _res, next) => {
+  req.requestId = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+  next();
+});
+
+// Budget guard — blocks all API requests if emergency spend threshold is hit.
+// Static asset serving is unaffected because static middleware is registered later.
+app.use(budgetGuard);
+
 
 
 
@@ -169,6 +202,8 @@ function normalizeGenerateMode(mode) {
     case "therapeutic":
     case "custom":
       return "hero";
+    case "family-magic":
+      return "family-magic";
     default:
       return mode;
   }
@@ -180,16 +215,21 @@ function ipKeyGenerator(ip) {
 }
 
 // Helper: Return token budget based on story length and pipeline stage
-function getStoryTokenBudget(length, stage, dialect) {
+function getStoryTokenBudget(length, stage, dialect, storyType) {
   const isNonEnglish = dialect && !["en", "en-GB", "en-US", "en-gb", "en-us"].includes(dialect);
   const budgets = {
-    short:  { story: 700,  editor: 700,  validator: 700,  title: 40,  delivery: 600 },
-    medium: { story: 1800, editor: 1800, validator: 1800, title: 40,  delivery: 1600 },
-    long:   { story: 3200, editor: 3200, validator: 3200, title: 40,  delivery: 2800 },
+    sample:   { story: 600,  editor: 600,  validator: 600,  title: 40,  delivery: 500 },
+    short:    { story: 700,  editor: 700,  validator: 700,  title: 40,  delivery: 600 },
+    medium:   { story: 1800, editor: 1800, validator: 1800, title: 40,  delivery: 1600 },
+    long:     { story: 3200, editor: 3200, validator: 3200, title: 40,  delivery: 2800 },
+    keepsake: { story: 2400, editor: 2400, validator: 2400, title: 60,  delivery: 2200 },
   };
-  const row = budgets[length] ?? budgets.medium;
+  // Route by storyType overrides first
+  const key = storyType === "oneoff-sample" ? "sample"
+            : storyType === "keepsake" ? "keepsake"
+            : (length in budgets ? length : "medium");
+  const row = budgets[key] ?? budgets.medium;
   const base = row[stage] ?? 1400;
-  // Non-English stories may need slightly more tokens
   return isNonEnglish ? Math.ceil(base * 1.15) : base;
 }
 
@@ -217,7 +257,7 @@ async function ensureSubscriptionFresh(uid, userData, db) {
 
   const now = Date.now();
   const reset = {
-    storiesRemaining: 62,
+    storiesRemaining: 40,
     subscriptionStartDate: now,
     subscriptionEndDate: addOneMonth(now),
   };
@@ -284,12 +324,14 @@ async function refundStory(uid, consumed, db) {
     express.json({ limit: "10kb" }),
     requireAiAuth,
     generateLimiter,
+    queueGuard,                         // global concurrent cap
+    requestTimeout(RUNTIME_LIMITS.maxGenerationSeconds * 1000), // 30 s hard timeout
     [
       body("name").isString().isLength({ min: 1, max: 50 }).trim(),
       body("age").isString().isLength({ min: 1, max: 10 }).trim(),
       body("interests").isString().isLength({ min: 1, max: 200 }).trim(),
       body("length").isIn(["short", "medium", "long"]),
-      body("mode").isIn(["random", "hero", "today", "sleepy", "long-surprise", "therapeutic", "custom", "medium-surprise"]),
+      body("mode").isIn(["random", "hero", "today", "sleepy", "long-surprise", "therapeutic", "custom", "medium-surprise", "family-magic"]),
       body("dialect").optional().custom(isSupportedStoryLocale),
       body("customIdea").optional().isString().isLength({ max: 200 }).trim(),
       body("therapeuticSituation").optional().isString().isLength({ max: 200 }).trim(),
@@ -306,6 +348,9 @@ async function refundStory(uid, consumed, db) {
       body("cultural_world").optional().isString().isLength({ max: 100 }).trim(),
       body("recurring_character").optional().isString().isLength({ max: 100 }).trim(),
       body("last_story_summary").optional().isString().isLength({ max: 400 }).trim(),
+      body("familyMagic").optional(),
+      body("bedtimeHour").optional().isInt({ min: 0, max: 23 }),
+      body("previousStoryIntensity").optional().isInt({ min: 1, max: 5 }),
     ],
     async (req, res) => {
       // Hoisted so the outer catch can release activeRequests if anything
@@ -334,7 +379,7 @@ async function refundStory(uid, consumed, db) {
           return res.status(400).json({ error: "Please check your input and try again." });
         }
 
-        const { name, age, interests, length, mode, dialect, language, customIdea, therapeuticSituation, seriesContext, childWish, appearance, dayBeats, dayMood, globalInspiration, storyType, gender, siblings, family, cultural_world, recurring_character, last_story_summary } = req.body;
+        const { name, age, interests, length, mode, dialect, language, customIdea, therapeuticSituation, seriesContext, childWish, appearance, dayBeats, dayMood, globalInspiration, storyType, gender, siblings, family, cultural_world, recurring_character, last_story_summary, familyMagic: rawFamilyMagic, bedtimeHour: rawBedtimeHour, previousStoryIntensity: rawPreviousIntensity } = req.body;
         const cleanName = sanitizeInput(name);
         const cleanAge = sanitizeInput(age);
         const cleanInterests = sanitizeInput(interests);
@@ -367,22 +412,76 @@ async function refundStory(uid, consumed, db) {
           ? String(last_story_summary).replace(/[<>{}\[\]]/g, "").trim().substring(0, 400)
           : null;
 
+        // Sanitize familyMagic — only accept safe scalar values, no nested code
+        const cleanFamilyMagic = (() => {
+          if (!rawFamilyMagic || typeof rawFamilyMagic !== "object") return null;
+          const fm = rawFamilyMagic;
+          const sanitizeStr = (s, max) => s ? String(s).replace(/[<>{}\[\]]/g, "").trim().substring(0, max) : "";
+          return {
+            enabled: Boolean(fm.enabled),
+            familyMembers: Array.isArray(fm.familyMembers)
+              ? fm.familyMembers.slice(0, 6).map((m) => ({
+                  relationship: sanitizeStr(m.relationship, 30),
+                  name: sanitizeStr(m.name, 30),
+                })).filter((m) => m.name && m.relationship)
+              : [],
+            comfortItems: Array.isArray(fm.comfortItems)
+              ? fm.comfortItems.slice(0, 4).map((s) => sanitizeStr(s, 40)).filter(Boolean)
+              : [],
+            favoriteCozyFeeling:  sanitizeStr(fm.favoriteCozyFeeling,  100),
+            favoriteMagicalPlace: sanitizeStr(fm.favoriteMagicalPlace, 100),
+          };
+        })();
+
         const SAFE_MSG = "Let's keep stories kind and magical ✨";
 
-        // XSS / injection check
+        // XSS / script injection check (name, interests)
         if (containsSuspiciousContent(cleanName) || containsSuspiciousContent(cleanInterests)) {
           logEvent(`Blocked suspicious input from ${req.ip}: ${cleanName}`);
           return res.status(400).json({ error: "Invalid input detected." });
         }
 
-        // Child-safety content check on all free-text user fields
-        const unsafeFields = [cleanIdea, cleanTherapeuticSituation, cleanWish, cleanBeats, cleanAppearance, cleanMood]
-          .filter(Boolean)
-          .find(isUnsafeForChildren);
+        // Child name must not contain banned words (e.g. user tries to name child a slur)
+        if (isUnsafeForChildren(cleanName)) {
+          logEvent(`Blocked unsafe name from ${req.ip}`);
+          return res.status(400).json({ error: SAFE_MSG, unsafe: true });
+        }
 
-        if (unsafeFields) {
+        // Child-safety content check on all free-text story input fields
+        const freeTextFields = [
+          cleanIdea, cleanTherapeuticSituation, cleanWish, cleanBeats,
+          cleanAppearance, cleanMood, cleanInterests, cleanSeriesContext,
+          cleanLastStorySummary,
+        ];
+        const unsafeField = freeTextFields.filter(Boolean).find(isUnsafeForChildren);
+        if (unsafeField) {
           logEvent(`Blocked unsafe content from ${req.ip}`);
           return res.status(400).json({ error: SAFE_MSG, unsafe: true });
+        }
+
+        // Prompt injection check — prevents attempts to override AI system prompts
+        const injectionFields = [
+          cleanIdea, cleanTherapeuticSituation, cleanWish, cleanBeats,
+          cleanSeriesContext, cleanLastStorySummary,
+        ];
+        const injectionAttempt = injectionFields.filter(Boolean).find(containsPromptInjection);
+        if (injectionAttempt) {
+          logEvent(`Blocked prompt injection attempt from ${req.ip}`);
+          return res.status(400).json({ error: SAFE_MSG, unsafe: true });
+        }
+
+        // familyMagic free-text fields safety check
+        if (cleanFamilyMagic) {
+          const fmTexts = [
+            cleanFamilyMagic.favoriteCozyFeeling,
+            cleanFamilyMagic.favoriteMagicalPlace,
+            ...cleanFamilyMagic.familyMembers.map((m) => m.name),
+            ...(cleanFamilyMagic.comfortItems || []),
+          ].filter(Boolean);
+          if (fmTexts.find(isUnsafeForChildren)) {
+            logEvent(`Blocked unsafe family magic content from ${req.ip}`);
+            return res.status(400).json({ error: SAFE_MSG, unsafe: true });
+          }
         }
 
         if (cleanSeriesContext && containsSuspiciousContent(cleanSeriesContext)) {
@@ -434,14 +533,24 @@ async function refundStory(uid, consumed, db) {
             const persistentRate = await enforcePersistentUserRateLimit(uid, db);
             if (persistentRate.limited) {
               activeRequests.delete(uid);
-              return res.status(429).json({ error: "🌙 Let the story settle before creating another" });
+              const msg = persistentRate.reason === "daily"
+                ? "🌙 You've created lots of magic today — come back tonight for more adventures"
+                : "🌙 Let the story settle before creating another";
+              return res.status(429).json({ error: msg });
             }
           }
 
-          const userSnap = await db.collection("users").doc(uid).get();
-          userData = userSnap.exists ? userSnap.data() : {};
-          // Monthly subscription reset (idempotent — no-op if still in window)
-          userData = await ensureSubscriptionFresh(uid, userData, db);
+          // Profile cache — avoids redundant Firestore reads on rapid requests
+          let cachedUser = getCachedProfile(uid);
+          if (cachedUser) {
+            userData = cachedUser;
+          } else {
+            const userSnap = await db.collection("users").doc(uid).get();
+            userData = userSnap.exists ? userSnap.data() : {};
+            // Monthly subscription reset (idempotent — no-op if still in window)
+            userData = await ensureSubscriptionFresh(uid, userData, db);
+            setCachedProfile(uid, userData);
+          }
         }
 
         // Consume story credit (checks access, deducts atomically).
@@ -453,8 +562,10 @@ async function refundStory(uid, consumed, db) {
           activeRequests.delete(uid);
           return res.status(403).json({ error: consumption.message });
         }
+        // Invalidate cached profile — credit count just changed
+        if (consumption.consumed) invalidateProfile(uid);
 
-        logEvent(`[GENERATE] start uid=${uid} mode=${incomingMode}→${normalizedMode} length=${length} dialect=${cleanDialect} child="${cleanName}"`);
+        logEvent(`[GENERATE] start rid=${req.requestId} uid=${uid} mode=${incomingMode}→${normalizedMode} length=${length} dialect=${cleanDialect}`);
 
         const cleanGlobalInspiration = Array.isArray(globalInspiration)
           ? globalInspiration
@@ -462,6 +573,16 @@ async function refundStory(uid, consumed, db) {
               .map((s) => sanitizeInput(String(s || "").trim().substring(0, 100)))
               .filter(Boolean)
           : [];
+
+        // Bedtime hour — accept from client (local device time) or fall back to server hour
+        const cleanBedtimeHour = (() => {
+          const h = parseInt(rawBedtimeHour, 10);
+          return !isNaN(h) && h >= 0 && h <= 23 ? h : new Date().getHours();
+        })();
+        const cleanPreviousIntensity = (() => {
+          const v = parseInt(rawPreviousIntensity, 10);
+          return !isNaN(v) && v >= 1 && v <= 5 ? v : 2;
+        })();
 
         const storyInputs = {
           name: cleanName,
@@ -474,6 +595,9 @@ async function refundStory(uid, consumed, db) {
           recurring_character: cleanRecurringCharacter,
           last_story_summary: cleanLastStorySummary,
           language: cleanLanguage,
+          familyMagic: cleanFamilyMagic || undefined,
+          bedtimeHour: cleanBedtimeHour,
+          previousStoryIntensity: cleanPreviousIntensity,
         };
 
         // Create the job record BEFORE responding. The record stores the
@@ -548,8 +672,7 @@ async function refundStory(uid, consumed, db) {
         // sleep — the pipeline keeps running on the server. The polling
         // endpoint reads the durable job state.
         res.json({ jobId });
-        logEvent(`[GENERATE] job=${jobId} created uid=${uid} consumed=${consumption.consumed || "none"}`);
-        console.log({ uid, route: "/generate", jobId, status: "started", mode: incomingMode, normalizedMode, length });
+        logEvent(`[GENERATE] job=${jobId} rid=${req.requestId} uid=${uid} consumed=${consumption.consumed || "none"} mode=${incomingMode} length=${length}`);
 
         // Source of truth is now Firestore jobs for real users. We process
         // from persisted payload so restart recovery can resume in-flight work.
@@ -684,49 +807,82 @@ function containsSuspiciousContent(text) {
   return /https?:\/\/|<script|javascript:|on\w+\s*=|eval\s*\(|import\s*\(/.test(lower);
 }
 
+// Normalise common leet-speak / character substitutions before safety checks.
+// This catches "f*ck", "sh1t", "a$$hole", "b!tch", "@ss" etc.
+function normalizeLeetSpeak(text) {
+  return String(text || "")
+    .replace(/[@4]/g, "a")
+    .replace(/[3]/g, "e")
+    .replace(/[1!|]/g, "i")
+    .replace(/[0]/g, "o")
+    .replace(/[5\$]/g, "s")
+    .replace(/[7]/g, "t")
+    .replace(/\*/g, "")     // "f*ck" → "fck" (close enough for boundary match)
+    .replace(/\./g, "");    // "f.u.c.k" → "fuck"
+}
+
 // Child-safety word list — checked on every user-supplied input field and
 // on every AI-generated story before it is sent to the client.
 const CHILD_SAFETY_BANNED = [
-  // profanity
-  "fuck","shit","bitch","bastard","asshole","cunt","dick","cock","pussy","piss","crap",
+  // profanity — English
+  "fuck","shit","bitch","bastard","asshole","cunt","dick","cock","pussy","piss","crap","ass",
+  // profanity — UK-specific
+  "arse","arsehole","bollocks","wank","wanker","twat","shite","tosser","prick","bellend","twatface",
   // sexual
-  "sex","porn","nude","naked","boob","breast","penis","vagina","rape","molest","masturbat",
+  "porn","nude","naked","boob","breast","penis","vagina","rape","molest","masturbat",
+  "paedo","pedophile","paedophile","trafficking","groomer","nonce",
   // violence / weapons
-  "kill","murder","gun","knife","stab","shoot","bomb","blood","gore","terror","suicide",
+  "kill","murder","gun","knife","stab","shoot","bomb","gore","terror","suicide",
+  "torture","mutilate","decapitate","strangle","noose","slaughter",
   // drugs / alcohol
-  "drug","cocaine","heroin","meth","weed","alcohol","drunk","cigarette","vape",
-  // horror / fear
-  "demon","satan","devil","hell","horror","nightmare",
-  // hate
-  "racist","nigger","faggot","retard",
+  "cocaine","heroin","meth","weed","drunk","cigarette","vape","overdose",
+  // horror / occult
+  "satan","devil","horror","nightmare","lucifer",
+  // hate speech
+  "nigger","faggot","retard","nazi","hitler","racist","slut","whore","chink","spastic",
 ];
 
-// Use whole-word matches to avoid false positives like "hello" matching "hell".
-// Keep explicit stem support where needed (e.g. "masturbat...").
+// Word-boundary pattern. Stems ending in common suffixes get a wildcard
+// so "masturbation", "paedophilia", "fucking" etc. are all caught.
+const STEM_WORDS = new Set(["masturbat","paedo","pedophil","paedophil","wank","fuck","shit","arse","bolloc"]);
+
 const SAFETY_PATTERN = new RegExp(
   CHILD_SAFETY_BANNED
-    .map((w) => (w === "masturbat" ? `\\b${w}\\w*\\b` : `\\b${w}\\b`))
+    .map((w) => STEM_WORDS.has(w) ? `\\b${w}\\w*` : `\\b${w}\\b`)
     .join("|"),
   "i"
 );
 
+// Prompt injection patterns — prevents users trying to hijack the AI system prompt.
+const INJECTION_PATTERN = /ignore\s+(previous|your|all|prior)\s+(instructions?|prompt|rules?|guidelines?)|forget\s+(everything|your|all)|your\s+new\s+instructions|act\s+as\s+(an?\s+)?(ai|assistant|chatgpt|gpt|claude)|pretend\s+(you\s+are|to\s+be)|you\s+are\s+now\s+|jailbreak|dan\s+mode|new\s+persona|disregard\s+(all|previous|your)|override\s+(your|all|previous)|system\s+prompt|bypass\s+(safety|filter|rules?)|roleplay\s+as\b/i;
+
 function isUnsafeForChildren(text) {
   if (!text) return false;
-  return SAFETY_PATTERN.test(text);
+  const normalized = normalizeLeetSpeak(text);
+  return SAFETY_PATTERN.test(text) || SAFETY_PATTERN.test(normalized);
+}
+
+function containsPromptInjection(text) {
+  if (!text) return false;
+  return INJECTION_PATTERN.test(text);
 }
 
 function getSafeFallbackStory(name) {
   return `${name} snuggled into bed as the stars twinkled softly above.\n\nTonight was a peaceful night filled with gentle dreams, kind thoughts, and a quiet sense of magic.\n\nAs the moon smiled down, ${name} drifted into a calm and happy sleep, ready for a new adventure tomorrow.`;
 }
 
-// Returns { min, max } word bounds for a given age string.
+// Returns { min, max } word bounds for a given age string — aligned with age-band tiers.
 // These mirror getAgeWordTarget() in prompts.js but stay server-side
 // so we don't import the ES module into the validator / enforcer.
-function getAgeWordBounds(age) {
+function getAgeWordBounds(age, storyType) {
+  // One-off sample stories are intentionally shorter — a preview of premium
+  if (storyType === "oneoff-sample") return { min: 300, max: 450 };
+  // Keepsake stories get the richest word budget
+  if (storyType === "keepsake") return { min: 800, max: 1100 };
   const n = parseInt(age, 10);
-  if (!isNaN(n) && n <= 4) return { min: 400, max: 650 };
-  if (!isNaN(n) && n <= 7) return { min: 600, max: 950 };
-  return { min: 1000, max: 1350 };
+  if (!isNaN(n) && n <= 5) return { min: 400, max: 650 };
+  if (!isNaN(n) && n <= 8) return { min: 600, max: 850 };
+  return { min: 700, max: 950 };
 }
 
 function countWords(text = "") {
@@ -765,18 +921,30 @@ function polishStory(text) {
 }
 
 function enhanceStoryFlow(text) {
+  // Collapse horizontal whitespace only — \s+ would also flatten newlines and
+  // destroy paragraph structure that polishStory() carefully preserves.
   return String(text || "")
-    .replace(/\s+/g, " ")
-    .replace(/\.\s+/g, ". ")
-    .replace(/,\s+/g, ", ")
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/\. {2,}/g, ". ")
+    .replace(/, {2,}/g, ", ")
     .trim();
 }
+
+const ENDING_CLOSERS = [
+  "And as the stars kept gentle watch, sleep came softly.",
+  "And the night held them close, warm and still.",
+  "The world grew quiet around them, soft as a whispered goodnight.",
+  "And somewhere in the stillness, a dream was already beginning.",
+  "The lantern glowed softly. Everything was safe. Everything was good.",
+];
 
 function strengthenEnding(text) {
   const story = String(text || "").trim();
   if (!story) return story;
-  if (!/sleep|dream|goodnight/i.test(story.slice(-200))) {
-    return `${story} And as the night grew quiet, everything felt calm, safe, and ready for sweet dreams.`;
+  if (!/sleep|dream|goodnight|good night|drift|still|quiet|peaceful/i.test(story.slice(-250))) {
+    // Pick a closer deterministically based on story length so reruns are stable
+    const closer = ENDING_CLOSERS[story.length % ENDING_CLOSERS.length];
+    return `${story}\n\n${closer}`;
   }
   return story;
 }
@@ -930,15 +1098,25 @@ async function runDeliveryQaPass(storyText, dialect) {
 // =============================================================================
 
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
+const CLAUDE_MODEL_OPUS   = "claude-opus-4-7";
 const CLAUDE_MODEL_SONNET = "claude-sonnet-4-6";
 const CLAUDE_MODEL_HAIKU  = "claude-haiku-4-5-20251001";
 const CLAUDE_MODEL_DEFAULT = CLAUDE_MODEL_SONNET;
 const API_VERSION = "2023-06-01";
 
+// USE_OPUS_BLUEPRINT=true → Opus designs the story structure, Sonnet writes the prose.
+// This gives Opus-quality narrative architecture at a fraction of full-Opus generation cost.
+// Set to false to skip the blueprint stage entirely (pure Sonnet/Haiku generation).
+const USE_OPUS_BLUEPRINT = process.env.USE_OPUS_BLUEPRINT === "true";
+
 // Tiered model selection:
-//   hero mode uses Sonnet for premium quality
-//   all other modes use Haiku for fast 10-20s generation
+//   Blueprint mode: Opus designs → Sonnet writes (all modes)
+//   No blueprint: hero uses Sonnet, all others use Haiku
 function getModelConfig({ mode, length } = {}) {
+  if (USE_OPUS_BLUEPRINT) {
+    // Prose writer is always Sonnet when Opus handles the blueprint
+    return { model: CLAUDE_MODEL_SONNET, temperature: 0.82 };
+  }
   if (mode === "hero") {
     return { model: CLAUDE_MODEL_SONNET, temperature: 0.85 };
   }
@@ -1042,6 +1220,7 @@ const GENERATION_LOCK_TTL_MS = 15 * 60 * 1000;
 const USER_RATE_COLLECTION = "userRateLimits";
 const USER_RATE_WINDOW_MS = 10 * 1000;
 const USER_RATE_MAX_REQUESTS = 3;
+const USER_DAILY_MAX_STORIES = 12; // hard daily cap (credit system is the soft cap)
 const USER_LOCKS_COLLECTION = "generationLocks";
 const INSTANCE_ID = crypto.randomUUID();
 
@@ -1091,31 +1270,36 @@ async function resolveJob(jobId, story, title, db) {
 
 async function enforcePersistentUserRateLimit(uid, db) {
   const now = Date.now();
+  const todayUTC = new Date(now).toISOString().slice(0, 10); // "YYYY-MM-DD"
   const rateRef = db.collection(USER_RATE_COLLECTION).doc(uid);
   try {
     return await db.runTransaction(async (tx) => {
       const snap = await tx.get(rateRef);
       const data = snap.exists ? snap.data() : {};
+
+      // ── Per-10s burst window ──────────────────────────────────────────
       const windowStart = Number(data.windowStart || 0);
       const count = Number(data.count || 0);
+      const windowExpired = !windowStart || now - windowStart >= USER_RATE_WINDOW_MS;
 
-      if (!windowStart || now - windowStart >= USER_RATE_WINDOW_MS) {
-        tx.set(rateRef, {
-          windowStart: now,
-          count: 1,
-          updatedAt: now,
-          expiresAt: now + (2 * USER_RATE_WINDOW_MS),
-        }, { merge: true });
-        return { limited: false };
+      // ── Daily cap ────────────────────────────────────────────────────
+      const dailyDate = data.dailyDate || "";
+      const dailyCount = dailyDate === todayUTC ? Number(data.dailyCount || 0) : 0;
+      if (dailyCount >= USER_DAILY_MAX_STORIES) {
+        logEvent(`[RATE] daily cap hit uid=${uid} dailyCount=${dailyCount}`);
+        return { limited: true, reason: "daily" };
       }
 
-      if (count >= USER_RATE_MAX_REQUESTS) {
-        return { limited: true };
+      // ── Burst window ──────────────────────────────────────────────────
+      if (!windowExpired && count >= USER_RATE_MAX_REQUESTS) {
+        return { limited: true, reason: "burst" };
       }
 
       tx.set(rateRef, {
-        windowStart,
-        count: count + 1,
+        windowStart: windowExpired ? now : windowStart,
+        count: windowExpired ? 1 : count + 1,
+        dailyDate: todayUTC,
+        dailyCount: dailyCount + 1,
         updatedAt: now,
         expiresAt: now + (2 * USER_RATE_WINDOW_MS),
       }, { merge: true });
@@ -1290,9 +1474,10 @@ async function processFirestoreJob(jobId, db) {
     }, JOB_HEARTBEAT_MS);
 
     logEvent(`[JOBS] processing job=${jobId} uid=${uid || "unknown"}`);
+    const _jobStart = Date.now();
     const { story, title } = await runStoryPipeline(payload.storyInputs, payload.pipeline);
     await resolveJob(jobId, story, title, db);
-    logEvent(`[JOBS] done job=${jobId} uid=${uid || "unknown"}`);
+    logEvent(`[JOBS] done job=${jobId} uid=${uid || "unknown"} ms=${Date.now() - _jobStart}`);
   } catch (err) {
     logEvent(`[JOBS] failed job=${jobId}: ${err.message}`);
     let refunded = false;
@@ -1381,6 +1566,7 @@ async function loadJob(jobId, requestingUid) {
       story: data.story || null,
       title: data.title || null,
       error: data.error || null,
+      consumed: data.consumed || null,
     };
   } catch (e) {
     logEvent(`loadJob error for ${jobId}: ${e.message}`);
@@ -1514,7 +1700,11 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://www.gstatic.com", "https://apis.google.com"],
+        // 'unsafe-inline' removed from scriptSrc — inline scripts moved to
+        // app-bridge.js. Firebase CDN modules are ES modules loaded via
+        // import() from app.js (same-origin script); gstatic hosts the SDK.
+        // Hash allows the inline script Firebase SDK injects during auth redirects.
+        scriptSrc: ["'self'", "https://www.gstatic.com", "https://apis.google.com", "'sha256-MZ5pOnzzljePZPISJ/To4rVQ+wFS4PK2f4PhHmAIW7Q='"],
         connectSrc: [
           "'self'",
           "https://*.googleapis.com",
@@ -1534,7 +1724,6 @@ app.use(
         objectSrc: ["'none'"],
         baseUri: ["'self'"],
         formAction: ["'self'"],
-        scriptSrcAttr: ["'unsafe-inline'"],
       },
     },
   })
@@ -1560,9 +1749,9 @@ const polishLimiter = buildAiLimiter({
   routeLabel: "/polish",
 });
 
-// Request logging
+// Request logging — includes trace ID for log correlation
 app.use((req, res, next) => {
-  logEvent(`${req.method} ${req.url} from ${req.ip}`);
+  logEvent(`[${req.requestId}] ${req.method} ${req.url}`);
   next();
 });
 
@@ -1570,16 +1759,37 @@ app.use((req, res, next) => {
 // PRODUCTION CACHING HEADERS
 // =============================
 app.use((req, res, next) => {
-  if (req.url.match(/\.(js|css|png|jpg|jpeg|webp|svg)$/)) {
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  if (req.url === '/sw.js' || req.url === '/offline.js') {
+    res.setHeader('Cache-Control', 'no-cache');
+  } else if (req.url.match(/\.(js|css|png|jpg|jpeg|webp|svg)$/)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   } else {
-    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader('Cache-Control', 'no-cache');
   }
   next();
 });
 
-// Static files — after security middleware
-app.use(express.static(PUBLIC_DIR));
+// Digital Asset Links — required for Android TWA/Capacitor app verification.
+// Replace SHA256_CERT_FINGERPRINT with the output of:
+//   keytool -list -v -keystore dreamtalez-release.jks -alias dreamtalez
+// in the "SHA256:" line (colon-separated hex pairs).
+app.get("/.well-known/assetlinks.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.json([{
+    relation: ["delegate_permission/common.handle_all_urls"],
+    target: {
+      namespace: "android_app",
+      package_name: "com.dreamtalez.app",
+      sha256_cert_fingerprints: [
+        process.env.ANDROID_SHA256_FINGERPRINT || "REPLACE_WITH_RELEASE_KEYSTORE_SHA256",
+      ],
+    },
+  }]);
+});
+
+// Static files — ETags disabled so browser always fetches fresh CSS/JS
+app.use(express.static(PUBLIC_DIR, { etag: false, lastModified: false }));
 
 app.get("/", (req, res) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
@@ -1706,6 +1916,72 @@ app.get("/api/teddy-topup", corsMiddleware, requireAiAuth, async (req, res) => {
 // =============================================================================
 
 app.options("/api/checkout", corsMiddleware);
+// =============================================================================
+// Account Deletion
+// Cancels Stripe subscription, wipes all Firestore user data, deletes Auth
+// account. Client is responsible for clearing localStorage and unregistering
+// the service worker after receiving 200.
+// =============================================================================
+
+app.delete("/api/account", corsMiddleware, requireAiAuth, async (req, res) => {
+  const uid = req.authUser?.uid;
+  if (!uid) return res.status(401).json({ error: "Not authenticated." });
+
+  try {
+    const db = hasFirebaseAdminConfigured() ? getFirestoreDb() : null;
+
+    // 1. Fetch user doc to get Stripe subscription ID
+    let subscriptionId = null;
+    if (db) {
+      const userSnap = await db.collection("users").doc(uid).get();
+      subscriptionId = userSnap.exists ? userSnap.data()?.subscriptionId : null;
+    }
+
+    // 2. Cancel Stripe subscription (non-fatal — don't block deletion if Stripe fails)
+    if (subscriptionId) {
+      try {
+        await cancelSubscription(subscriptionId);
+        logEvent(`[DELETE] Stripe subscription cancelled uid=${uid}`);
+      } catch (stripeErr) {
+        logEvent(`[DELETE] Stripe cancel warning uid=${uid}: ${stripeErr.message}`);
+      }
+    }
+
+    // 3. Delete Firestore user documents (batch for atomicity)
+    if (db) {
+      const batch = db.batch();
+      batch.delete(db.collection("users").doc(uid));
+      batch.delete(db.collection(USER_RATE_COLLECTION).doc(uid));
+      batch.delete(db.collection(USER_LOCKS_COLLECTION).doc(uid));
+      await batch.commit();
+
+      // Clean up job queue entries (query-based, not batchable by key)
+      const jobsSnap = await db.collection(JOBS_COLLECTION)
+        .where("uid", "==", uid)
+        .limit(50)
+        .get();
+      if (!jobsSnap.empty) {
+        const jobBatch = db.batch();
+        jobsSnap.docs.forEach(d => jobBatch.delete(d.ref));
+        await jobBatch.commit();
+      }
+    }
+
+    // 4. Invalidate in-memory profile cache
+    invalidateProfile(uid);
+
+    // 5. Delete the Firebase Auth account (point of no return)
+    await getFirebaseAdminInstance().deleteUser(uid);
+
+    logEvent(`[DELETE] Account fully deleted uid=${uid}`);
+    return res.json({ success: true });
+
+  } catch (err) {
+    console.error(`[DELETE] Failed uid=${uid}:`, err.message);
+    return res.status(500).json({ error: "Account deletion failed. Please try again." });
+  }
+});
+
 app.post("/api/checkout", corsMiddleware, express.json({ limit: "4kb" }), (req, res, next) => {
   const type = req.body?.type;
   // One-off 99p checkout can be started as a guest (no signup/login).
@@ -1762,12 +2038,12 @@ app.post(
         name: cleanName,
         age: "5",
         interests: cleanInterests,
-        length: "medium",
+        length: "short",
         mode: "medium-surprise",
-        storyType: "quick",
+        storyType: "oneoff-sample",
         language: cleanDialect,
         dialect: cleanDialect,
-        customIdea: "",
+        customIdea: "A short, magical bedtime sample story — warm, cozy, and complete. 350-420 words only. No continuation hooks.",
         therapeuticSituation: "",
         seriesContext: "",
         childWish: "",
@@ -1817,18 +2093,18 @@ app.post("/api/webhook", express.raw({ type: "application/json" }), (req, res) =
 // =============================================================================
 
 app.options("/track", corsMiddleware);
-app.post("/track", corsMiddleware, express.json({ limit: "4kb" }), (req, res) => {
+app.post("/track", corsMiddleware, requireAiAuth, express.json({ limit: "4kb" }), (req, res) => {
   const { event, data } = req.body || {};
   if (!event || typeof event !== "string") return res.json({ ok: false });
   const safe = event.replace(/[^a-z0-9_]/gi, "").slice(0, 64);
-  console.log(`[TRACK] ${safe}`, JSON.stringify(data || {}).slice(0, 200));
+  console.log(`[TRACK] uid=${req.authUser?.uid || "anon"} event=${safe}`, JSON.stringify(data || {}).slice(0, 200));
   res.json({ ok: true });
 });
 
 app.options("/generate", corsMiddleware);
 
 // Valid raw modes for story identity — anything outside this set falls back to "adventure"
-const VALID_STORY_MODES = ["sleepy", "adventure", "therapeutic", "hero", "custom", "create", "today", "random", "medium-surprise", "long-surprise"];
+const VALID_STORY_MODES = ["sleepy", "adventure", "therapeutic", "hero", "custom", "create", "today", "random", "medium-surprise", "long-surprise", "family-magic", "keepsake"];
 
 async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDialect, cleanInterests, cleanIdea, cleanWish, cleanSeriesContext, cleanBeats, length, useFullPipeline, maxAttempts }) {
   const runFullPipeline = typeof useFullPipeline === "boolean" ? useFullPipeline : USE_FULL_AI_PIPELINE;
@@ -1843,13 +2119,55 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
   const modelConfig = getModelConfig({ mode, length });
   logEvent(`Model config for "${cleanName}": ${modelConfig.model} @ temp ${modelConfig.temperature}`);
 
-  const storyMaxTokens = getStoryTokenBudget(length, "story", storyInputs.language);
-  const editorMaxTokens = getStoryTokenBudget(length, "editor", storyInputs.language);
-  const validatorMaxTokens = getStoryTokenBudget(length, "validator", storyInputs.language);
-  const titleMaxTokens = getStoryTokenBudget(length, "title", storyInputs.language);
+  const _st = storyInputs.storyType;
+  const storyMaxTokens    = getStoryTokenBudget(length, "story",     storyInputs.language, _st);
+  const editorMaxTokens   = getStoryTokenBudget(length, "editor",    storyInputs.language, _st);
+  const validatorMaxTokens = getStoryTokenBudget(length, "validator", storyInputs.language, _st);
+  const titleMaxTokens    = getStoryTokenBudget(length, "title",     storyInputs.language, _st);
 
   let finalStory = null;
   let cleanTitle = null;
+
+  // Phase 4: build adaptive intelligence block once per pipeline run
+  const { promptBlock: adaptivePromptBlock } = buildAdaptiveStoryflow({
+    bedtimeHour:             storyInputs.bedtimeHour,
+    ageRange:                parseInt(storyInputs.age, 10) || 5,
+    previousStoryIntensity:  storyInputs.previousStoryIntensity,
+    continuityMemory:        storyInputs.familyMagic?.enabled ? storyInputs.familyMagic : undefined,
+  });
+  logEvent(`[ADAPTIVE] bedtimeHour=${storyInputs.bedtimeHour} age=${storyInputs.age} intensity=${storyInputs.previousStoryIntensity}`);
+
+  // Opus Blueprint Stage — runs once before the generation loop.
+  // Opus designs the emotional structure; Sonnet executes it as full prose.
+  // Skipped when USE_OPUS_BLUEPRINT is false (env-controlled, default off).
+  let storyBlueprint = null;
+  if (USE_OPUS_BLUEPRINT) {
+    try {
+      const blueprintPrompt = buildBlueprintPrompt({
+        name:           cleanName,
+        age:            storyInputs.age,
+        interests:      cleanInterests,
+        mode:           safeRawMode,
+        customIdea:     cleanIdea,
+        dayBeats:       cleanBeats,
+        familyMagic:    storyInputs.familyMagic,
+        bedtimeHour:    storyInputs.bedtimeHour,
+        adaptivePromptBlock,
+      });
+      storyBlueprint = await callClaudeWithRetry({
+        system:    BLUEPRINT_SYSTEM_PROMPT,
+        prompt:    blueprintPrompt,
+        maxTokens: 300,
+        temperature: 0.7,
+        model:     CLAUDE_MODEL_OPUS,
+      });
+      logEvent(`[BLUEPRINT] Opus blueprint complete for "${cleanName}" (${storyBlueprint.split("\n").length} directives)`);
+    } catch (blueprintErr) {
+      // Blueprint failure is non-fatal — fall through to prose without it
+      logEvent(`[BLUEPRINT] Opus blueprint failed for "${cleanName}": ${blueprintErr.message} — continuing without blueprint`);
+      storyBlueprint = null;
+    }
+  }
 
   for (let attempt = 1; attempt <= maxTries; attempt++) {
     if (attempt > 1) logEvent(`Regeneration triggered for "${cleanName}" (attempt ${attempt})`);
@@ -1860,12 +2178,19 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
       customIdea: cleanIdea,
       childWish: cleanWish,
       dayBeats: cleanBeats,
+      adaptivePromptBlock,
+      storyBlueprint,
     });
+    // Use Opus-authored locked system prompt when available; fall back to static
+    const activeSystemPrompt = LOCKED_SYSTEM_PROMPT || STORY_SYSTEM_PROMPT;
+    const _t1 = Date.now();
     const rawStory = await callClaudeWithRetry({
-      system: STORY_SYSTEM_PROMPT, prompt: storyPrompt,
+      system: activeSystemPrompt, prompt: storyPrompt,
       maxTokens: storyMaxTokens, temperature: modelConfig.temperature, model: modelConfig.model,
     });
-    logEvent(`Stage 1 complete (generate) for "${cleanName}" [attempt ${attempt}]`);
+    // Track estimated spend: ~$15/1M output tokens for Sonnet 4.6
+    addSpend((rawStory.split(/\s+/).length / 0.75) * 0.000015);
+    logEvent(`Stage 1 complete (generate) for "${cleanName}" [attempt ${attempt}] ms=${Date.now() - _t1} [system=${LOCKED_SYSTEM_PROMPT ? "locked" : "static"}]`);
 
     if (!runFullPipeline) {
       // Lean: single generate call → local clean → score → return. No retry
@@ -1891,6 +2216,7 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
       break;
     }
 
+    const _t2 = Date.now();
     const grammarPrompt = buildGrammarPrompt(rawStory, cleanDialect);
     const editedStory = await callClaudeWithRetry({
       system: EDITOR_SYSTEM_PROMPT, prompt: grammarPrompt,
@@ -1901,8 +2227,9 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
     const title = await callClaudeWithRetry({
       prompt: titlePrompt, maxTokens: titleMaxTokens, temperature: 0.4, model: modelConfig.model,
     });
-    logEvent(`Stage 2 complete (edit + title) for "${cleanName}" [attempt ${attempt}]`);
+    logEvent(`Stage 2 complete (edit + title) for "${cleanName}" [attempt ${attempt}] ms=${Date.now() - _t2}`);
 
+    const _t3 = Date.now();
     const validationPrompt = buildValidationPrompt(editedStory, {
       mode, dialect: cleanDialect, interests: cleanInterests, customIdea: cleanIdea,
       childWish: cleanWish, seriesContext: cleanSeriesContext, dayBeats: cleanBeats,
@@ -1911,7 +2238,7 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
       system: VALIDATOR_SYSTEM_PROMPT, prompt: validationPrompt,
       maxTokens: validatorMaxTokens, temperature: 0.1, model: modelConfig.model,
     });
-    logEvent(`Stage 3 complete (validate) for "${cleanName}" [attempt ${attempt}]`);
+    logEvent(`Stage 3 complete (validate) for "${cleanName}" [attempt ${attempt}] ms=${Date.now() - _t3}`);
 
     if (validatorOutput.trim() === "REGENERATE") {
       logEvent(`Validator triggered REGENERATE for "${cleanName}" [attempt ${attempt}]`);
@@ -1950,10 +2277,12 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
         customIdea: cleanIdea,
         childWish: cleanWish,
         dayBeats: cleanBeats,
+        adaptivePromptBlock,
+        storyBlueprint,
       })}\n\nEMERGENCY QUALITY BAR (STRICT):\n- Complete, emotionally satisfying bedtime arc (beginning, middle, end).\n- No markdown dividers, no section headings, no abrupt cut-offs.\n- 900 to 1300 words.\n- Child is clearly safe and settled by the final sentence.`;
 
       const emergencyRaw = await callClaudeWithRetry({
-        system: STORY_SYSTEM_PROMPT,
+        system: LOCKED_SYSTEM_PROMPT || STORY_SYSTEM_PROMPT,
         prompt: emergencyPrompt,
         maxTokens: storyMaxTokens,
         temperature: modelConfig.temperature,
@@ -1998,6 +2327,14 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
   finalStory = enforceLength(finalStory, storyInputs.age);
   finalStory = polishStory(finalStory);
 
+  // Phase 3: prose rhythm pass — adds lullaby cadence to common patterns (all stories)
+  finalStory = applyRhythm(finalStory);
+
+  // Phase 2: Family Magic softness pass — catches residual sharp language
+  if (storyInputs.familyMagic?.enabled) {
+    finalStory = applyBedtimeSoftness(finalStory);
+  }
+
   if (!cleanTitle) cleanTitle = `${cleanName}'s Bedtime Story`;
 
   if (!isStoryOutputSafe(finalStory)) {
@@ -2005,6 +2342,81 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
     finalStory = getSafeFallbackStory(cleanName);
     cleanTitle = `${cleanName}'s Peaceful Night`;
   }
+
+  // Post-processing: deterministic fixes (no LLM) — prose breathing, child clarity,
+  // word-cap trim, ending descent. Non-fatal: if it throws we keep the unmodified story.
+  try {
+    const storyMode = safeRawMode === "family-magic" ? "familyMagic"
+                    : safeRawMode === "sleepy"        ? "sleepy"
+                    : safeRawMode === "hero"           ? "hero"
+                    : "default";
+    const { story: postStory, structuralValidation } = await applyPostProcessing({
+      story:     finalStory,
+      childName: cleanName,
+      mode:      storyMode,
+    });
+    finalStory = postStory;
+    const ppPassed = structuralValidation.passed;
+    logEvent(`[POST_PROCESS] "${cleanName}" structural=${ppPassed ? "pass" : "fail"} overall=${structuralValidation.overall}`);
+  } catch (ppErr) {
+    logEvent(`[POST_PROCESS] non-fatal error for "${cleanName}": ${ppErr.message}`);
+  }
+
+  // Phase 5: quality scoring + validation (async analytics — never blocks delivery)
+  setImmediate(() => {
+    try {
+      const comfortItems = storyInputs.familyMagic?.comfortItems || [];
+      const hasFamilyMagic = Boolean(storyInputs.familyMagic?.enabled);
+
+      // Quality score — logged for monitoring and A/B tuning
+      const qualityResult = calculateStoryQuality(finalStory, { comfortItems, familyMagic: hasFamilyMagic });
+      logEvent(`[QUALITY] "${cleanName}" overall=${qualityResult.overall} warmth=${qualityResult.scores.emotionalWarmth} softness=${qualityResult.scores.bedtimeSoftness} flow=${qualityResult.scores.cinematicFlow} flags=${qualityResult.flags.join(",") || "none"}`);
+
+      // Section-level validation pipeline — granular quality report
+      const familyMagicEnabled = hasFamilyMagic;
+      const familyMembers = storyInputs.familyMagic?.familyMembers || [];
+      const validationReport = runValidationPipeline(finalStory, {
+        childName: cleanName, comfortItems, familyMembers, familyMagicEnabled,
+      });
+      const failedLog = validationReport.failedSections.length
+        ? `failed=[${validationReport.failedSections.join(",")}]`
+        : "all-passed";
+      logEvent(`[VALIDATION] "${cleanName}" passed=${validationReport.passed} overall=${validationReport.overall.toFixed(1)} ${failedLog}`);
+
+      // Premium quality validator — logs warnings, does not block
+      const premiumValidator = new PremiumQualityValidator();
+      const premiumResult = premiumValidator.validate(finalStory, { hasFamilyMagic, childName: cleanName });
+      if (!premiumResult.passed) {
+        logEvent(`[PREMIUM_QUALITY] score=${premiumResult.score} warnings=${premiumResult.warnings.map(w => w.type).join(",")}`);
+      }
+
+      // Localization validator — warns on English leak in non-English stories
+      const locValidator = new GlobalLocalizationValidator();
+      const locResult = locValidator.validate(finalStory, { language: storyInputs.language });
+      if (!locResult.passed) {
+        logEvent(`[LOCALIZATION] warnings=${locResult.warnings.map(w => w.type).join(",")}`);
+      }
+
+      // Retention analytics event
+      const usedAnchors = extractUsedComfortAnchors(finalStory, comfortItems);
+      const completionEvent = buildStoryCompletionEvent({
+        childName:           cleanName,
+        mode:                rawMode,
+        ageGroup:            parseInt(storyInputs.age, 10) || 5,
+        lengthType:          length,
+        qualityScores:       qualityResult,
+        hasFamilyMagic,
+        comfortAnchorsUsed:  usedAnchors,
+        bedtimeHour:         storyInputs.bedtimeHour,
+        generationMs:        null,
+        language:            storyInputs.language,
+      });
+      logEvent(`[RETENTION] ${JSON.stringify(completionEvent)}`);
+    } catch (analyticsErr) {
+      // Analytics must never crash story delivery
+      logEvent(`[ANALYTICS_ERROR] ${analyticsErr.message}`);
+    }
+  });
 
   logEvent(`Pipeline complete for "${cleanName}": "${cleanTitle}"`);
   return { story: finalStory, title: cleanTitle };
@@ -2111,36 +2523,57 @@ setInterval(() => {
   sweepStalePendingJobs().catch(e => logEvent(`Sweeper run error: ${e.message}`));
 }, JOB_SWEEP_INTERVAL_MS);
 
-const DEFAULT_PORT = 3000;
-
-function normalizePort(val) {
-  const port = parseInt(val, 10);
-  if (isNaN(port)) return val;
-  if (port >= 0) return port;
-  return false;
+// Phase 5: preload Opus-authored production frameworks at boot — zero latency at request time
+frameworkLoader.preload();
+// Resolve locked system prompt once — used by Sonnet at runtime instead of static STORY_SYSTEM_PROMPT
+const LOCKED_SYSTEM_PROMPT = getLockedSystemPrompt();
+if (LOCKED_SYSTEM_PROMPT) {
+  logEvent(`[FRAMEWORK] Locked production framework system active (${LOCKED_SYSTEM_PROMPT.length.toLocaleString()} chars)`);
+} else {
+  logEvent("[FRAMEWORK] Production frameworks incomplete — using static STORY_SYSTEM_PROMPT fallback");
 }
 
-function startServer(port) {
-  const normalizedPort = normalizePort(port);
+// ============================================
+// LOCKED PORT — DreamTalez Production Standard
+// Never increments, never falls back.
+// ============================================
 
-  const server = app.listen(normalizedPort, () => {
-    console.log(`✅ Server running on http://localhost:${normalizedPort}`);
-  });
+const PORT = process.env.PORT || 3001;
 
-  server.on("error", (error) => {
-    if (error.syscall !== "listen") throw error;
+const server = app.listen(PORT, () => {
+  console.log(`
+========================================
+DreamTalez Server Running
+========================================
 
-    if (error.code === "EADDRINUSE") {
-      console.warn(`⚠️ Port ${normalizedPort} busy, trying ${normalizedPort + 1}...`);
-      startServer(normalizedPort + 1);
-    } else if (error.code === "EACCES") {
-      console.error(`❌ Port ${normalizedPort} requires elevated privileges.`);
-      process.exit(1);
-    } else {
-      throw error;
-    }
-  });
-}
+PORT: ${PORT}
 
-// Start server
-startServer(process.env.PORT || DEFAULT_PORT);
+LOCAL:
+http://localhost:${PORT}
+
+========================================
+`);
+
+  // Keep-warm ping: hit /health every 14 minutes so Render never spins the
+  // server down mid-session. Only runs in production to avoid noise locally.
+  if (process.env.NODE_ENV === "production") {
+    const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+    setInterval(() => {
+      fetch(`${SELF_URL}/health`)
+        .then(r => { if (!r.ok) logEvent(`[KEEPWARM] /health returned ${r.status}`); })
+        .catch(e => logEvent(`[KEEPWARM] ping failed: ${e.message}`));
+    }, 14 * 60 * 1000);
+    logEvent(`[KEEPWARM] self-ping enabled → ${SELF_URL}/health every 14 min`);
+  }
+});
+
+server.on("error", (error) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(`❌ Port ${PORT} is already in use. Kill the other process and retry.`);
+  } else if (error.code === "EACCES") {
+    console.error(`❌ Port ${PORT} requires elevated privileges.`);
+  } else {
+    console.error("❌ Server error:", error.message);
+  }
+  process.exit(1);
+});
