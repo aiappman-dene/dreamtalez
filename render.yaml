@@ -42,6 +42,18 @@ services:
       - key: STRIPE_WEBHOOK_SECRET
         sync: false        # whsec_... from Stripe → Webhooks → endpoint signing secret
 
+      - key: STRIPE_PRICE_SUBSCRIPTION
+        sync: false        # price_... monthly subscription price ID from Stripe dashboard
+
+      - key: STRIPE_PRICE_ONEOFF
+        sync: false        # price_... 99p one-off story price ID from Stripe dashboard
+
+      - key: STRIPE_PRICE_PACK
+        sync: false        # price_... story pack price ID from Stripe dashboard
+
+      - key: BASE_URL
+        value: https://dreamtalez.onrender.com   # used for Stripe success/cancel redirect URLs
+
       # ── CORS ───────────────────────────────────────────────────────────────
       # Comma-separated list of allowed origins (no trailing slash)
       # Must include your Render domain AND any custom domain
