@@ -784,6 +784,8 @@ async function requireAppCheck(req, res, next) {
     return res.status(401).json({ error: "App integrity check failed. Please refresh and try again." });
   }
   try {
+    // Ensure Firebase Admin is initialized before calling getAppCheck()
+    getFirebaseAdminInstance();
     await getAppCheck().verifyToken(token);
     return next();
   } catch (err) {
@@ -1838,6 +1840,7 @@ app.options("/polish", corsMiddleware);
 app.post(
   "/polish",
   corsMiddleware,
+  requireAppCheck,
   requireAiAuth,
   polishLimiter,
   [
