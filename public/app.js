@@ -22,7 +22,7 @@ import {
   getDocs,
   serverTimestamp,
   getAppCheckToken,
-} from "./firebase-init.js?v=20260522b";
+} from "./firebase-init.js?v=20260522c";
 
 // Magical loading experience — owns its DOM/CSS/timers. See public/components/loading.js
 import { start as dtLoadingStart, stop as dtLoadingStop } from "./components/loading.js";
@@ -33,16 +33,16 @@ import {
   getActiveReveal as dtGetActiveReveal
 } from "./components/story-reveal.js";
 
-import { getCurrentLanguage, setCurrentLanguage, t, applyUILanguage, LS_LANG_KEY, SUPPORTED_LANGUAGES, LANGUAGE_LABELS, RTL_LANGUAGES } from './modules/i18n.js?v=20260522b';
+import { getCurrentLanguage, setCurrentLanguage, t, applyUILanguage, LS_LANG_KEY, SUPPORTED_LANGUAGES, LANGUAGE_LABELS, RTL_LANGUAGES } from './modules/i18n.js?v=20260522c';
 import { pick, formatName } from './modules/utils.js';
-import { isInputSafe } from './modules/safety.js?v=20260522b';
+import { isInputSafe } from './modules/safety.js?v=20260522c';
 import { generateQuickStory, buildProceduralTitle, buildSafeProceduralQuickStory, buildEmergencyFallbackStory, buildSafeFallbackWishHope, buildOfflineIdeaArc, buildSeriesContinuationContext, findQuickWishMatchedWorld, getAgeGroup, pickSuitableWorld, resolveWorldKey, siblingRelation, generateCharacter, findInterestMatchedWorld, pickRandomSuitableWorld } from './modules/story-engine.js';
 import { state } from './modules/app-state.js';
 import { showToast } from './modules/toast.js';
-import { updateStreakDisplay, recordStreakForChild, showMilestoneCelebration, todayKey, dayDiff, configure as configureStreaks } from './modules/streaks.js?v=20260522b';
-import { renderLibrary, saveStoryToLibrary, saveCurrentStoryToLibrary, deleteFromLibrary, reReadFromLibrary, formatSavedDate, configure as configureLibrary } from './modules/library.js?v=20260522b';
+import { updateStreakDisplay, recordStreakForChild, showMilestoneCelebration, todayKey, dayDiff, configure as configureStreaks } from './modules/streaks.js?v=20260522c';
+import { renderLibrary, saveStoryToLibrary, saveCurrentStoryToLibrary, deleteFromLibrary, reReadFromLibrary, formatSavedDate, configure as configureLibrary } from './modules/library.js?v=20260522c';
 import { signup, login, logout as authLogout, resetPassword, deleteAccount, closeDeleteModal, confirmDeleteAccount } from './modules/auth.js';
-import { getSelectedChild, selectChild, buildPersonalWorld, enrichInterestsWithContext, getSiblingsFor, renderHeroSiblings, getTickedHeroSiblings, updateHeroSeriesLabel, resetHeroSeries, advanceHeroSeries, setEditMode, clearChildForm, cancelEditChild, saveChild, loadChildren, saveContinuationToFirestore, clearContinuationFromFirestore, configure as configureChildren } from './modules/children.js?v=20260522b';
+import { getSelectedChild, selectChild, buildPersonalWorld, enrichInterestsWithContext, getSiblingsFor, renderHeroSiblings, getTickedHeroSiblings, updateHeroSeriesLabel, resetHeroSeries, advanceHeroSeries, setEditMode, clearChildForm, cancelEditChild, saveChild, loadChildren, saveContinuationToFirestore, clearContinuationFromFirestore, configure as configureChildren } from './modules/children.js?v=20260522c';
 
 // =============================================================================
 // APP CONFIGURATION

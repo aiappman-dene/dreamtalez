@@ -63,19 +63,17 @@ if (getApps().length === 0) {
   _app = getApp(); // Return existing instance
 }
 
-export const auth = getAuth(_app);
-export const db   = getFirestore(_app);
-
 // =============================================================================
 // App Check — reCAPTCHA Enterprise
+// MUST be initialized before getAuth() / getFirestore() so that Firebase
+// automatically attaches App Check tokens to all Auth and Firestore calls.
 // Skipped on localhost so local dev works without reCAPTCHA domain registration.
-// In production (Render), REQUIRE_APP_CHECK=true on the server enforces this.
 // =============================================================================
 const _isLocalhost = typeof location !== "undefined" &&
   (location.hostname === "localhost" || location.hostname === "127.0.0.1");
 
 let _appCheck = null;
-if (!_isLocalhost && getApps().length > 0) {
+if (!_isLocalhost) {
   try {
     _appCheck = initializeAppCheck(_app, {
       provider: new ReCaptchaEnterpriseProvider("6LfsMvcsAAAAAHOJg5HeTOn-QrlVclzH-QF-ffqx"),
@@ -85,6 +83,9 @@ if (!_isLocalhost && getApps().length > 0) {
     console.warn("[AppCheck] init failed:", e.message);
   }
 }
+
+export const auth = getAuth(_app);
+export const db   = getFirestore(_app);
 
 export async function getAppCheckToken() {
   if (!_appCheck) return null;
