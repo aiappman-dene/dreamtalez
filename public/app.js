@@ -21,7 +21,8 @@ import {
   limit,
   getDocs,
   serverTimestamp,
-} from "./firebase-init.js";
+  getAppCheckToken,
+} from "./firebase-init.js?v=20260522b";
 
 // Magical loading experience — owns its DOM/CSS/timers. See public/components/loading.js
 import { start as dtLoadingStart, stop as dtLoadingStop } from "./components/loading.js";
@@ -32,16 +33,16 @@ import {
   getActiveReveal as dtGetActiveReveal
 } from "./components/story-reveal.js";
 
-import { getCurrentLanguage, setCurrentLanguage, t, applyUILanguage, LS_LANG_KEY, SUPPORTED_LANGUAGES, LANGUAGE_LABELS, RTL_LANGUAGES } from './modules/i18n.js?v=20260522a';
+import { getCurrentLanguage, setCurrentLanguage, t, applyUILanguage, LS_LANG_KEY, SUPPORTED_LANGUAGES, LANGUAGE_LABELS, RTL_LANGUAGES } from './modules/i18n.js?v=20260522b';
 import { pick, formatName } from './modules/utils.js';
-import { isInputSafe } from './modules/safety.js?v=20260522a';
+import { isInputSafe } from './modules/safety.js?v=20260522b';
 import { generateQuickStory, buildProceduralTitle, buildSafeProceduralQuickStory, buildEmergencyFallbackStory, buildSafeFallbackWishHope, buildOfflineIdeaArc, buildSeriesContinuationContext, findQuickWishMatchedWorld, getAgeGroup, pickSuitableWorld, resolveWorldKey, siblingRelation, generateCharacter, findInterestMatchedWorld, pickRandomSuitableWorld } from './modules/story-engine.js';
 import { state } from './modules/app-state.js';
 import { showToast } from './modules/toast.js';
-import { updateStreakDisplay, recordStreakForChild, showMilestoneCelebration, todayKey, dayDiff, configure as configureStreaks } from './modules/streaks.js?v=20260522a';
-import { renderLibrary, saveStoryToLibrary, saveCurrentStoryToLibrary, deleteFromLibrary, reReadFromLibrary, formatSavedDate, configure as configureLibrary } from './modules/library.js?v=20260522a';
+import { updateStreakDisplay, recordStreakForChild, showMilestoneCelebration, todayKey, dayDiff, configure as configureStreaks } from './modules/streaks.js?v=20260522b';
+import { renderLibrary, saveStoryToLibrary, saveCurrentStoryToLibrary, deleteFromLibrary, reReadFromLibrary, formatSavedDate, configure as configureLibrary } from './modules/library.js?v=20260522b';
 import { signup, login, logout as authLogout, resetPassword, deleteAccount, closeDeleteModal, confirmDeleteAccount } from './modules/auth.js';
-import { getSelectedChild, selectChild, buildPersonalWorld, enrichInterestsWithContext, getSiblingsFor, renderHeroSiblings, getTickedHeroSiblings, updateHeroSeriesLabel, resetHeroSeries, advanceHeroSeries, setEditMode, clearChildForm, cancelEditChild, saveChild, loadChildren, saveContinuationToFirestore, clearContinuationFromFirestore, configure as configureChildren } from './modules/children.js?v=20260522a';
+import { getSelectedChild, selectChild, buildPersonalWorld, enrichInterestsWithContext, getSiblingsFor, renderHeroSiblings, getTickedHeroSiblings, updateHeroSeriesLabel, resetHeroSeries, advanceHeroSeries, setEditMode, clearChildForm, cancelEditChild, saveChild, loadChildren, saveContinuationToFirestore, clearContinuationFromFirestore, configure as configureChildren } from './modules/children.js?v=20260522b';
 
 // =============================================================================
 // APP CONFIGURATION
@@ -675,13 +676,16 @@ async function buildAuthenticatedJsonHeaders() {
   if (state.currentUser) {
     try {
       const idToken = await state.currentUser.getIdToken();
-      if (idToken) {
-        headers.Authorization = `Bearer ${idToken}`;
-      }
+      if (idToken) headers.Authorization = `Bearer ${idToken}`;
     } catch (error) {
       console.error("Fetching auth token failed:", error.code || error.message);
     }
   }
+
+  try {
+    const acToken = await getAppCheckToken();
+    if (acToken) headers["X-Firebase-AppCheck"] = acToken;
+  } catch {}
 
   return headers;
 }
@@ -1155,6 +1159,10 @@ function openGuestOneoffPrompt(sessionId) {
         dialect: state.cachedDialect,
       };
 
+      const _guestAcToken = await getAppCheckToken().catch(() => null);
+      const _guestHeaders = { "Content-Type": "application/json" };
+      if (_guestAcToken) _guestHeaders["X-Firebase-AppCheck"] = _guestAcToken;
+
       let res;
       let lastErr;
       for (let attempt = 1; attempt <= 2; attempt++) {
@@ -1163,7 +1171,7 @@ function openGuestOneoffPrompt(sessionId) {
             `${API_BASE}/api/guest/generate-oneoff`,
             {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: _guestHeaders,
               body: JSON.stringify(payload),
             },
             150000
@@ -3041,7 +3049,8 @@ async function handleGenerate(input) {
           window.StoryCache.scheduleBackgroundFill(
             state.cachedChildren,
             () => state.currentUser?.getIdToken(),
-            getCurrentLanguage()
+            getCurrentLanguage(),
+            getAppCheckToken
           );
           return;
         }
@@ -3534,7 +3543,8 @@ if (langContinueBtn) {
         window.StoryCache.scheduleBackgroundFill(
           state.cachedChildren,
           () => state.currentUser?.getIdToken(),
-          getCurrentLanguage()
+          getCurrentLanguage(),
+          getAppCheckToken
         );
       }
     }

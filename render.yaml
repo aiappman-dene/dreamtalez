@@ -76,6 +76,12 @@ services:
       - key: USE_OPUS_BLUEPRINT
         value: "false"     # set to true only after validating Opus cost/latency in production
 
+      # ── App Check / reCAPTCHA Enterprise ──────────────────────────────────────
+      # Set to true once dreamtalez.onrender.com is registered in reCAPTCHA Enterprise console.
+      # Site key 6LfsMvcsAAAAAHOJg5HeTOn-QrlVclzH-QF-ffqx is in public/firebase-init.js (public key).
+      - key: REQUIRE_APP_CHECK
+        value: "true"
+
       # ── Keep-warm ──────────────────────────────────────────────────────────────
       # Self-ping URL used to prevent cold starts on Render starter plan.
       # Set this to your Render service URL or custom domain (no trailing slash).

@@ -12,6 +12,11 @@ import {
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+  getToken as _getAppCheckTokenInternal,
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app-check.js";
+import {
   getFirestore,
   doc,
   getDoc,
@@ -60,6 +65,36 @@ if (getApps().length === 0) {
 
 export const auth = getAuth(_app);
 export const db   = getFirestore(_app);
+
+// =============================================================================
+// App Check — reCAPTCHA Enterprise
+// Skipped on localhost so local dev works without reCAPTCHA domain registration.
+// In production (Render), REQUIRE_APP_CHECK=true on the server enforces this.
+// =============================================================================
+const _isLocalhost = typeof location !== "undefined" &&
+  (location.hostname === "localhost" || location.hostname === "127.0.0.1");
+
+let _appCheck = null;
+if (!_isLocalhost && getApps().length > 0) {
+  try {
+    _appCheck = initializeAppCheck(_app, {
+      provider: new ReCaptchaEnterpriseProvider("6LfsMvcsAAAAAHOJg5HeTOn-QrlVclzH-QF-ffqx"),
+      isTokenAutoRefreshEnabled: true,
+    });
+  } catch (e) {
+    console.warn("[AppCheck] init failed:", e.message);
+  }
+}
+
+export async function getAppCheckToken() {
+  if (!_appCheck) return null;
+  try {
+    const result = await _getAppCheckTokenInternal(_appCheck);
+    return result.token;
+  } catch {
+    return null;
+  }
+}
 
 // =============================================================================
 // Re-export Firebase functions so consuming modules have one import source.
