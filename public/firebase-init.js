@@ -80,7 +80,10 @@ if (!_isLocalhost) {
       isTokenAutoRefreshEnabled: true,
     });
   } catch (e) {
-    console.warn("[AppCheck] init failed:", e.message);
+    // App Check init failure must never block login or Firestore reads.
+    // Server-side REQUIRE_APP_CHECK protects AI routes independently.
+    console.warn("[AppCheck] init skipped:", e.message);
+    _appCheck = null;
   }
 }
 
