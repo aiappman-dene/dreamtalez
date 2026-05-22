@@ -40,6 +40,7 @@ import compression from "compression";
 import { applicationDefault, cert, getApps, initializeApp as initializeAdminApp } from "firebase-admin/app";
 import { getAuth as getAdminAuth } from "firebase-admin/auth";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getAppCheck } from "firebase-admin/app-check";
 
 // ✅ Rate limiter for /generate (IP-based)
 const generateLimiter = rateLimit({
@@ -155,6 +156,7 @@ const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || "";
 const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL || "";
 const FIREBASE_PRIVATE_KEY = (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
 const REQUIRE_AUTH_FOR_AI_ROUTES = process.env.REQUIRE_AUTH_FOR_AI_ROUTES !== "false";
+const REQUIRE_APP_CHECK = process.env.REQUIRE_APP_CHECK === "true";
 const USE_FULL_AI_PIPELINE = process.env.USE_FULL_AI_PIPELINE === "true" || process.env.AI_PIPELINE_PROFILE === "full";
 
 // Developer accounts — credit gate is always bypassed for these emails
@@ -322,6 +324,7 @@ async function refundStory(uid, consumed, db) {
     "/generate",
     corsMiddleware,
     express.json({ limit: "10kb" }),
+    requireAppCheck,
     requireAiAuth,
     generateLimiter,
     queueGuard,                         // global concurrent cap
@@ -770,6 +773,22 @@ async function requireAiAuth(req, res, next) {
   } catch (error) {
     logEvent(`Auth verification failed on ${req.path} from ${req.ip}: ${error.message}`);
     return res.status(401).json({ error: "Please log in to generate stories." });
+  }
+}
+
+async function requireAppCheck(req, res, next) {
+  if (!REQUIRE_APP_CHECK) return next();
+  const token = req.headers["x-firebase-appcheck"];
+  if (!token) {
+    logEvent(`[AppCheck] Missing token on ${req.path} from ${req.ip}`);
+    return res.status(401).json({ error: "App integrity check failed. Please refresh and try again." });
+  }
+  try {
+    await getAppCheck().verifyToken(token);
+    return next();
+  } catch (err) {
+    logEvent(`[AppCheck] Invalid token on ${req.path}: ${err.message}`);
+    return res.status(401).json({ error: "App integrity check failed. Please refresh and try again." });
   }
 }
 
@@ -1704,7 +1723,7 @@ app.use(
         // app-bridge.js. Firebase CDN modules are ES modules loaded via
         // import() from app.js (same-origin script); gstatic hosts the SDK.
         // Hash allows the inline script Firebase SDK injects during auth redirects.
-        scriptSrc: ["'self'", "https://www.gstatic.com", "https://apis.google.com", "'sha256-MZ5pOnzzljePZPISJ/To4rVQ+wFS4PK2f4PhHmAIW7Q='"],
+        scriptSrc: ["'self'", "https://www.gstatic.com", "https://apis.google.com", "https://www.google.com", "'sha256-MZ5pOnzzljePZPISJ/To4rVQ+wFS4PK2f4PhHmAIW7Q='"],
         connectSrc: [
           "'self'",
           "https://*.googleapis.com",
@@ -1716,8 +1735,10 @@ app.use(
           "https://securetoken.googleapis.com",
           "https://firestore.googleapis.com",
           "https://firebaseinstallations.googleapis.com",
+          "https://recaptchaenterprise.googleapis.com",
+          "https://firebaseappcheck.googleapis.com",
         ],
-        frameSrc: ["'self'", "https://*.firebaseapp.com", "https://*.firebaseauth.com"],
+        frameSrc: ["'self'", "https://*.firebaseapp.com", "https://*.firebaseauth.com", "https://www.google.com", "https://recaptcha.net"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         imgSrc: ["'self'", "data:", "https:"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -1996,6 +2017,7 @@ app.post(
   "/api/guest/generate-oneoff",
   corsMiddleware,
   express.json({ limit: "8kb" }),
+  requireAppCheck,
   generateLimiter,
   [
     body("checkoutSessionId").isString().isLength({ min: 10, max: 200 }).trim(),
@@ -2491,6 +2513,12 @@ function preflightCheck() {
   // Auth — production must require authenticated requests on AI routes.
   if (isProd && !REQUIRE_AUTH_FOR_AI_ROUTES) {
     fatal.push("Auth: REQUIRE_AUTH_FOR_AI_ROUTES is false in production — every request would be treated as anonymous dev");
+  }
+
+  // App Check — warn if not enabled in production; not fatal since it requires
+  // reCAPTCHA Enterprise domain registration before it can be safely enforced.
+  if (isProd && !REQUIRE_APP_CHECK) {
+    warn.push("AppCheck: REQUIRE_APP_CHECK is not enabled — set to true after registering dreamtalez.onrender.com in reCAPTCHA Enterprise console");
   }
 
   if (warn.length) {

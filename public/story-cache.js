@@ -254,12 +254,55 @@
   // Background fill — generates stories while browser is idle
   // ============================================================
 
-  const BG_LOCK_KEY = "dreamtalez-bg-fill-running";
-  const BG_COOLDOWN_KEY = "dreamtalez-bg-fill-cooldown";
-  const BG_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes after a 429
+  const BG_LOCK_KEY      = "dreamtalez-bg-fill-running";
+  const BG_COOLDOWN_KEY  = "dreamtalez-bg-fill-cooldown";
+  const BG_COOLDOWN_MS   = 15 * 60 * 1000; // 15 minutes after a 429
+  const BG_POLL_INTERVAL = 3000;            // poll job status every 3 s
+  const BG_POLL_TIMEOUT  = 120 * 1000;     // abandon a job after 2 minutes
   let bgFillRunning = false;
 
-  async function scheduleBackgroundFill(children, getToken, dialect) {
+  // Poll /api/job/:jobId until the job reaches a terminal state or times out.
+  // Returns { story, title } on success, null on failure/timeout.
+  async function pollJob(jobId, getToken) {
+    const deadline = Date.now() + BG_POLL_TIMEOUT;
+    while (Date.now() < deadline) {
+      // Abort if user started their own generation
+      if (window._dtGenerationInProgress?.()) return null;
+      if (!navigator.onLine) return null;
+
+      await new Promise((r) => setTimeout(r, BG_POLL_INTERVAL));
+
+      let token;
+      try { token = await getToken(); } catch { return null; }
+      if (!token) return null;
+
+      let pollRes;
+      try {
+        pollRes = await fetch(`/api/job/${jobId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {
+        // Network hiccup — keep polling until timeout
+        continue;
+      }
+
+      if (!pollRes.ok) return null;
+
+      const job = await pollRes.json().catch(() => null);
+      if (!job) return null;
+
+      if (job.status === "done" && job.story) {
+        return { story: job.story, title: job.title || null };
+      }
+      if (job.status === "failed" || job.status === "expired" || job.status === "forbidden") {
+        return null;
+      }
+      // status "pending" or "running" — keep polling
+    }
+    return null; // timed out
+  }
+
+  async function scheduleBackgroundFill(children, getToken, dialect, getAppCheckToken) {
     if (!dbAvailable) return;
     if (!navigator.onLine) return;
     if (bgFillRunning) return;
@@ -288,7 +331,6 @@
 
             const needed = TARGET_PER_SLOT - unused;
             for (let i = 0; i < needed; i++) {
-              // Stop if user starts a story
               if (window._dtGenerationInProgress?.()) break;
               if (!navigator.onLine) break;
 
@@ -297,41 +339,47 @@
                 if (!token) break;
 
                 const payload = buildCachePayload(child, mode, dialect);
+                const bgHeaders = {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                };
+                if (getAppCheckToken) {
+                  const acToken = await getAppCheckToken().catch(() => null);
+                  if (acToken) bgHeaders["X-Firebase-AppCheck"] = acToken;
+                }
                 const res = await fetch("/generate", {
                   method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                  },
+                  headers: bgHeaders,
                   body: JSON.stringify(payload),
                 });
 
-                // Stop immediately on rate limit — set a cooldown so we don't retry for 15 mins
                 if (res.status === 429) {
                   localStorage.setItem(BG_COOLDOWN_KEY, String(Date.now() + BG_COOLDOWN_MS));
-                  console.warn("[StoryCache] 429 rate limit — background fill paused for 15 min");
-                  return; // exit the entire fill run
+                  console.warn("[StoryCache] 429 — background fill paused 15 min");
+                  return;
                 }
 
-                // Check rate limit headroom — stop if running low
-                const remaining = Number(res.headers.get("X-RateLimit-Remaining") ?? 99);
-                if (remaining < 6) break;
-
                 if (!res.ok) continue;
-                const data = await res.json();
-                if (data?.fallback || !data?.story) continue;
+
+                const initData = await res.json().catch(() => null);
+                const jobId = initData?.jobId;
+                if (!jobId) continue;
+
+                // Poll the durable job until it completes or times out
+                const result = await pollJob(jobId, getToken);
+                if (!result) continue;
 
                 await writeStory({
                   childName,
                   mode,
                   length: payload.length,
-                  title: data.title || `${childName}'s Bedtime Story`,
-                  text: data.story,
+                  title: result.title || `${childName}'s Bedtime Story`,
+                  text: result.story,
                   dialect: dialect || "en-GB",
                   payload,
                 });
 
-                // Throttle between background requests
+                // Pause between background generations to stay polite
                 await new Promise((r) => setTimeout(r, BG_REQUEST_DELAY_MS));
               } catch (err) {
                 console.warn("[StoryCache] background generation error:", err);
@@ -348,7 +396,7 @@
       }
     };
 
-    // Run only when browser is idle — requestIdleCallback with setTimeout fallback
+    // Run only when the browser is idle — requestIdleCallback with setTimeout fallback
     if (typeof requestIdleCallback === "function") {
       requestIdleCallback(() => run(), { timeout: 3000 });
     } else {
