@@ -1,8 +1,84 @@
 // =============================================================================
 // DreamTalez — Story Prompt Engine v2
-// 4-stage production pipeline: Generate → Edit → Validate → Output
+// Pipeline: Blueprint (Opus) → Prose (Sonnet) → Edit → Validate → Output
 // =============================================================================
 // =============================================================================
+
+/**
+ * BLUEPRINT_SYSTEM_PROMPT — Opus identity
+ *
+ * Opus acts as creative director, not author. Its job is to produce a tight
+ * structural blueprint — the emotional skeleton of the story — in a compact,
+ * directive format that Sonnet can execute as full cinematic prose.
+ *
+ * Output is intentionally short (~150–250 words). This keeps Opus fast and
+ * its cost minimal while leveraging its superior narrative intelligence
+ * for structure, emotional targeting, and comfort anchor placement.
+ */
+export const BLUEPRINT_SYSTEM_PROMPT = `You are a senior children's bedtime story creative director with the emotional intelligence of a Disney story supervisor.
+
+Your job is NOT to write the story. Your job is to design its emotional blueprint — the invisible architecture that makes a bedtime story feel safe, warm, and memorable.
+
+You think like a Pixar story supervisor: you know exactly where the heart moment lands, where the comfort anchor returns, why the child feels seen at the end. You also know that the best stories have one unforgettable specific detail, one planted moment that pays off at the ending, and a gentle irony at the centre — the hero discovers not just what they wanted, but what they needed.
+
+Output a compact story blueprint in this exact format. Be specific. Be concrete. No prose — only directives.
+
+Format:
+OPENING_TECHNIQUE: [Which of these to use — IN_ACTION / SENSORY_ARRIVAL / CHARACTER_THOUGHT / IMPOSSIBLE_ORDINARY / WORLD_FIRST / BREATHING_DETAIL — and one sentence describing how it opens]
+OPENING_IMAGE: [One specific sensory moment that opens the world — not a place description, a felt moment. Must use the chosen opening technique.]
+SIGNATURE_DETAIL: [One hyper-specific, unexpected detail that makes this world uniquely real — not generic magic, but something a child would describe to a friend tomorrow. Must connect to the child's interests or personality.]
+PLANTED_DETAIL: [The small object, image, or moment placed subtly in the opening that will return transformed at the ending — creating the feeling of inevitability]
+HERO_QUALITY: [Not a flaw — a specific way this child sees the world that becomes the key to the story. Connected to their interests or personality.]
+ADVENTURE_BEAT: [The gentle challenge — what the child tries to do, one concrete goal]
+GENTLE_IRONY: [The soft tension between WANT and NEED — what the child wants versus what they quietly discover. One sentence.]
+HEART_MOMENT: [The quiet internal realisation — the NEED resolved through the child's BODY and the world's response. Specific. Felt. Never stated directly.]
+COMFORT_ANCHOR: [Exactly when and how the comfort item or family warmth appears — placement matters]
+PAYOFF: [How the PLANTED_DETAIL returns at the ending, transformed — making the ending feel complete and inevitable]
+ENDING_IMAGE: [The final sensory image — what the child sees, hears, or feels as they drift toward sleep. Must connect to the PLANTED_DETAIL payoff.]
+EMOTIONAL_TARGET: [One word: courage / belonging / loved / curiosity / kindness / wonder]
+TONE_ARC: [Three words — one for opening, one for midpoint, one for ending]
+
+Return ONLY the blueprint. No prose. No commentary. No extra lines.`;
+
+/**
+ * Builds the user message sent to Opus for blueprint generation.
+ * Intentionally compact — Opus input should stay under ~800 tokens.
+ */
+export function buildBlueprintPrompt({ name, age, interests, mode, customIdea, dayBeats, familyMagic, bedtimeHour, adaptivePromptBlock }) {
+  const comfortItem = familyMagic?.comfortItems?.[0] || null;
+  const magicalPlace = familyMagic?.favoriteMagicalPlace || null;
+  const members = (familyMagic?.familyMembers || [])
+    .filter((m) => m.name && m.relationship)
+    .map((m) => `${m.relationship} (${m.name})`)
+    .join(", ");
+
+  const modeNote = mode === "family-magic"
+    ? `FAMILY MAGIC story — ${name} is always the hero; family members (${members || "none listed"}) provide warmth only.`
+    : mode === "sleepy"
+    ? "SLEEP TRANSITION — minimal adventure, maximum calm, lullaby pacing."
+    : mode === "therapeutic"
+    ? "EMOTIONAL SAFETY story — centres on a feeling, not an adventure."
+    : mode === "hero" || mode === "custom"
+    ? `HERO MYTH — custom idea: "${customIdea || interests}"`
+    : mode === "today"
+    ? `MEMORY STORY — parent shared: "${dayBeats}"`
+    : "ADVENTURE — child's interests drive the world.";
+
+  const sleepinessNote = typeof bedtimeHour === "number"
+    ? `Bedtime hour: ${bedtimeHour}:00 — ${bedtimeHour >= 21 ? "child is sleepy, ending must be very calm" : bedtimeHour >= 19 ? "child is relaxing, decelerate by midpoint" : "child is alert, give the adventure room"}.`
+    : "";
+
+  return `Design a story blueprint for this child.
+
+Child: ${name}, age ${age}
+Interests: ${interests || "magic, animals, adventure"}
+${comfortItem ? `Comfort item to anchor: "${comfortItem}"` : ""}
+${magicalPlace ? `Magical place they love: "${magicalPlace}"` : ""}
+Mode: ${modeNote}
+${sleepinessNote}
+
+The blueprint will be handed to a master prose writer who will execute it as a full cinematic bedtime story. Make every directive count.`;
+}
 
 /**
  * Stage 1: STORY_SYSTEM_PROMPT
@@ -36,7 +112,13 @@ THE EMOTIONAL CORE (MANDATORY)
 Every great bedtime story has two layers:
 
 WANT (external): What does the child character want to do or achieve?
-NEED (internal): What does the child character quietly discover about themselves? (they are brave enough, they are loved, small things matter)
+NEED (internal): What does the child character quietly discover about themselves?
+
+These must exist in GENTLE IRONY — soft tension that makes the story meaningful, not just pleasant:
+- A child who wants to be fastest discovers patience is its own kind of speed
+- A child who wants to find magic discovers the magic was in how they looked
+- A child who wants to be brave discovers uncertainty honestly faced IS bravery
+- A child who wants to go on an adventure discovers coming home was the destination
 
 Choose ONE emotional target from:
 - Courage (soft, not intense)
@@ -45,21 +127,68 @@ Choose ONE emotional target from:
 - Curiosity
 - Feeling loved
 
-Both layers must be present and resolved. The WANT drives the plot. The NEED creates the emotional resonance that makes a parent tear up and a child feel safe.
+Both layers must be present and resolved. The WANT drives the plot. The NEED is the Gentle Irony — arrived at through events, never stated by a character. The parent's voice should soften at the Heart Moment without them realising why.
+
+====================================
+PRE-WRITING RESOLUTION (MANDATORY — DO THIS BEFORE WRITING THE FIRST WORD)
+====================================
+Resolve these five questions internally. They take seconds. They transform the output.
+
+1. OPENING TECHNIQUE — Choose ONE: IN_ACTION / SENSORY_ARRIVAL / CHARACTER_THOUGHT / IMPOSSIBLE_ORDINARY / WORLD_FIRST / BREATHING_DETAIL. Never default to "the soft glow of" or "in a quiet."
+
+2. SIGNATURE DETAIL — What is the ONE specific, unexpected detail that makes this world unlike any other? Connected to this child's interests. Unforgettable. Not generic magic.
+
+3. PLANTED DETAIL — What small object, image, or moment will appear in the opening and return transformed at the ending, making the story feel inevitable in retrospect?
+
+4. GENTLE IRONY — What does the child WANT (external goal)? What do they NEED (internal discovery)? These must be in gentle tension — the NEED is different from the WANT.
+
+5. SINGULARITY — How does THIS child's specific way of seeing the world unlock the story? Their interests must shape the world's logic, not just decorate it.
+
+Do not write until all five are resolved.
 
 ====================================
 STAGE 1 — SENSORY OPENING (MANDATORY)
 ====================================
 Begin INSIDE a magical moment — light, sound, texture, movement.
 
+OPENING TECHNIQUE ROTATION — use one of these six (never the same twice):
+1. IN-ACTION: Begin mid-motion, as if arriving mid-scene. "The butterfly net had been hanging on Emma's door all summer, waiting."
+2. SENSORY ARRIVAL: One precise sense before the world appears. "The first thing was the smell — warm earth and something sweet."
+3. CHARACTER THOUGHT: Open inside the child's mind at one exact moment. "Oliver had been thinking about that door for three whole weeks."
+4. IMPOSSIBLE ORDINARY: Mundane and magical simultaneously. "The moon was the exact shape of a biscuit, and Mia was sure it smelled like one."
+5. WORLD FIRST: The world announces itself before the child. "The lantern market only appeared on Tuesday evenings, between six and half past."
+6. BREATHING DETAIL: One small detail implying an entire living world. "The clock had shown the wrong time for forty years, but the keeper trusted it."
+
+NEVER: "Once upon a time" / "There was a child named" / "The soft glow of" / "In a quiet corner of"
+
 Rules:
-- Open with ONE specific, vivid sensory image — NOT "Once upon a time", NOT "There was a child named..."
-- Establish the world's emotional temperature immediately (cosy, magical, gently mysterious)
-- Introduce the child character through action or thought, not description
+- Open with ONE specific, vivid sensory image
+- Establish the world's emotional temperature immediately
+- Introduce the child through action or thought, never description
 - Make a parent lean forward and a child hold their breath
 
-Bad: "Once upon a time, there was a little girl named Emma who loved butterflies."
-Great: "The butterfly net had been hanging on Emma's bedroom door all summer, waiting."
+====================================
+THE SIGNATURE DETAIL — PIXAR STANDARD (MANDATORY — ONE PER STORY)
+====================================
+Every story must contain one detail so specific, so unexpected, and so emotionally resonant that it makes the world feel uniquely real. Not generic magic. The one thing a child will describe to their friends tomorrow.
+
+NOT: "a magical forest" / "a friendly dragon" / "a cosy cottage"
+YES: "a forest where every tree had one warm window, too small to see through, but everyone tried"
+YES: "a dragon who kept every wish ever made to him in a small glass jar, because he couldn't bear to throw them away"
+
+The Signature Detail connects to the child's interests. It appears naturally — never announced.
+
+====================================
+PLANT AND PAYOFF (MANDATORY)
+====================================
+In the opening third: plant one small detail, object, or image.
+At the ending: return it transformed by everything that happened.
+Reader response must be: "Of course. It was always going to end this way."
+
+Example: stars described as "watching carefully" → final line: "And the stars, at last, let out their breath."
+Example: child picks up a single pebble early → falls asleep holding it, warm in their palm.
+
+This transforms a pleasant story into one that is REMEMBERED.
 
 ====================================
 STAGE 2 — CRAFT RULES (DISNEY STANDARD)
@@ -162,17 +291,25 @@ ABSOLUTE RULES:
 - NEVER: "once upon a time", "suddenly everything was okay", rushed endings, instant solutions
 
 ====================================
+THE SINGULARITY RULE (MANDATORY)
+====================================
+Before finalising: ask — could this child's name be replaced with any other child's name and the story still work?
+
+If yes, the story has FAILED. The child's interests must shape the world's logic, the challenge's nature, and at least one unexpected detail. This is not about mentioning interests. It is about making the child's specific way of seeing the world the KEY that unlocks the story.
+
+====================================
 STAGE 7 — INTERNAL SELF-SCORING (MANDATORY)
 ====================================
 After writing your first draft, internally score it on each criterion out of 10:
 
-1. Opening Quality — sensory, engaging, begins mid-moment? (/10)
-2. Emotional Clarity — one clear emotional target, both WANT and NEED present? (/10)
-3. Warmth & Comfort — feels safe, cosy, Disney-standard warm? (/10)
-4. Structure Accuracy — all 7 narrative steps present and in order? (/10)
-5. Heart Moment Strength — the emotional realisation lands with genuine feeling? (/10)
-6. Read-Aloud Flow — rhythm, sentence variety, natural cadence when spoken? (/10)
-7. Sleepy Ending Quality — energy lowers completely, feels safe and still, last line drifts toward sleep? (/10)
+1. Opening Quality — specific technique used (not generic), begins mid-moment? (/10)
+2. Signature Detail — one unforgettable world detail present, connected to this child? (/10)
+3. Plant & Payoff — a detail planted in the opening returns transformed at the ending? (/10)
+4. Emotional Clarity — WANT and NEED both present, Gentle Irony resolved? (/10)
+5. Singularity — story feels unmistakably written for THIS child, not interchangeable? (/10)
+6. Heart Moment Strength — emotional realisation shown through body/world, not stated? (/10)
+7. Read-Aloud Flow — rhythm, sentence variety, natural cadence when spoken? (/10)
+8. Sleepy Ending Quality — energy lowers completely, Plant pays off, last line drifts toward sleep? (/10)
 
 QUALITY GATE:
 - If ANY score is below 8 → identify the weak sections and rewrite them
@@ -188,9 +325,16 @@ After passing the quality gate, perform one final DISNEY EDITOR PASS:
 ====================================
 STAGE 8 — LENGTH & PACING (NON-NEGOTIABLE)
 ====================================
-TARGET LENGTH: 1000–1300 words. Count your words before outputting.
-- Under 950 words: incomplete — expand the journey beats or deepen the resolution.
-- Over 1350 words: too long — trim filler, tighten transitions, cut repeated imagery.
+Follow the word count range specified in the story prompt (it is calibrated to the child's age).
+Do NOT exceed the upper bound. Do NOT pad a story to reach the upper bound.
+
+Natural pacing beats:
+- Short emotional scenes: 500–650 words — valid and often MORE powerful
+- Standard scenes: 700–850 words — the normal target
+- Climactic, layered scenes: up to the maximum
+
+A perfectly paced 650-word story is far better than a padded 900-word one.
+Every sentence must earn its place. Remove anything that repeats, delays, or adds no emotional value.
 
 SLEEPY ENDING RULE (STRICT):
 - Final paragraph must lower energy completely
@@ -258,7 +402,11 @@ SPARKLE WORDS — reinforce soft magical language:
 - glowing, shimmering, drifting, gentle, soft, golden, warm, quiet, still, peaceful, cosy, safe
 
 LANGUAGE CONSISTENCY:
-
+- Maintain the story's language throughout — never mix dialects or introduce a different language.
+- British English: colour, favourite, cosy, mum, travelling, realise (not color, favorite, cozy, mom, traveling, realize).
+- American English: color, favorite, cozy, mom, traveling, realize (not colour, favourite, cosy, mum, travelling, realise).
+- Non-English stories: every word must remain in the original language. Do not translate or insert English.
+- If you find any dialect mixing or language bleed, correct it silently.
 
 ABSOLUTE SAFETY RULES (non-negotiable):
 - Zero violence, zero fear, zero inappropriate content
@@ -342,8 +490,8 @@ REMEMBER: This story will be read at bedtime by a real child. It may be the last
 
 /**
  * CONTEXT_LOCK — Hard constraints injected into the user prompt.
- * Reinforces the system prompt from a different angle to prevent
- * "silent drift" where the model slowly bends rules mid-generation.
+ * Dual-anchors the most critical consistency rules so the model sees
+ * them from both the system and user role — reduces mid-generation drift.
  */
 const CONTEXT_LOCK = `
 STORY RULES (DO NOT BREAK UNDER ANY CIRCUMSTANCES):
@@ -584,11 +732,103 @@ Critical rules:
 The last line should feel like: the world is good, and so are you.
 `;
 
+const FAMILY_MAGIC_MODE_PROMPT = `
+STORY IDENTITY: FAMILY WARMTH
+
+This is not just an adventure. This is a bedtime story held in family love.
+
+Purpose: make the child feel the warmth of their real world woven into a magical one.
+
+Core law: THE CHILD IS ALWAYS THE HERO. Family members exist to love them — never to save them.
+
+Feel: warm, intimate, magical, and emotionally safe. The child should feel that the people who love them are with them even in the furthest adventure.
+
+Structure:
+1. Open in the child's world — a moment of connection with family before the adventure begins.
+2. The child steps into the magical world carrying that warmth with them.
+3. A gentle challenge appears — something only the child can resolve through their own courage or kindness.
+4. A comfort item (blanket, plushie, lantern) appears naturally — grounding the magic in the familiar.
+5. The child succeeds. Their family's love is the wind at their back — never the hand that pulls them.
+6. The ending is soft and intimate — the child returns to warmth, and sleep comes gently.
+
+Family member rules (MANDATORY):
+- Each family member may appear ONCE, warmly and briefly
+- They provide encouragement, never solutions
+- They respond to the child's success — they do not cause it
+- Dialogue should be short, loving, and in their voice
+
+Tone: cinematic warmth. Like a Pixar opening — deeply human, emotionally true, gentle magic.
+
+The last line should feel like: I am loved, and I am brave, and I am home.
+`;
+
+// =============================================================================
+// Phase 3 — Cinematic Storyflow & Emotional Polish
+// Injected into every story via buildStoryPrompt().
+// Engines live in story-engine/orchestration/ — logic inlined here so
+// prompts.js remains a pure-function module with no runtime imports.
+// =============================================================================
+
+const CINEMATIC_STORY_INSTRUCTIONS = `
+CINEMATIC STORYFLOW (Phase 3 — apply to this story):
+
+EMOTIONAL RHYTHM ARC (follow strictly — do not flatten):
+  opening          → Warm + curious (wonder 6 · calm 8 · excitement 3)
+  adventure        → Wonder-forward (wonder 9 · calm 6 · excitement 5)
+  middle           → Gentle momentum (wonder 7 · calm 7 · excitement 4)
+  emotional-moment → Soft + grounding (wonder 5 · calm 9 · excitement 2)
+  ending           → Calm + sleepy   (wonder 4 · calm 10 · excitement 1)
+
+CINEMATIC TRANSITIONS:
+Never: "Then [child] went to [place]."
+Always: carry one atmospheric thread from the current scene — a light, a sound, a texture — then arrive at the next.
+Example: "As the lantern lights shimmered softly behind her, [name] followed the silver path deeper into the sleepy forest."
+
+SENSORY TIMING (place at emotional moments only):
+Do not scatter sensory detail across every paragraph.
+Reserve strong sensory cues for: the wonder peak, the emotional turning point, the final calming beat.
+  comfort   → warm blanket texture
+  wonder    → silver stars shimmering overhead
+  calmness  → soft rain against the windows
+  safety    → gentle fireplace warmth
+  sleepy    → a quiet lantern glow
+
+EMOTIONAL BREATHING SPACE (mandatory — once after the emotional peak):
+Insert 2–3 short sentences of stillness before the ending begins. No action. No dialogue. Just the world settling.
+Example: "For a moment, everything felt still. Only the soft rain and glowing lanterns remained."
+
+BEDTIME ENDING ORCHESTRATION:
+1. No new information — return the child to safety and warmth only
+2. Include one physical comfort element (blanket, warmth, familiar object)
+3. Night world settles — stars, rain, moonlight, quiet
+4. Final sentence: the shortest, softest, most complete sentence in the entire story
+5. Never "The End." Never rushed. Never a new idea in the last paragraph.
+
+PROSE RHYTHM:
+Let long sentences breathe with soft pauses: "the lantern glowed gently… slowly… beneath the sleepy stars."
+Short sentences carry weight — use them after emotional moments.
+Repetition limit: "softly", "quietly", "gently", "glowing" — max 3 uses each per story.
+`;
+
+// Returns the structural beat guidance for the given mode, formatted for injection.
+function getModeBeats(mode) {
+  const key = (mode === "hero" || mode === "custom" || mode === "create") ? "hero"
+    : mode === "today" ? "today"
+    : "random";
+  const blueprint = STORY_BLUEPRINTS[key];
+  if (!blueprint) return "";
+  return `STORY STRUCTURE GUIDE (${key} mode):
+Promise: ${blueprint.promise}
+Beats to follow in order:
+${blueprint.beats.map((b, i) => `${i + 1}. ${b}`).join("\n")}`;
+}
+
 // Maps story mode to its identity prompt block
 function getModeIdentityPrompt(mode) {
   if (mode === "sleepy") return SLEEPY_MODE_PROMPT;
   if (mode === "therapeutic") return FEELINGS_MODE_PROMPT;
   if (mode === "hero" || mode === "custom" || mode === "create") return HERO_MODE_PROMPT;
+  if (mode === "family-magic") return FAMILY_MAGIC_MODE_PROMPT;
   // random, medium-surprise, long-surprise, today all use adventure as default
   return ADVENTURE_MODE_PROMPT;
 }
@@ -618,20 +858,163 @@ Avoid "Once upon a time", "There was a child named", or any formulaic opener.
 Each story should feel like it begins mid-breath, already inside the world.
 `;
 
+// =============================================================================
+// AGE BAND INTELLIGENCE
+// Three developmental tiers that shape vocabulary, suspense ceiling, emotional
+// intensity, pacing, and story world complexity.
+// =============================================================================
+
 /**
- * Returns age-appropriate word count targets.
- * Ages 2–4  → short & magical: 400–600 words (toddler attention span)
- * Ages 5–7  → engaging & complete: 600–900 words (early reader sweet spot)
- * Ages 8+   → full adventure: 1000–1300 words (chapter-book feel)
+ * Returns the developmental age band for a given age.
+ * "young"  → Ages 3–5: Bedtime Safe Mode
+ * "middle" → Ages 6–8: Light Adventure Mode
+ * "older"  → Ages 9–12: Cinematic Adventure Mode
+ */
+export function getAgeBand(age) {
+  const n = parseInt(age, 10);
+  if (isNaN(n) || n <= 5) return "young";
+  if (n <= 8) return "middle";
+  return "older";
+}
+
+/**
+ * Returns a full directive block for the AI based on the child's age band.
+ * Injected into buildStoryPrompt() alongside other context blocks.
+ */
+export function buildAgeBandDirectiveBlock(age) {
+  const band = getAgeBand(age);
+
+  if (band === "young") {
+    return `
+AGE BAND: BEDTIME SAFE MODE (Ages 3–5)
+
+EMOTIONAL TONE: Extremely warm, comforting, gentle, cozy, magical, and calming.
+Every sentence should feel like a soft blanket. Safety is the supreme value.
+
+VOCABULARY: Very simple words only. Short sentences. No word should make a small child pause.
+Use concrete sensory language: colours, textures, sounds, warmth, light.
+Avoid abstractions, complex emotions, or anything requiring prior knowledge.
+
+SUSPENSE CEILING: None. Zero threat, zero danger, zero tension.
+No scary moments, no surprises, no dark settings, no conflict that causes distress.
+Challenges are playful puzzles — easily solved, immediately rewarded.
+
+CHARACTERS: One or two characters only. Simple, warm, friendly.
+No villains, no antagonists, no scary creatures of any kind.
+Animals are gentle and soft. Magic is cozy and safe.
+
+STORY WORLD: Familiar, small, and safe — a garden, a cozy forest clearing, a friendly beach,
+a warm home, a starlit sky. Nothing vast or overwhelming.
+
+PACING: Slow and repetitive. Lullaby rhythm.
+Short paragraphs. No complex plot twists. Simple cause → effect → warm resolution.
+The emotional arc is: calm → small delight → safe → sleepy warmth.
+
+ENDING: The child settles. Something warm happens. A soft light. A blanket. Sleepy eyes.
+The final three sentences grow shorter with each one.
+The very last sentence should be barely a whisper.
+
+FORBIDDEN IN THIS BAND: Danger, fear, conflict, loud sounds, fast pacing, scary imagery,
+dark themes, complex vocabulary, long sentences, multiple storylines, villains, moral dilemmas.
+`;
+  }
+
+  if (band === "middle") {
+    return `
+AGE BAND: LIGHT ADVENTURE MODE (Ages 6–8)
+
+EMOTIONAL TONE: Playful, curious, mildly exciting, warm, and emotionally engaging.
+The child leans in — then comes home safely. Wonder is the primary emotion.
+
+VOCABULARY: Moderate vocabulary. A few vivid or slightly unusual words are welcome —
+they should feel exciting, not alienating. Use them once and make their meaning clear from context.
+
+SUSPENSE CEILING: Light. A gentle sense of mystery or mild challenge is encouraged.
+One moment of "what will happen?" per story — quickly resolved, never distressing.
+Danger exists at the level of: a wrong path, a locked door, a small creature who needs help.
+No genuine threat to the child's safety, no real peril, no darkness.
+
+CHARACTERS: Two or three characters. One companion is ideal.
+A single antagonistic force is permitted — but it must be comical, misunderstood, or quickly befriended.
+No true villains. Conflict is a puzzle, not a threat.
+
+STORY WORLD: More expansive than young — enchanted forests, magical kingdoms, underwater cities,
+cloud realms, friendly jungles. Still clearly safe despite the adventure.
+
+PACING: Moderate. Rising action → a small challenge → a clever or kind resolution → warm landing.
+Paragraphs can be slightly longer. One or two surprises are welcome.
+The emotional arc is: curiosity → excitement → challenge → triumph → warm satisfaction → calm.
+
+EMOTIONAL GROWTH: One clear emotional beat is allowed — bravery, kindness, friendship,
+perseverance. Show it through action, not narration. Never preach.
+
+ENDING: A clear resolution. A moment of satisfaction. The world settles.
+The final paragraph slows down to a warm, quiet close.
+The last sentence is calm and complete.
+
+FORBIDDEN IN THIS BAND: Real danger or injury, genuine fear, dark or threatening atmosphere,
+complex moral dilemmas, vocabulary that excludes, multiple simultaneous storylines, unresolved tension.
+`;
+  }
+
+  // band === "older"
+  return `
+AGE BAND: CINEMATIC ADVENTURE MODE (Ages 9–12)
+
+EMOTIONAL TONE: Rich, immersive, emotionally layered, and cinematically paced.
+The child is treated as a capable reader. Big feelings, real stakes — always family-safe.
+
+VOCABULARY: Richer vocabulary, vivid imagery, and varied sentence structure.
+Introduce striking words or phrases — the story should feel like premium fiction, not a school reader.
+Metaphors, atmosphere, and subtext are all welcome.
+
+SUSPENSE CEILING: Moderate. Genuine narrative tension is encouraged.
+Mysteries that deepen, reversals that surprise, moments where the outcome is genuinely uncertain.
+Stakes can be meaningful — saving something important, overcoming a real fear, making a hard choice.
+However: no graphic violence, no death, no horror, no adult themes. Family-safe always.
+
+CHARACTERS: Multiple characters with distinct voices and motivations.
+An antagonist is welcome — even one with a understandable reason behind their actions.
+The story world should feel populated and real, with texture and history.
+
+STORY WORLD: Expansive and detailed. Mythic landscapes, complex magical systems,
+layered worlds with rules. The world should feel like it exists beyond the page.
+Describe it with specificity — particular details that make it feel lived-in.
+
+PACING: Cinematic. Deliberate scene structure. Rising action, a genuine turning point,
+a climactic moment, and a resonant resolution. Multiple beats, each with purpose.
+The emotional arc is: intrigue → investment → real stakes → a hard moment → earned resolution → quiet pride.
+
+EMOTIONAL DEPTH: Emotional complexity is welcome — loneliness, doubt, loyalty tested, courage found.
+Subtext is encouraged. The child character should be changed by the story, however subtly.
+Show internal life through action and reaction, not stated feelings.
+
+ENDING: Emotionally resonant and complete. Leave the reader feeling something real.
+The final paragraph can carry weight — a realisation, a quiet moment of clarity, a sense of arrival.
+The final sentence should land with quiet power. Not a bang — a settling.
+
+FORBIDDEN IN THIS BAND: Graphic violence, death scenes, horror, sexual content, adult themes,
+nihilism, or unresolved endings that leave the child unsettled. Always land safely.
+`;
+}
+
+/**
+ * Returns age-appropriate word count targets — aligned with age bands.
+ * Ages 3–5  → Bedtime Safe:    400–600 words  (toddler attention span)
+ * Ages 6–8  → Light Adventure: 600–800 words  (early reader sweet spot)
+ * Ages 9–12 → Cinematic:       700–900 words  (premium bedtime fiction)
+ *
+ * Do NOT pad to reach the upper bound. A naturally paced shorter story is
+ * always better than a longer padded one.
  */
 export function getAgeWordTarget(age) {
   const n = parseInt(age, 10);
-  if (!isNaN(n) && n <= 4) return { min: 400, max: 600, under: 380, over: 650, minutes: "3–5" };
-  if (!isNaN(n) && n <= 7) return { min: 600, max: 900, under: 560, over: 950, minutes: "5–7" };
-  return { min: 1000, max: 1300, under: 950, over: 1350, minutes: "7–10" };
+  if (!isNaN(n) && n <= 5) return { min: 400, max: 600, under: 380, over: 620, minutes: "3–5" };
+  if (!isNaN(n) && n <= 8) return { min: 600, max: 800, under: 560, over: 820, minutes: "5–7" };
+  return { min: 700, max: 900, under: 660, over: 920, minutes: "7–10" };
 }
 
-export function buildStoryPrompt({ name, age, interests, length, dialect, language, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood, globalInspiration, mode }) {
+export function buildStoryPrompt({ name, age, interests, length, dialect, language, customIdea, seriesContext, childWish, appearance, dayBeats, dayMood, globalInspiration, mode, familyMagic, adaptivePromptBlock, storyBlueprint, ageBandOverride }) {
   const effectiveMode = mode || (customIdea ? "hero" : dayBeats ? "today" : "random");
   // Derive the story theme from the richest available input
   const theme = customIdea || childWish || dayBeats || interests || "magical bedtime adventure";
@@ -682,12 +1065,97 @@ ${wishSpecificityLines}`
 
   const wt = getAgeWordTarget(age);
 
+  // Family Magic context block — Phase 2: emotional continuity system
+  // Only injected for family-magic mode. Inlines engine logic to avoid import
+  // side-effects and keep prompts.js as a pure-function module.
+  const familyMagicBlock = (() => {
+    if (effectiveMode !== "family-magic" || !familyMagic?.enabled) return "";
+
+    // ── Core profile data ────────────────────────────────────────────────────
+    const members = (familyMagic.familyMembers || [])
+      .filter((m) => m.name && m.relationship)
+      .map((m) => `${m.relationship} (${m.name})`)
+      .join(", ");
+
+    const comfortItems  = (familyMagic.comfortItems || []).filter(Boolean);
+    const comfortStr    = comfortItems.join(", ");
+    const cozyFeeling   = familyMagic.favoriteCozyFeeling  || "";
+    const magicalPlace  = familyMagic.favoriteMagicalPlace || "";
+
+    // ── Cozy callbacks (Phase 2) ──────────────────────────────────────────
+    const cozyCallbackLines = comfortItems
+      .map((item) => `• Lightly reference "${item}" during an emotional or calming scene — once, naturally.`)
+      .join("\n");
+
+    const patternLines = [cozyFeeling, magicalPlace]
+      .filter(Boolean)
+      .map((p) => `• Weave this sensory warmth into the story world: "${p}".`)
+      .join("\n");
+
+    // ── Scene-stage warmth guidance (Phase 2) ─────────────────────────────
+    const warmthStages = [
+      { stage: "Opening",          level: "A brief warm goodbye before the adventure — one tender gesture." },
+      { stage: "Adventure",        level: "Family love travels inside the child. They are not present in scenes." },
+      { stage: "Emotional moment", level: "The child draws on remembered warmth — comfort item or memory." },
+      { stage: "Ending",           level: "A gentle homecoming beat — one short, loving exchange." },
+    ].map((s) => `  ${s.stage}: ${s.level}`).join("\n");
+
+    // ── Bedtime atmosphere (Phase 2) ──────────────────────────────────────
+    const atmosphereTextures = "soft rain, glowing lanterns, warm blankets, silver moonlight, sleepy stars, gentle fireplace glow";
+
+    return `
+FAMILY MAGIC CONTEXT (MANDATORY — READ BEFORE WRITING):
+${members ? `Family members in this child's life: ${members}` : ""}
+${comfortStr ? `Comfort items to weave in naturally: ${comfortStr}` : ""}
+${cozyFeeling ? `What makes bedtime feel warm for this child: "${cozyFeeling}"` : ""}
+${magicalPlace ? `Their favourite magical place: "${magicalPlace}"` : ""}
+
+EMOTIONAL CONTINUITY — COZY CALLBACKS (Phase 2):
+${cozyCallbackLines || "• Use soft, warm imagery as recurring emotional anchors."}
+${patternLines}
+
+SCENE WARMTH GUIDE — family presence by stage:
+${warmthStages}
+
+BEDTIME ATMOSPHERE:
+Paint the story world with: ${atmosphereTextures}.
+Pacing: slow → slower → almost still. The final paragraph should feel like falling asleep mid-sentence.
+
+FAMILY MAGIC RULES (STRICTLY ENFORCED):
+- ${name} is the hero. Always. Without exception.
+- Family members appear once each — warmly, briefly, lovingly. Never to solve the challenge.
+- Comfort items referenced at most twice per story. Feel discovered, not placed.
+- The story should feel like a warm hug made of words — and like it could only happen for ${name}.
+
+FAMILY MAGIC ENDING (overrides generic ending rule — use this for the final scene):
+${comfortItems[0] ? `Reference "${comfortItems[0]}" in the closing — it should feel like coming home.` : "Reference a warm, familiar comfort object in the closing."}
+End with: ${name} safe, warm, loved — and the night world settling softly around them.
+`;
+  })();
+
+  const ageBandBlock = ageBandOverride || buildAgeBandDirectiveBlock(age);
+
+  const personality = selectStoryPersonality({ name, age, interests, mode: effectiveMode, customIdea, dayMood });
+  const personalityBlock = `
+CHARACTER FOUNDATION:
+The child character carries a core quality of ${personality.label}: ${personality.traits}.
+Their defining strength: ${personality.strength}.
+Their way of finding comfort: ${personality.comfortStyle}.
+Let this quality shape how they approach the challenge and how they feel at the end — without stating it directly.`;
+
+  const modeBeats = getModeBeats(effectiveMode);
+
   return `
 You are a world-class children's bedtime storyteller.
 
 ${DREAMTALEZ_STYLE}
 ${DREAMTALEZ_SIGNATURE}
 ${getModeIdentityPrompt(effectiveMode)}
+${modeBeats ? `\n${modeBeats}\n` : ""}${CINEMATIC_STORY_INSTRUCTIONS}
+${personalityBlock}
+${CONTEXT_LOCK}
+${ageBandBlock}
+${adaptivePromptBlock || ""}
 Child's name: ${name}
 Child's age: ${age}
 Theme: ${theme}
@@ -709,6 +1177,10 @@ ${heroCustomBlock}
 ${seriesContinuityBlock}
 ${todayReflectionBlock}
 ${wishBlock}
+${familyMagicBlock}
+${storyBlueprint ? `STORY BLUEPRINT (designed by creative director — execute this structure in full cinematic prose):
+${storyBlueprint}
+Follow this blueprint exactly. Bring every directive to life in the prose. Do not skip any beat.` : ""}
 Return only the story text.
 `;
 }

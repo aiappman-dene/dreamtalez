@@ -173,7 +173,7 @@ export async function handleWebhook(req, res) {
           await userRef.set({
             ...baseUpdate,
             isSubscribed: true,
-            storiesRemaining: 62,
+            storiesRemaining: 40,
             subscriptionId: session.subscription || null,
             subscriptionStartDate: now,
             subscriptionEndDate: addOneMonth(now),
@@ -312,4 +312,11 @@ export async function validateAndConsumeGuestOneoff(checkoutSessionId) {
   }
 
   return { ok: true };
+}
+
+export async function cancelSubscription(subscriptionId) {
+  if (!subscriptionId) return;
+  const stripe = getStripe();
+  if (!stripe) return;
+  await stripe.subscriptions.cancel(subscriptionId);
 }
