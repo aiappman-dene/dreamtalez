@@ -1,0 +1,78 @@
+{
+  "version": "1.0.0",
+  "locked": true,
+  "description": "Emotional arc targets and valid emotional goals",
+
+  "valid_emotional_targets": [
+    "courage",
+    "belonging",
+    "loved",
+    "curiosity",
+    "kindness",
+    "friendship",
+    "self-worth"
+  ],
+
+  "arc_stages": {
+    "opening": {
+      "label": "Warm + Curious",
+      "wonder": 6, "calm": 8, "excitement": 3,
+      "durationPercent": 12
+    },
+    "adventure": {
+      "label": "Wonder-Forward",
+      "wonder": 9, "calm": 6, "excitement": 5,
+      "durationPercent": 30
+    },
+    "middle": {
+      "label": "Gentle Momentum",
+      "wonder": 7, "calm": 7, "excitement": 4,
+      "durationPercent": 25
+    },
+    "emotional_moment": {
+      "label": "Soft + Grounding",
+      "wonder": 5, "calm": 9, "excitement": 2,
+      "durationPercent": 13
+    },
+    "ending": {
+      "label": "Calm + Sleepy",
+      "wonder": 4, "calm": 10, "excitement": 1,
+      "durationPercent": 20
+    }
+  },
+
+  "energy_rules": {
+    "energy_increases_after_stage_2": false,
+    "excitement_language_banned_after_stage": 3,
+    "breathing_space_required": true,
+    "breathing_space_position": "between_emotional_moment_and_ending",
+    "breathing_space_min_sentences": 2,
+    "breathing_space_max_sentences": 3
+  },
+
+  "emotional_recovery_levels": {
+    "1": { "label": "calm-continuation", "suppressAdventure": false, "boostComfort": false },
+    "2": { "label": "mild-recovery",     "suppressAdventure": false, "boostComfort": false },
+    "3": { "label": "moderate-recovery", "suppressAdventure": true,  "boostComfort": true  },
+    "4": { "label": "active-recovery",   "suppressAdventure": true,  "boostComfort": true  },
+    "5": { "label": "full-recovery",     "suppressAdventure": true,  "boostComfort": true  }
+  },
+
+  "emotional_safety_allowed": [
+    "courage (soft)",
+    "friendship",
+    "curiosity",
+    "feeling loved",
+    "small personal wins",
+    "kindness"
+  ],
+
+  "emotional_safety_forbidden": [
+    "fear that lingers",
+    "sadness unresolved",
+    "grief",
+    "danger unresolved",
+    "high tension",
+    "complex moral ambiguity"
+  ]
+}

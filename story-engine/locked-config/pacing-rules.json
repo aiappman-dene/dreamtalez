@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "locked": true,
+  "description": "Story pacing, section distribution, and arc timing rules",
+
+  "arc_proportions_by_sleepiness": {
+    "1": { "opening": 0.12, "adventure": 0.35, "middle": 0.25, "emotional": 0.10, "ending": 0.18 },
+    "2": { "opening": 0.12, "adventure": 0.30, "middle": 0.25, "emotional": 0.13, "ending": 0.20 },
+    "3": { "opening": 0.10, "adventure": 0.25, "middle": 0.25, "emotional": 0.15, "ending": 0.25 },
+    "4": { "opening": 0.10, "adventure": 0.20, "middle": 0.20, "emotional": 0.20, "ending": 0.30 },
+    "5": { "opening": 0.10, "adventure": 0.15, "middle": 0.15, "emotional": 0.20, "ending": 0.40 }
+  },
+
+  "transition_rules": {
+    "forbidden": "abrupt_scene_cut",
+    "required": "atmospheric_thread_carry",
+    "thread_types": ["light_source", "sound", "texture", "temperature", "movement"]
+  },
+
+  "breathing_space": {
+    "required": true,
+    "position": "after_emotional_peak_before_ending",
+    "minSentences": 2,
+    "maxSentences": 3,
+    "allowedContent": ["atmosphere", "world_settling"],
+    "forbiddenContent": ["action", "dialogue", "new_information"]
+  },
+
+  "pacing_archetypes": {
+    "early-alert":    { "opening": "warm and curious",      "middle": "gently building",     "ending": "slow and soft" },
+    "standard-warm":  { "opening": "warm and inviting",     "middle": "steady wonder-forward","ending": "quiet and settling" },
+    "settling-soft":  { "opening": "soft and grounding",    "middle": "gentle momentum",      "ending": "very slow, like breathing" },
+    "sleepy-gentle":  { "opening": "hush-quiet",            "middle": "tender, unhurried",    "ending": "near-silence" },
+    "overtired-calm": { "opening": "immediately soothing",  "middle": "barely moving",        "ending": "still as the night" }
+  },
+
+  "paragraph_count_targets": {
+    "opening": { "min": 2, "max": 3 },
+    "adventure": { "min": 4, "max": 6 },
+    "middle": { "min": 3, "max": 5 },
+    "emotional_moment": { "min": 2, "max": 3 },
+    "ending": { "min": 3, "max": 5 }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "locked": true,
+  "description": "Sensory detail density, placement, and vocabulary rules",
+
+  "density": {
+    "maxParagraphProportion": 0.40,
+    "minParagraphProportion": 0.10,
+    "maxConsecutiveSensoryParagraphs": 2,
+    "finalQuarterMaxProportion": 0.25
+  },
+
+  "placement_moments": [
+    "wonder_peak",
+    "emotional_turning_point",
+    "final_calming_beat"
+  ],
+
+  "sense_hierarchy_for_ending": [
+    "touch_temperature",
+    "sound",
+    "sight_soft_only"
+  ],
+
+  "forbidden_in_ending": [
+    "visual_complexity",
+    "sharp_or_cold_sensations",
+    "loud_sounds",
+    "unfamiliar_smells"
+  ],
+
+  "repetition_limits": {
+    "softly": 3,
+    "quietly": 3,
+    "gently": 3,
+    "glowing": 3,
+    "warm": 4,
+    "golden": 3,
+    "shimmering": 2,
+    "drifting": 2
+  },
+
+  "sensory_vocabulary": {
+    "comfort": ["weight of blanket", "soft as breath", "warm against cheek", "smell of woodsmoke", "kettle hum", "rain on window"],
+    "wonder":  ["light that moved like water", "silver where you'd expect gold", "bark that felt warm as if alive"],
+    "safety":  ["held", "enclosed", "wrapped", "surrounded by warmth", "deep quiet"],
+    "sleep":   ["heavy in a good way", "sinking into something soft", "sound so gentle it was almost silence", "the last of the light"]
+  }
+}

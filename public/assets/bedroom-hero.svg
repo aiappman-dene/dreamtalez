@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <!-- Night sky -->
+  <rect width="400" height="300" fill="#0a0f2e"/>
+  <!-- Stars -->
+  <circle cx="40" cy="30" r="1.5" fill="#fff" opacity="0.8"/>
+  <circle cx="120" cy="20" r="1" fill="#fff" opacity="0.6"/>
+  <circle cx="200" cy="40" r="2" fill="#fff" opacity="0.9"/>
+  <circle cx="300" cy="25" r="1.5" fill="#fff" opacity="0.7"/>
+  <circle cx="360" cy="50" r="1" fill="#fff" opacity="0.5"/>
+  <circle cx="80" cy="60" r="1" fill="#fff" opacity="0.6"/>
+  <circle cx="250" cy="15" r="1.5" fill="#fff" opacity="0.8"/>
+  <circle cx="340" cy="70" r="1" fill="#fff" opacity="0.4"/>
+  <!-- Moon -->
+  <circle cx="340" cy="55" r="28" fill="#fef3c7"/>
+  <circle cx="352" cy="45" r="24" fill="#0a0f2e"/>
+  <!-- Bedroom floor -->
+  <rect y="220" width="400" height="80" fill="#1e1b4b"/>
+  <!-- Bed -->
+  <rect x="80" y="160" width="240" height="90" rx="8" fill="#4c1d95"/>
+  <rect x="80" y="160" width="240" height="30" rx="8" fill="#6d28d9"/>
+  <!-- Pillow -->
+  <rect x="100" y="168" width="70" height="20" rx="6" fill="#ede9fe"/>
+  <!-- Blanket bump (sleeping child) -->
+  <ellipse cx="240" cy="210" rx="70" ry="22" fill="#7c3aed"/>
+  <!-- Window -->
+  <rect x="280" y="60" width="80" height="90" rx="4" fill="#1e3a5f"/>
+  <rect x="283" y="63" width="74" height="84" rx="3" fill="#0d2137"/>
+  <line x1="320" y1="63" x2="320" y2="147" stroke="#1e3a5f" stroke-width="3"/>
+  <line x1="283" y1="105" x2="357" y2="105" stroke="#1e3a5f" stroke-width="3"/>
+  <!-- Moon through window -->
+  <circle cx="306" cy="90" r="15" fill="#fef3c7" opacity="0.3"/>
+  <!-- Bedside lamp -->
+  <rect x="50" y="180" width="16" height="40" fill="#374151"/>
+  <polygon points="30,175 86,175 78,195 38,195" fill="#fbbf24"/>
+  <!-- Warm lamp glow -->
+  <ellipse cx="58" cy="195" rx="40" ry="15" fill="#fbbf24" opacity="0.15"/>
+  <!-- Stars twinkle -->
+  <circle cx="160" cy="80" r="1.5" fill="#fef08a" opacity="0.7"/>
+  <circle cx="60" cy="90" r="1" fill="#fff" opacity="0.5"/>
+</svg>

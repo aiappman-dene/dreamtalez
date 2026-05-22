@@ -1,0 +1,95 @@
+﻿/* =============================================================================
+   DreamTalez Design Tokens
+   ============================================================================= */
+:root {
+  /* Brand */
+  --gold-primary: #f6c453;
+  --gold-soft: #ffd98a;
+  --gold-bright: #ffb800;
+  --purple-primary: #7b61ff;
+  --purple-deep: #1a0a4a;
+  --pink-primary: #ff6ec7;
+  --teal-primary: #3cd2be;
+
+  /* Backgrounds */
+  --bg-main: #0f0b1f;
+  --bg-secondary: #1c1333;
+  --bg-deep: #0b0f2a;
+  --bg-mid: #1a1f4f;
+  --bg-soft: #2a1a5f;
+  --bg-glass: rgba(20, 15, 40, 0.84);
+  --bg-card: rgba(20, 15, 40, 0.86);
+  --bg-modal: linear-gradient(150deg, rgba(20, 16, 45, 0.97), rgba(36, 22, 70, 0.97));
+  --card: rgba(20, 15, 40, 0.86);
+  --card-bg: rgba(20, 15, 40, 0.86);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --glass-bg: rgba(20, 15, 40, 0.84);
+  --glass-border: rgba(255, 255, 255, 0.12);
+
+  /* Text */
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-main: var(--text-primary);
+  --text-soft: var(--text-muted);
+  --text: var(--text-primary);
+  --text-light: var(--text-primary);
+
+  /* Radius */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+
+  /* Spacing */
+  --space-xs: 6px;
+  --space-sm: 10px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Shadows */
+  --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.34);
+  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.44);
+  --shadow-modal: 0 24px 56px rgba(0, 0, 0, 0.45);
+  --shadow-soft: var(--shadow-sm);
+
+  /* Glow */
+  --glow-gold-soft: 0 0 12px rgba(123, 97, 255, 0.18);
+  --glow-purple: 0 0 12px rgba(123, 97, 255, 0.18);
+  --glow-pink: 0 0 12px rgba(255, 110, 199, 0.16);
+  --primary-glow: rgba(123, 97, 255, 0.35);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #7b61ff 0%, #ff6ec7 100%);
+  --gradient-gold: linear-gradient(135deg, #f6c453 0%, #ffd98a 100%);
+  --gradient-purple: linear-gradient(135deg, #7b61ff 0%, #9f7dff 100%);
+  --gradient-cta: var(--gradient-primary);
+
+  /* Controls */
+  --primary: var(--purple-primary);
+  --primary-soft: #eaf1ff;
+  --primary-hover: #8f78ff;
+  --secondary-bg: rgba(255, 255, 255, 0.05);
+  --secondary-hover: rgba(255, 255, 255, 0.1);
+  --ghost-bg: rgba(123, 97, 255, 0.12);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-focus: rgba(123, 97, 255, 0.55);
+  --success: #4cdb93;
+  --danger: #ff5c7a;
+  --gold: var(--gold-primary);
+  --pink: var(--pink-primary);
+
+  /* Motion */
+  --motion-fast: 0.15s ease;
+  --motion-sm: 0.18s ease;
+  --motion-md: 0.22s ease;
+  --motion-lg: 0.45s ease;
+  --transition: var(--motion-md);
+
+  /* Type / Layout */
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --nav-height: 70px;
+}

@@ -1,0 +1,143 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Scene Runtime Payload",
+  "type": "object",
+  "required": [
+    "scene_id",
+    "narrative_goal",
+    "emotional_state",
+    "pacing",
+    "sensory_targets",
+    "prose_constraints",
+    "continuity_state"
+  ],
+  "properties": {
+    "scene_id": {
+      "type": "string"
+    },
+    "narrative_goal": {
+      "type": "string"
+    },
+    "emotional_state": {
+      "type": "object",
+      "required": ["wonder", "comfort", "nervousness"],
+      "properties": {
+        "wonder": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "comfort": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "nervousness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "trust": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "softness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        }
+      },
+      "additionalProperties": false
+    },
+    "pacing": {
+      "type": "object",
+      "required": ["cadence", "energy", "bedtime_intensity"],
+      "properties": {
+        "cadence": {
+          "type": "string"
+        },
+        "energy": {
+          "type": "string"
+        },
+        "bedtime_intensity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sensory_targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "prose_constraints": {
+      "type": "object",
+      "required": ["show_dont_tell", "cinematic_prose", "calming_language_bias"],
+      "properties": {
+        "show_dont_tell": {
+          "type": "boolean"
+        },
+        "cinematic_prose": {
+          "type": "boolean"
+        },
+        "calming_language_bias": {
+          "type": "boolean"
+        },
+        "limit_wordiness": {
+          "type": "boolean"
+        },
+        "avoid_cliffhangers": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "continuity_state": {
+      "type": "object",
+      "required": ["recurring_motif", "relationship_progress"],
+      "properties": {
+        "recurring_motif": {
+          "type": "string"
+        },
+        "relationship_progress": {
+          "type": "string"
+        },
+        "scene_history": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "scene_objectives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

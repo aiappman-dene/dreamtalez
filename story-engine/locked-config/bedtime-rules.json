@@ -1,0 +1,65 @@
+{
+  "version": "1.0.0",
+  "locked": true,
+  "description": "DreamTalez bedtime safety and timing rules — authored by Opus, enforced by Sonnet runtime",
+
+  "runtime_minutes": {
+    "target": 8,
+    "minimum": 7,
+    "maximum": 10
+  },
+
+  "word_counts": {
+    "standard": { "min": 1200, "max": 1500, "ideal": 1350 },
+    "preschool": { "min": 600,  "max": 900,  "ideal": 750 },
+    "toddler":   { "min": 400,  "max": 600,  "ideal": 500 }
+  },
+
+  "bedtime_hour_profiles": {
+    "alert":      { "hourRange": [18, 19], "sleepinessLevel": 1, "endingWeight": 0.15 },
+    "relaxing":   { "hourRange": [19, 20], "sleepinessLevel": 2, "endingWeight": 0.20 },
+    "settling":   { "hourRange": [20, 21], "sleepinessLevel": 3, "endingWeight": 0.25 },
+    "sleepy":     { "hourRange": [21, 22], "sleepinessLevel": 4, "endingWeight": 0.30 },
+    "very-sleepy":{ "hourRange": [22, 25], "sleepinessLevel": 5, "endingWeight": 0.40 }
+  },
+
+  "bedtime_softness": true,
+  "cinematic_quality": true,
+  "emotional_warmth": true,
+  "child_is_hero": true,
+
+  "required_ending_signals": [
+    "sleep", "dream", "drifted", "quiet", "moonlight", "stars",
+    "blanket", "warmth", "safe", "still", "hush", "rest"
+  ],
+
+  "required_ending_signal_minimum": 3,
+
+  "forbidden_in_final_quarter": [
+    "suddenly", "crashed", "screamed", "danger", "rushed",
+    "burst", "terrified", "alarmed", "roared", "shocked"
+  ],
+
+  "forbidden_elements": [
+    "graphic danger",
+    "hopeless endings",
+    "emotional chaos",
+    "lingering fear",
+    "cliffhangers",
+    "invitations to stay awake",
+    "violence",
+    "unresolved tension"
+  ],
+
+  "required_ending_state": "safe_sleepy_warm",
+
+  "exclamation_marks_allowed_after_midpoint": false,
+
+  "family_magic": {
+    "enabled": true,
+    "subtle_presence": true,
+    "comfort_continuity": true,
+    "max_family_member_appearances": 1,
+    "max_comfort_item_appearances": 2
+  }
+}

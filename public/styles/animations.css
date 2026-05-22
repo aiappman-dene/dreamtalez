@@ -1,0 +1,339 @@
+﻿/* =============================================================================
+   DreamTalez animations
+   ============================================================================= */
+
+@keyframes welcomeFadeIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes welcomePulse {
+  0% { box-shadow: 0 0 18px 3px rgba(123, 97, 255, 0.35), 0 0 0 2px #fff2; }
+  100% { box-shadow: 0 0 28px 7px rgba(123, 97, 255, 0.55), 0 0 0 2px #fff2; }
+}
+
+/* Floating stars animation */
+.welcome-stars {
+  pointer-events: none;
+}
+.welcome-stars span {
+  position: absolute;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1em;
+  opacity: 0.7;
+  animation: welcomeStarFloat 6s linear infinite;
+}
+@keyframes welcomeStarFloat {
+  0% { transform: translateY(0) scale(1); opacity: 0.7; }
+  80% { opacity: 1; }
+  100% { transform: translateY(-120px) scale(1.2); opacity: 0; }
+}
+
+@keyframes teddyGlow {
+  0% { opacity: 0.7; box-shadow: 0 0 14px 4px rgba(123, 97, 255, 0.42), 0 0 22px 7px rgba(123, 97, 255, 0.24); }
+  100% { opacity: 1; box-shadow: 0 0 20px 7px rgba(123, 97, 255, 0.62), 0 0 30px 10px rgba(123, 97, 255, 0.36); }
+}
+.teddy-topup-btn .teddy-sparkle {
+  position: absolute;
+  right: 8px; top: 2px;
+  font-size: 1.1em;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  animation: teddySparkle 1.2s ease-in-out;
+}
+@keyframes teddySparkle {
+  0% { opacity: 0; transform: scale(0.7) rotate(-10deg); }
+  30% { opacity: 1; transform: scale(1.2) rotate(8deg); }
+  60% { opacity: 1; transform: scale(1.1) rotate(-6deg); }
+  100% { opacity: 0; transform: scale(0.7) rotate(0deg); }
+}
+/* =============================================================================
+   DreamTalez â€” Premium Design System (App-like layout)
+   ============================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatGlow {
+  0% { transform: translateY(0px) scale(0.95); }
+  50% { transform: translateY(-10px) scale(1.05); }
+  100% { transform: translateY(0px) scale(0.95); }
+}
+
+.loading-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.loading-sub {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-top: 8px;
+}
+
+@keyframes introFadeIn {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.intro-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+
+.intro-title {
+  font-size: 34px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.95);
+  margin: 0 0 20px;
+  letter-spacing: -0.02em;
+  text-shadow: none;
+}
+
+.intro-divider {
+  width: 48px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(123,97,255,0.7), transparent);
+  margin: 0 auto 24px;
+  border-radius: 2px;
+}
+
+.intro-body {
+  font-size: 15px;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.72);
+  margin: 0 0 36px;
+}
+
+.intro-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #7b61ff 0%, #ff6ec7 100%);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 28px rgba(123,97,255,0.55);
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.intro-btn:hover  { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(123,97,255,0.65); }
+.intro-btn:active { transform: scale(0.98); }
+
+@keyframes premiumPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.75; }
+}
+
+.premium-cta {
+  background: linear-gradient(135deg, #7b61ff, #ff6ec7);
+  color: #fff;
+  font-weight: 700;
+  font-family: var(--font);
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-size: 11px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(123, 97, 255, 0.36);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: premiumPulse 2.5s ease-in-out infinite;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.premium-cta:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(123, 97, 255, 0.55);
+  animation: none;
+}
+
+@keyframes guestStarTwinkle {
+  0% { opacity: 0.45; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(-1px); }
+}
+
+@media (max-width: 560px) {
+  .guest-oneoff-panel {
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+
+  .guest-oneoff-actions,
+  .guest-soft-upsell-actions {
+    width: 100%;
+  }
+
+  .guest-oneoff-actions .btn,
+  .guest-soft-upsell-actions .btn {
+    flex: 1 1 50%;
+  }
+}
+
+
+
+/* =============================================================================
+   Milestone Celebration Overlay
+   ============================================================================= */
+
+.milestone-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 6, 30, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: milestoneOverlayIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  padding: 24px;
+}
+.milestone-fade-out {
+  animation: milestoneOverlayOut 0.4s ease forwards !important;
+}
+
+@keyframes milestoneOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes milestoneOverlayOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.milestone-content {
+  background: linear-gradient(150deg, #1a0a4a 0%, #2d1b69 60%, #0f0b1f 100%);
+  border: 1.5px solid rgba(123, 97, 255, 0.35);
+  border-radius: 28px;
+  padding: 38px 28px 32px;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 40px rgba(123,97,255,0.18);
+  animation: milestoneContentIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+.milestone-keepsake {
+  background: linear-gradient(150deg, #1a1000 0%, #3a2800 55%, #0f0a00 100%);
+  border-color: rgba(246, 196, 83, 0.5) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 50px rgba(246,196,83,0.18) !important;
+}
+
+@keyframes milestoneContentIn {
+  from { opacity: 0; transform: scale(0.88) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.milestone-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.milestone-particle {
+  position: absolute;
+  bottom: -20px;
+  color: rgba(255,255,255,0.8);
+  animation: milestoneParticleRise linear infinite both;
+  pointer-events: none;
+}
+.milestone-keepsake .milestone-particle {
+  color: rgba(246,196,83,0.85);
+}
+
+@keyframes milestoneParticleRise {
+  0%   { opacity: 0; transform: translateY(0) rotate(0deg) scale(0.8); }
+  15%  { opacity: 1; }
+  85%  { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-320px) rotate(180deg) scale(1.1); }
+}
+
+.milestone-stars {
+  font-size: 1.8rem;
+  line-height: 1;
+  margin-bottom: 18px;
+  letter-spacing: 0.05em;
+  animation: milestoneStarsPulse 2.5s ease-in-out infinite;
+}
+@keyframes milestoneStarsPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.05); }
+}
+
+.milestone-headline {
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.96);
+  margin: 0 0 12px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+.milestone-keepsake .milestone-headline {
+  color: #f6c453;
+}
+
+.milestone-body {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.55;
+  margin: 0 0 10px;
+}
+
+.milestone-keepsake-hint {
+  font-size: 0.88rem;
+  color: rgba(246,196,83,0.75);
+  margin: 0 0 22px;
+  font-style: italic;
+}
+
+.milestone-close {
+  display: block;
+  width: 100%;
+  margin-top: 22px;
+  padding: 13px 20px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.milestone-close:active { transform: scale(0.97); }
+
+/* =============================================================================
+   Cover Art particle twinkle
+   ============================================================================= */
+@keyframes coverParticleTwinkle {
+  0%   { opacity: 0.2; transform: scale(0.85); }
+  50%  { opacity: 0.8; transform: scale(1.1); }
+  100% { opacity: 0.35; transform: scale(0.95); }
+}
+
+/* =============================================================================
+   Keepsake unlock toast pulse
+   ============================================================================= */
+@keyframes keepsakeToastGlow {
+  0%, 100% { box-shadow: 0 4px 24px rgba(246,196,83,0.25); }
+  50%       { box-shadow: 0 4px 32px rgba(246,196,83,0.5); }
+}

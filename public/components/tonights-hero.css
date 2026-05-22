@@ -1,0 +1,179 @@
+/* ============================================================================
+   DreamTalez "Tonight's Story" Hero Atmosphere
+   ----------------------------------------------------------------------------
+   "Like opening a beautiful bedtime storybook beneath moonlight."
+
+   A premium emotional-entry surface that sits between the personalised
+   profile hero (#activeChildCard) and the practical story-choice section
+   (#storyChoices). Atmospheric, calm, magical — never sales-y or loud.
+
+   Visibility is bound by CSS to #activeChildCard's hidden state, so the
+   hero appears exactly when the user has an active child (no JS changes).
+
+   Pure CSS. transform/opacity only. Tokens from motion-tokens.css.
+   ============================================================================ */
+
+/* ─── Visibility binding ──────────────────────────────────────────────────── */
+
+/* Hidden by default — only revealed when its sibling #activeChildCard is shown. */
+.dt-tonights-hero {
+  display: none;
+}
+#activeChildCard:not(.hidden) + .dt-tonights-hero {
+  display: block;
+}
+
+/* ─── Surface ────────────────────────────────────────────────────────────── */
+
+.dt-tonights-hero {
+  position: relative;
+  overflow: hidden;
+  margin: 14px 16px 22px;
+  padding: 32px 28px 36px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  background: linear-gradient(180deg, rgba(22, 18, 56, 0.98) 0%, rgba(25, 20, 62, 0.99) 100%);
+  box-shadow:
+    0 24px 58px -34px rgba(0, 0, 0, 0.72);
+  isolation: isolate;
+}
+
+/* ─── Atmospheric layers — disabled ──────────────────────────────────────── */
+
+/* The Tonight's Story card no longer renders its moonlight halo or drifting
+   stars. Card depth comes from the gradient surface + shadow + typography.
+   Markup stays in index.html for easy revert. */
+
+.dt-tonights-atmosphere {
+  display: none;
+}
+
+/* ─── Content ────────────────────────────────────────────────────────────── */
+
+.dt-tonights-content {
+  position: relative;
+  z-index: 1;
+  max-width: 36rem;
+  margin: 0 auto;
+  text-align: center;
+  color: #f4ecdc;
+}
+
+.dt-tonights-eyebrow {
+  margin: 0 0 10px;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(244, 236, 220, 0.55);
+}
+
+.dt-tonights-title {
+  margin: 0 0 14px;
+  font-family: "Lora", "Iowan Old Style", "Georgia", serif;
+  font-size: clamp(1.4rem, 4.6vw, 1.85rem);
+  font-weight: 500;
+  line-height: 1.32;
+  letter-spacing: 0.005em;
+  color: #f9f0dc;
+  text-shadow: 0 0 22px rgba(255, 220, 180, 0.10);
+}
+
+.dt-tonights-body {
+  margin: 0 auto 22px;
+  max-width: 28rem;
+  font-family: "Lora", "Iowan Old Style", "Georgia", serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(244, 236, 220, 0.78);
+}
+
+/* ─── CTA ────────────────────────────────────────────────────────────────── */
+
+.dt-tonights-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px auto 0;
+  padding: 13px 26px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #7b61ff 0%, #ff6ec7 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 8px 22px -8px rgba(123, 97, 255, 0.5),
+    0 2px 6px -2px rgba(40, 20, 70, 0.4);
+  transition:
+    transform  var(--dt-dur-fast,   180ms) var(--dt-ease-soft, ease),
+    box-shadow var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease),
+    filter     var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease);
+}
+
+.dt-tonights-cta:hover,
+.dt-tonights-cta:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 12px 30px -10px rgba(123, 97, 255, 0.65),
+    0 3px 8px -2px rgba(40, 20, 70, 0.45);
+  outline: none;
+}
+
+.dt-tonights-cta:active {
+  transform: scale(var(--dt-press-scale, 0.985));
+}
+
+.dt-tonights-cta-arrow {
+  display: inline-block;
+  transition: transform var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease);
+}
+.dt-tonights-cta:hover .dt-tonights-cta-arrow,
+.dt-tonights-cta:focus-visible .dt-tonights-cta-arrow {
+  transform: translateX(3px);
+}
+
+/* ─── Mobile sizing ──────────────────────────────────────────────────────── */
+
+@media (max-width: 540px) {
+  .dt-tonights-hero {
+    margin: 12px 12px 18px;
+    padding: 26px 22px 30px;
+    border-radius: 20px;
+  }
+  .dt-tonights-body { font-size: 0.96rem; }
+  .dt-tonights-cta  { padding: 12px 22px; }
+}
+
+/* ─── Larger viewports ───────────────────────────────────────────────────── */
+
+@media (min-width: 900px) {
+  .dt-tonights-hero {
+    margin: 18px auto 28px;
+    max-width: 48rem;
+    padding: 44px 48px 48px;
+    border-radius: 28px;
+  }
+  .dt-tonights-title { font-size: 2rem; }
+  .dt-tonights-body  { font-size: 1.06rem; }
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .dt-tonights-cta {
+    transition: none;
+  }
+  .dt-tonights-cta:hover,
+  .dt-tonights-cta:focus-visible {
+    transform: none;
+  }
+}

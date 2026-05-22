@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Story DNA",
+  "description": "Core narrative blueprint that guides story generation",
+  "type": "object",
+  "required": ["id", "child", "theme", "emotionalArc", "pacing"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique story DNA identifier"
+    },
+    "child": {
+      "type": "object",
+      "required": ["name", "age", "gender"],
+      "properties": {
+        "name": { "type": "string" },
+        "age": { "type": "integer", "minimum": 2, "maximum": 12 },
+        "gender": { "enum": ["boy", "girl", "other"] }
+      }
+    },
+    "theme": {
+      "type": "string",
+      "description": "Core story theme (adventure, emotional learning, comfort, wonder)"
+    },
+    "emotionalArc": {
+      "type": "array",
+      "description": "Emotional journey waypoints",
+      "items": {
+        "type": "object",
+        "properties": {
+          "phase": { "type": "string", "enum": ["setup", "challenge", "growth", "resolution", "rest"] },
+          "emotion": { "type": "string" },
+          "intensity": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "pacing": {
+      "type": "object",
+      "properties": {
+        "length": { "enum": ["short", "medium", "long"] },
+        "tempo": { "enum": ["gentle", "moderate", "dynamic"] },
+        "sceneCount": { "type": "integer", "minimum": 3, "maximum": 7 }
+      }
+    },
+    "bedtimeFlags": {
+      "type": "object",
+      "properties": {
+        "requiresCalming": { "type": "boolean" },
+        "avoidExcitement": { "type": "boolean" },
+        "emphasizeSafety": { "type": "boolean" }
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "description": "Narrative constraints and rules",
+      "items": { "type": "string" }
+    }
+  }
+}

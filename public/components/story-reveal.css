@@ -1,0 +1,91 @@
+/* ============================================================================
+   DreamTalez Story Reveal
+   ----------------------------------------------------------------------------
+   Each paragraph rises softly into view — a calm fade and a few pixels of
+   upward drift, on a soft cubic-bezier ease. Loaded after style.css so it
+   wins same-specificity rules; replaces the older `animation: fadeIn 0.5s`.
+
+   Visual direction matches the magical loading layer: warm, sleepy,
+   premium. No bouncing, no scaling, no blur, no flashy transitions.
+
+   Performance budget:
+     · transform + opacity only (compositor-friendly)
+     · no JS during the transition itself — CSS owns motion
+     · prefers-reduced-motion drops all motion entirely (instant reveal)
+   ============================================================================ */
+
+.story-paragraph {
+  opacity: 0;
+  transform: translateY(10px);
+  /* Token-driven: --dt-dur-reveal + --dt-ease-rise from motion-tokens.css.
+     Falls back to the original 900ms cubic-bezier if tokens are unavailable. */
+  transition:
+    opacity   var(--dt-dur-reveal, 900ms) var(--dt-ease-rise, cubic-bezier(0.22, 0.61, 0.36, 1)),
+    transform var(--dt-dur-reveal, 900ms) var(--dt-ease-rise, cubic-bezier(0.22, 0.61, 0.36, 1));
+  will-change: opacity, transform;
+  /* Override the legacy `animation: fadeIn 0.5s ease forwards` rule so the
+     transition above is what actually drives the reveal. */
+  animation: none;
+}
+
+.story-paragraph.hidden {
+  /* Layout space is reserved (display:block) so revealing doesn't reflow. */
+  display: block;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: none;
+}
+
+.story-paragraph.visible {
+  opacity: 1;
+  transform: translateY(0);
+  animation: none;
+}
+
+/* Tap-to-continue button — calm, premium, matches bedtime palette. */
+.tap-next-btn {
+  display: block;
+  margin: 24px auto 8px;
+  padding: 10px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(123, 97, 255, 0.12);
+  color: inherit;
+  font: inherit;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  opacity: 0;
+  animation: dt-tapbtn-fade-in var(--dt-dur-overlay, 600ms) var(--dt-ease-rise, ease) 200ms forwards;
+  transition:
+    opacity   var(--dt-dur-fast, 200ms) var(--dt-ease-soft, ease),
+    transform var(--dt-dur-fast, 200ms) var(--dt-ease-soft, ease);
+}
+
+.tap-next-btn:hover,
+.tap-next-btn:focus-visible {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  outline: none;
+}
+
+@keyframes dt-tapbtn-fade-in {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 0.85; transform: translateY(0); }
+}
+
+/* ─── Reduced motion: appear instantly, no staggering ──────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .story-paragraph,
+  .story-paragraph.hidden,
+  .story-paragraph.visible {
+    transition: none;
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .tap-next-btn {
+    animation: none;
+    opacity: 0.85;
+  }
+}

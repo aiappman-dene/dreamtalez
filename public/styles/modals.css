@@ -1,0 +1,365 @@
+﻿/* =============================================================================
+   DreamTalez modals
+   ============================================================================= */
+
+/* =============================================================================
+   Welcome Screen Styles
+   ============================================================================= */
+.welcome-page {
+  position: absolute;
+  inset: 0;
+  z-index: 9999;
+  background: linear-gradient(160deg, #1a0a4a 0%, #0a0520 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: fadeIn 1.2s cubic-bezier(.7,.2,.2,1);
+}
+.welcome-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+.welcome-hero-illustration {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 100vw;
+  max-width: 700px;
+  min-width: 340px;
+  transform: translateX(-50%) scale(1.08);
+  opacity: 0.85;
+  z-index: 2;
+  pointer-events: none;
+  filter: brightness(0.94);
+}
+.welcome-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20,10,60,0.74) 0%, rgba(20,10,60,0.74) 60%, rgba(20,10,60,0.9) 100%);
+  z-index: 3;
+}
+.welcome-stars {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: none;
+}
+.welcome-moon {
+  position: absolute;
+  top: 38px;
+  right: 44px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 60% 40%, rgba(255,255,255,0.9) 0%, rgba(200,200,255,0.5) 60%, transparent 100%);
+  box-shadow: 0 0 20px 4px rgba(200, 200, 255, 0.4), 0 0 38px 10px rgba(123, 97, 255, 0.18);
+  opacity: 0.92;
+  z-index: 5;
+  
+}
+.welcome-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+}
+.welcome-logo {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #fff;
+  background: none;
+  -webkit-text-fill-color: #fff;
+  margin-bottom: 18px;
+  opacity: 0;
+  animation: welcomeFadeIn 0.7s 0.1s forwards;
+}
+.welcome-sparkle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1em;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+.welcome-headline {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 18px;
+  line-height: 1.22;
+  letter-spacing: -0.2px;
+  opacity: 0;
+  animation: welcomeFadeIn 0.7s 0.4s forwards;
+}
+.welcome-body {
+  font-size: 1.08rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  margin-bottom: 18px;
+  line-height: 1.5;
+  opacity: 0;
+  animation: welcomeFadeIn 0.7s 0.7s forwards;
+}
+.welcome-closing {
+  font-size: 1.1rem;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: welcomeFadeIn 0.7s 1.0s forwards;
+}
+.welcome-begin-btn {
+  background: linear-gradient(90deg, #7b61ff 0%, #ff6ec7 100%);
+  color: #fff;
+  font-size: 1.18rem;
+  font-weight: 800;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 44px;
+  box-shadow: 0 0 18px 3px rgba(123, 97, 255, 0.35), 0 0 0 2px #fff2;
+  cursor: pointer;
+  outline: none;
+  opacity: 0;
+  animation: welcomeFadeIn 0.7s 1.3s forwards, welcomePulse 2.2s 2.0s infinite alternate;
+  transition: box-shadow 0.18s, background 0.18s;
+}
+
+/* =============================================================================
+   Loading Overlay
+   ============================================================================= */
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+
+  background: rgba(10, 10, 20, 0.78);
+
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.loading-overlay::before {
+  content: none;
+  position: absolute;
+  inset: 0;
+  background: none;
+  opacity: 1;
+  pointer-events: none;
+}
+
+@supports not ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+  .loading-overlay {
+    background: rgba(0, 0, 0, 0.75);
+  }
+}
+
+.loading-content {
+  text-align: center;
+  position: relative;
+  color: #fff;
+}
+
+.glow-orb {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd6ff, #a0c4ff);
+  animation: floatGlow 2s ease-in-out infinite;
+  margin: 0 auto 16px;
+}
+
+/* =============================================================================
+   One-Time Intro Screen
+   ============================================================================= */
+
+.intro-page {
+  background: #060818;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.intro-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.intro-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+}
+
+.intro-glow-1 {
+  width: 340px;
+  height: 340px;
+  top: -80px;
+  left: -60px;
+  background: radial-gradient(circle, rgba(123,97,255,0.22) 0%, transparent 70%);
+}
+
+.intro-glow-2 {
+  width: 280px;
+  height: 280px;
+  bottom: -60px;
+  right: -40px;
+  background: radial-gradient(circle, rgba(255,110,199,0.2) 0%, transparent 70%);
+}
+
+.intro-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 32px;
+  max-width: 360px;
+  animation: introFadeIn 1.2s ease both;
+}
+
+/* Fullscreen Upsell - keep visual consistency with home + guest payment flow */
+.upsell-card {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.upsell-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 15%, rgba(123, 97, 255, 0.14), transparent 45%),
+    radial-gradient(circle at 80% 85%, rgba(109, 74, 255, 0.2), transparent 48%),
+    rgba(8, 10, 24, 0.78);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.upsell-panel {
+  position: relative;
+  z-index: 1;
+  width: min(560px, 100%);
+  border-radius: 24px;
+  padding: 22px 20px 16px;
+  text-align: center;
+  border: 1px solid rgba(123, 97, 255, 0.35);
+  background: linear-gradient(150deg, rgba(20, 16, 45, 0.98), rgba(36, 22, 70, 0.98));
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.45),
+    inset 0 0 24px rgba(109, 74, 255, 0.12);
+}
+
+.upsell-stars {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  letter-spacing: 6px;
+  margin-bottom: 10px;
+  animation: guestStarTwinkle 2.4s ease-in-out infinite alternate;
+}
+
+.upsell-title {
+  margin: 0;
+  font-size: 1.35rem;
+  color: rgba(255, 255, 255, 0.95) !important;
+  text-shadow: none !important;
+}
+
+.upsell-copy {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+
+.upsell-meta {
+  margin: 8px 0 14px;
+  color: rgba(255, 255, 255, 0.72) !important;
+  font-size: 0.84rem;
+}
+
+.upsell-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.upsell-actions .btn-lg {
+  width: 100%;
+}
+
+.upsell-panel #upsellDismissBtn {
+  margin-top: 2px;
+}
+
+/* =============================================================================
+   Streak milestone celebration overlay
+   ============================================================================= */
+.milestone-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 3, 20, 0.82);
+  animation: pageEnter 280ms ease forwards;
+}
+.milestone-content {
+  background: linear-gradient(160deg, #1a0a4a 0%, #0e0526 100%);
+  border: 1px solid rgba(123, 97, 255, 0.35);
+  border-radius: 28px;
+  padding: 36px 32px;
+  text-align: center;
+  max-width: 320px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 40px rgba(123,97,255,0.25);
+}
+.milestone-stars {
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.milestone-message {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+.milestone-close {
+  background: linear-gradient(135deg, #7b61ff, #ff6ec7);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 32px;
+  cursor: pointer;
+  font-family: var(--font);
+}
+

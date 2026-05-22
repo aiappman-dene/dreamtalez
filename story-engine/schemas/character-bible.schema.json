@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Character Bible",
+  "description": "Consistent character definition across all scenes",
+  "type": "object",
+  "required": ["characterId", "name", "role"],
+  "properties": {
+    "characterId": { "type": "string" },
+    "name": { "type": "string" },
+    "role": { "type": "string", "description": "Hero, Guide, Ally, Challenger, Comfort figure" },
+    "appearance": {
+      "type": "object",
+      "properties": {
+        "description": { "type": "string" },
+        "keyTraits": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "personality": {
+      "type": "array",
+      "description": "Core personality traits",
+      "items": { "type": "string" }
+    },
+    "emotionalCore": {
+      "type": "object",
+      "properties": {
+        "fears": { "type": "array", "items": { "type": "string" } },
+        "hopes": { "type": "array", "items": { "type": "string" } },
+        "motivations": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "voiceGuidance": {
+      "type": "string",
+      "description": "How this character speaks and communicates"
+    },
+    "relationshipToChild": {
+      "type": "string",
+      "description": "How this character relates to the child protagonist"
+    },
+    "growthArc": {
+      "type": "string",
+      "description": "How does this character change or teach?"
+    }
+  }
+}

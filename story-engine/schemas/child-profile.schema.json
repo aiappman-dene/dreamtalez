@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Child Profile",
+  "type": "object",
+  "required": ["name"],
+  "properties": {
+    "name":        { "type": "string", "minLength": 1, "maxLength": 50 },
+    "age":         { "type": ["string", "null"] },
+    "gender":      { "type": "string", "enum": ["boy", "girl", "neutral"] },
+    "interests":   { "type": "array", "items": { "type": "string" } },
+    "appearance":  { "type": "string", "maxLength": 200 },
+    "pet":         { "type": "string", "maxLength": 60 },
+    "bestFriend":  { "type": "string", "maxLength": 60 },
+    "favToy":      { "type": "string", "maxLength": 60 },
+    "familyMagic": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "familyMembers": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "required": ["relationship", "name"],
+            "properties": {
+              "relationship": { "type": "string", "maxLength": 30 },
+              "name":         { "type": "string", "maxLength": 30 }
+            }
+          }
+        },
+        "comfortItems":         { "type": "array", "maxItems": 4, "items": { "type": "string", "maxLength": 40 } },
+        "favoriteCozyFeeling":  { "type": "string", "maxLength": 100 },
+        "favoriteMagicalPlace": { "type": "string", "maxLength": 100 }
+      }
+    }
+  }
+}

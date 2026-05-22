@@ -1,0 +1,71 @@
+services:
+  - type: web
+    name: dreamtalez
+    runtime: node
+    plan: starter          # upgrade to Standard for more RAM once traffic grows
+    region: frankfurt      # closest to EU family audience; change to oregon for US-primary
+    branch: main
+
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+
+    healthCheckPath: /health
+
+    envVars:
+      # ── Runtime ────────────────────────────────────────────────────────────
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 3001
+
+      # ── Anthropic / Claude ──────────────────────────────────────────────────
+      # Set in Render dashboard: Environment → Secret Files or Environment Variables
+      - key: ANTHROPIC_API_KEY
+        sync: false        # secret — paste value in Render dashboard
+
+      # ── Firebase Admin SDK ─────────────────────────────────────────────────
+      # All three are required. Get from Firebase Console → Project Settings → Service accounts.
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false        # paste the full key including -----BEGIN/END----- with literal \n
+
+      # ── Stripe ─────────────────────────────────────────────────────────────
+      - key: STRIPE_SECRET
+        sync: false        # sk_live_... from Stripe dashboard
+
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false        # whsec_... from Stripe → Webhooks → endpoint signing secret
+
+      # ── CORS ───────────────────────────────────────────────────────────────
+      # Comma-separated list of allowed origins (no trailing slash)
+      # Must include your Render domain AND any custom domain
+      - key: ALLOWED_ORIGINS
+        value: https://dreamtalez.onrender.com,https://dreamtalez.com
+
+      # ── Android TWA / Digital Asset Links ──────────────────────────────────
+      # SHA-256 fingerprint of your release keystore — get with:
+      #   keytool -list -v -keystore release.keystore -alias dreamtalez -storepass <pass>
+      - key: ANDROID_SHA256_FINGERPRINT
+        sync: false
+
+      # ── Feature flags (optional — defaults shown) ───────────────────────────
+      # REQUIRE_AUTH_FOR_AI_ROUTES defaults to true — do NOT set to false in production
+      # USE_FULL_AI_PIPELINE=true enables the edit+validate pipeline (slower, higher quality)
+      # USE_OPUS_BLUEPRINT=true enables Opus blueprint stage (adds ~5s, improves structure)
+      - key: USE_FULL_AI_PIPELINE
+        value: "false"     # lean pipeline: single Haiku/Sonnet call + local scoring
+
+      - key: USE_OPUS_BLUEPRINT
+        value: "false"     # set to true only after validating Opus cost/latency in production
+
+      # ── Keep-warm ──────────────────────────────────────────────────────────────
+      # Self-ping URL used to prevent cold starts on Render starter plan.
+      # Set this to your Render service URL or custom domain (no trailing slash).
+      - key: RENDER_EXTERNAL_URL
+        value: https://dreamtalez.onrender.com

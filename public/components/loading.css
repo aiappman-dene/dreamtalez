@@ -1,0 +1,174 @@
+/* ============================================================================
+   DreamTalez Magical Loading Experience
+   ----------------------------------------------------------------------------
+   The emotional beginning of bedtime, not a spinner.
+   Visual atmosphere: moonlight gradient · drifting stars · soft lantern glow.
+
+   Performance budget:
+     · transform/opacity only (GPU-cheap)
+     · long, slow durations so motion is barely perceptible
+     · ≤ 8 animated elements total
+     · respects prefers-reduced-motion (atmosphere stills, message rotation
+       remains so the experience still feels alive)
+   ============================================================================ */
+
+/* ─── Atmospheric backdrop — moon + stars + lantern ─────────────────────── */
+
+#story-loading.loading-overlay {
+  background: #0b1020;
+}
+
+/* The pre-existing ::before is disabled in styles/modals.css; this container
+   remains hidden so the loading screen has one controlled surface only. */
+
+.dt-loading-atmosphere {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ─── Soft moonlight halo above the content ──────────────────────────────── */
+
+.dt-loading-moonlight {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(420px, 70vw);
+  height: min(420px, 70vw);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255, 245, 220, 0.18) 0%,
+    rgba(255, 230, 200, 0.08) 35%,
+    transparent 65%);
+  filter: blur(2px);
+  animation: dt-moonlight-breathe 9s ease-in-out infinite;
+}
+
+@keyframes dt-moonlight-breathe {
+  0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(1.00); }
+  50%      { opacity: 1.00; transform: translateX(-50%) scale(1.04); }
+}
+
+/* ─── Drifting stars ─────────────────────────────────────────────────────── */
+
+.dt-loading-star {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 240, 220, 0.7) 50%, transparent 70%);
+  box-shadow: 0 0 6px rgba(255, 240, 220, 0.55);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.dt-loading-star.s1 { top: 22%; left: 14%; animation: dt-star-drift-a 14s ease-in-out infinite; }
+.dt-loading-star.s2 { top: 32%; left: 78%; animation: dt-star-drift-b 17s ease-in-out infinite 1.4s; }
+.dt-loading-star.s3 { top: 58%; left: 22%; animation: dt-star-drift-a 16s ease-in-out infinite 3s; }
+.dt-loading-star.s4 { top: 70%; left: 70%; animation: dt-star-drift-b 19s ease-in-out infinite 2s; }
+.dt-loading-star.s5 { top: 18%; left: 56%; animation: dt-star-drift-a 18s ease-in-out infinite 5s; }
+.dt-loading-star.s6 { top: 80%; left: 40%; animation: dt-star-drift-b 15s ease-in-out infinite 4s; }
+
+@keyframes dt-star-drift-a {
+  0%   { transform: translate3d(0, 0, 0)     scale(0.8); opacity: 0; }
+  20%  { opacity: 0.85; }
+  50%  { transform: translate3d(8px, -10px, 0) scale(1.0); opacity: 1; }
+  80%  { opacity: 0.85; }
+  100% { transform: translate3d(0, 0, 0)     scale(0.8); opacity: 0; }
+}
+
+@keyframes dt-star-drift-b {
+  0%   { transform: translate3d(0, 0, 0)      scale(0.8); opacity: 0; }
+  25%  { opacity: 0.8; }
+  50%  { transform: translate3d(-6px, -12px, 0) scale(1.05); opacity: 1; }
+  75%  { opacity: 0.8; }
+  100% { transform: translate3d(0, 0, 0)      scale(0.8); opacity: 0; }
+}
+
+/* ─── Lantern glow (anchors the message visually) ────────────────────────── */
+
+.dt-loading-lantern {
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255, 198, 140, 0.55) 0%,
+    rgba(255, 175, 110, 0.30) 35%,
+    rgba(255, 160, 100, 0.12) 60%,
+    transparent 80%);
+  filter: blur(1px);
+  animation: dt-lantern-flicker 5.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes dt-lantern-flicker {
+  0%, 100% { opacity: 0.85; transform: translateX(-50%) scale(0.98); }
+  35%      { opacity: 1.00; transform: translateX(-50%) scale(1.04); }
+  70%      { opacity: 0.92; transform: translateX(-50%) scale(1.01); }
+}
+
+/* ─── Existing glow-orb softened ─────────────────────────────────────────── */
+
+#story-loading .glow-orb {
+  /* The original orb still works; soften its bounce so it feels sleepy. */
+  animation: dt-orb-breathe 4.5s ease-in-out infinite;
+  box-shadow:
+    0 0 22px rgba(255, 220, 240, 0.35),
+    0 0 44px rgba(160, 196, 255, 0.18);
+}
+
+@keyframes dt-orb-breathe {
+  0%, 100% { transform: translateY(0) scale(0.96); }
+  50%      { transform: translateY(-6px) scale(1.04); }
+}
+
+/* ─── Message fade transition ────────────────────────────────────────────── */
+
+.dt-loading-title {
+  /* Token-driven: see components/motion-tokens.css for the duration/easing scale. */
+  transition: opacity var(--dt-dur-message, 700ms) var(--dt-ease-soft, ease);
+  opacity: 1;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 16px rgba(255, 220, 240, 0.18);
+}
+
+.dt-loading-title.dt-loading-fade-out {
+  opacity: 0;
+}
+
+#story-loading .loading-content {
+  /* Keep content above atmosphere layers. */
+  position: relative;
+  z-index: 1;
+  padding: 0 24px;
+  max-width: 520px;
+}
+
+#story-loading .loading-sub {
+  margin-top: 12px;
+  letter-spacing: 0.02em;
+  opacity: 0.55;
+}
+
+/* ─── Reduced motion: keep the message rotation, calm the atmosphere ─────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .dt-loading-star,
+  .dt-loading-moonlight,
+  .dt-loading-lantern,
+  #story-loading .glow-orb {
+    animation: none !important;
+    opacity: 0.6;
+  }
+  .dt-loading-title {
+    /* Reduced motion: tokens already trim --dt-dur-message; keep the line
+       in case the cascade reaches us before motion-tokens.css. */
+    transition: opacity var(--dt-dur-message, 350ms) var(--dt-ease-soft, ease);
+  }
+}

@@ -1,0 +1,157 @@
+/* ============================================================================
+   DreamTalez Story Reading Typography
+   ----------------------------------------------------------------------------
+   "A beautifully lit bedtime storybook under soft moonlight."
+
+   Loaded after style.css so same-specificity rules win on cascade order.
+   This file ONLY refines:
+     · .story-output  — the primary story surface
+     · .reading-text  — the alternate reading view
+     · .story-paragraph — typographic balance (visual transitions stay in
+                          components/story-reveal.css; we never touch those)
+
+   Specificity is intentionally kept at (0,1,0) on the base rules so existing
+   accessibility variants (.reading-mode.dyslexia, .reading-mode.dark,
+   body.dyslexia, body.neuro) — which use higher specificity in style.css —
+   continue to override us. We're polishing the default; we're not fighting
+   the existing accessibility system.
+
+   Performance:
+     · CSS-only, no JS
+     · transform/opacity untouched (so reveal stays compositor-friendly)
+     · single additional Google font (Lora) loaded with font-display: swap
+   ============================================================================ */
+
+/* ─── Reading column constraint ─────────────────────────────────────────────
+   Constrained to ~38rem (~608px) — the comfortable English prose column,
+   roughly 60-70 characters wide. Centered with auto margins so it sits
+   under moonlight rather than spreading edge-to-edge.
+   ─────────────────────────────────────────────────────────────────────── */
+
+.story-output,
+.reading-text {
+  max-width: 38rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ─── Story output: the moonlit reading surface ─────────────────────────── */
+
+.story-output {
+  /* Typography — Lora is a warm storybook serif with soft curves; falls
+     back gracefully through Iowan Old Style (iOS) and Georgia. */
+  font-family: "Lora", "Iowan Old Style", "Georgia", "Times New Roman", serif;
+  font-size: 1.075rem;
+  line-height: 1.85;
+  letter-spacing: 0.012em;
+
+  /* Moonlight cream — easier on the eyes than pure white before sleep. */
+  color: #f4ecdc;
+
+  /* Dark translucent surface — flat, no warm top glow. */
+  background: linear-gradient(180deg, rgba(22, 18, 56, 0.95) 0%, rgba(28, 22, 70, 0.97) 100%);
+  border: 1px solid rgba(123, 97, 255, 0.10);
+  border-radius: 18px;
+  padding: 28px 30px;
+
+  /* Gentle depth — soft shadow only. */
+  box-shadow:
+    0 30px 80px -28px rgba(0, 0, 0, 0.55),
+    0 6px 16px -8px rgba(60, 30, 120, 0.30);
+
+  /* Allow modern browsers to render text more elegantly. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+/* Paragraph rhythm — generous breathing room between stanzas. */
+.story-paragraph {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  margin: 0 0 1.55em;
+}
+
+.story-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Italic body text (memories, lullaby fragments) reads softer in Lora italic. */
+.story-output em,
+.reading-text em {
+  font-style: italic;
+  color: rgba(244, 236, 220, 0.92);
+}
+
+/* ─── Mobile-first sizing ───────────────────────────────────────────────── */
+
+@media (max-width: 540px) {
+  .story-output {
+    padding: 22px 22px;
+    font-size: 1.04rem;
+    border-radius: 14px;
+    /* Slightly tighter shadow so it doesn't feel heavy on small screens. */
+    box-shadow:
+      0 18px 44px -20px rgba(0, 0, 0, 0.5);
+  }
+  .story-paragraph {
+    margin-bottom: 1.4em;
+  }
+}
+
+/* ─── Larger viewports: a touch more presence ──────────────────────────── */
+
+@media (min-width: 900px) {
+  .story-output {
+    padding: 36px 44px;
+    font-size: 1.1rem;
+    border-radius: 22px;
+  }
+  .story-paragraph {
+    margin-bottom: 1.65em;
+  }
+}
+
+/* ─── Reading view (full-screen reading surface) ────────────────────────── */
+
+.reading-text {
+  font-family: "Lora", "Iowan Old Style", "Georgia", "Times New Roman", serif;
+  font-size: 1.16rem;
+  line-height: 1.9;
+  letter-spacing: 0.012em;
+  color: #f4ecdc;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+.reading-text .story-paragraph {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  margin: 0 0 1.6em;
+}
+
+.reading-text .story-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 900px) {
+  .reading-text {
+    font-size: 1.2rem;
+  }
+  .reading-text .story-paragraph {
+    margin-bottom: 1.7em;
+  }
+}
+
+/* ─── User text-scaling support ─────────────────────────────────────────── */
+
+/* Honor system font-size preferences. By keeping all sizes in rem,
+   browser zoom and OS-level text scaling work as expected. No fixed px. */

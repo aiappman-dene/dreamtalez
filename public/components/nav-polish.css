@@ -1,0 +1,190 @@
+/* ============================================================================
+   DreamTalez Navigation Polish
+   ----------------------------------------------------------------------------
+   Refines the bottom navigation so every interaction feels:
+     soft · premium · calm · polished · emotionally cohesive
+
+   Loaded after style.css so same-specificity rules win on cascade order.
+   Uses motion tokens from components/motion-tokens.css.
+
+   What this file changes (additive, no DOM edits):
+     · breathable padding + spacing
+     · soft moonlit active state (replaces harsh gold drop-shadow)
+     · gentle hover fade (replaces hard color jump)
+     · tactile press feedback (subtle scale, no bounce)
+     · cream-amber CTA gradient on the central + (matches Tonight's Story
+       hero so the app's interaction surfaces feel emotionally cohesive)
+     · focus-visible halo for keyboard accessibility
+     · prefers-reduced-motion respect
+
+   Pure CSS. transform/opacity only. GPU-friendly.
+   ============================================================================ */
+
+/* ─── Bar atmosphere ──────────────────────────────────────────────────────── */
+
+.bottom-nav {
+  /* Slightly warmer translucent backdrop — moonlit instead of cold purple-rim. */
+  background: rgba(14, 10, 32, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px) saturate(1.12);
+  backdrop-filter: blur(10px) saturate(1.12);
+  box-shadow:
+    0 -1px 0 rgba(255, 240, 220, 0.04) inset,
+    0 -8px 24px -14px rgba(0, 0, 0, 0.6);
+}
+
+/* ─── Nav items: breathing room + gentle motion ──────────────────────────── */
+
+.nav-item {
+  position: relative;            /* anchor the ::before active pill */
+  gap: 4px;                      /* a touch more breathing between icon & label */
+  padding: 10px 12px;            /* slightly roomier hit area */
+  color: rgba(244, 236, 220, 0.55);
+  /* Cohesive motion: opacity, transform, color, all on the soft token scale. */
+  transition:
+    color     var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease),
+    transform var(--dt-dur-fast,   180ms) var(--dt-ease-soft, ease),
+    opacity   var(--dt-dur-fast,   180ms) var(--dt-ease-soft, ease);
+}
+
+/* Soft moonlit pill behind the active item. Not a hard background — a
+   warm halo that makes the current page feel "softly highlighted." */
+.nav-item::before {
+  content: "";
+  position: absolute;
+  inset: 6px 8px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 38%,
+      rgba(255, 220, 180, 0.12) 0%,
+      rgba(255, 220, 180, 0.05) 52%,
+      transparent 76%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dt-dur-medium, 280ms) var(--dt-ease-rise, ease);
+  z-index: 0;
+}
+
+.nav-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── States ──────────────────────────────────────────────────────────────── */
+
+.nav-item:hover {
+  color: rgba(244, 236, 220, 0.85);
+}
+.nav-item:hover::before {
+  opacity: 0.45;
+}
+
+.nav-item:focus-visible {
+  outline: none;
+}
+.nav-item:focus-visible::before {
+  /* Faint halo so keyboard focus is visible without being loud. */
+  opacity: 0.6;
+}
+
+/* Tactile press — subtle, calm, never bouncy. */
+.nav-item:active {
+  transform: scale(0.97);
+}
+
+/* Active state — replace the harsh gold drop-shadow with moonlit warmth. */
+.nav-item.active {
+  color: #f9efd8;
+  /* Drop the existing drop-shadow filter — the pill carries the highlight now. */
+  filter: none;
+}
+.nav-item.active::before {
+  opacity: 1;
+}
+
+/* Soft icon glow on the active item only — gentle, not glaring. */
+.nav-item.active .nav-icon {
+  filter: drop-shadow(0 0 8px rgba(255, 220, 180, 0.40));
+  transition: filter var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease);
+}
+
+/* Icon rhythm — slightly larger, more presence. */
+.nav-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  transition: transform var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease);
+}
+
+/* Tiny lift on hover for the icon — barely perceptible, premium. */
+.nav-item:hover .nav-icon {
+  transform: translateY(-1px);
+}
+
+/* Label rhythm */
+.nav-label {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.22px;
+  white-space: nowrap;
+  opacity: 0.85;
+  transition: opacity var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease);
+}
+.nav-item.active .nav-label {
+  opacity: 1;
+}
+
+
+/* ─── Central "create" button — warm bedtime cohesion ────────────────────── */
+
+.nav-create {
+  background: linear-gradient(135deg, #7b61ff 0%, #ff6ec7 100%);
+  color: #fff;
+  font-weight: 500;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.15) inset,
+    0 8px 22px -8px rgba(123, 97, 255, 0.55),
+    0 2px 6px -2px rgba(40, 20, 70, 0.4);
+  transition:
+    transform  var(--dt-dur-fast,   180ms) var(--dt-ease-soft, ease),
+    box-shadow var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease),
+    filter     var(--dt-dur-medium, 280ms) var(--dt-ease-soft, ease);
+}
+
+.nav-create:hover,
+.nav-create:focus-visible {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.2) inset,
+    0 12px 30px -10px rgba(123, 97, 255, 0.65),
+    0 3px 8px -2px rgba(40, 20, 70, 0.45);
+  outline: none;
+}
+
+.nav-create:active {
+  /* Calm tactile press — matches .nav-item, no jumpy 0.92 snap. */
+  transform: scale(var(--dt-press-scale, 0.985));
+}
+
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item,
+  .nav-icon,
+  .nav-label,
+  .nav-item::before,
+  .nav-create {
+    transition: none;
+  }
+  .nav-item:hover,
+  .nav-item:active,
+  .nav-create:hover,
+  .nav-create:focus-visible,
+  .nav-create:active {
+    transform: none;
+  }
+  .nav-item:hover .nav-icon {
+    transform: none;
+  }
+}

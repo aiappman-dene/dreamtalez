@@ -1,0 +1,107 @@
+﻿/* =============================================================================
+   DreamTalez accessibility
+   ============================================================================= */
+
+/* =============================================================================
+   Accessibility Modes: Dyslexia Friendly & Neurodivergent Friendly
+   ============================================================================= */
+body.dyslexia, .dyslexia .reading-mode, .dyslexia .custom-section, .dyslexia .card, .dyslexia .story-output {
+  font-family: 'Lexend', 'Nunito', 'Segoe UI', Arial, sans-serif !important;
+  letter-spacing: 0.04em;
+  word-spacing: 0.08em;
+}
+body.dyslexia .custom-section-title, body.dyslexia h1, body.dyslexia h2, body.dyslexia h3, body.dyslexia .section-title {
+  font-family: 'Lexend', 'Nunito', 'Segoe UI', Arial, sans-serif !important;
+  font-weight: 800;
+}
+body.neuro, .neuro .reading-mode, .neuro .custom-section, .neuro .card, .neuro .story-output {
+  background: #181c2a !important;
+  color: #e6e6f0 !important;
+  font-family: 'Nunito', 'Segoe UI', Arial, sans-serif;
+}
+body.neuro .custom-section-title, body.neuro h1, body.neuro h2, body.neuro h3, body.neuro .section-title {
+  color: #ffd060 !important;
+}
+body.neuro .custom-section, body.neuro .card, body.neuro .story-output {
+  box-shadow: none !important;
+  border-color: #22243a !important;
+}
+body.neuro .story-card, body.neuro .adventure-card, body.neuro .help-card {
+  background: #23243a !important;
+  color: #ffd060 !important;
+  border: 1.5px solid #ffd060 !important;
+  box-shadow: none !important;
+}
+body.neuro .custom-divider {
+  background: #ffd060 !important;
+  opacity: 0.5 !important;
+}
+body.neuro .toggle-slider {
+  background: #ffd060 !important;
+}
+body.neuro .toggle-label input[type="checkbox"]:checked + .toggle-slider {
+  background: #7b61ff !important;
+}
+body.neuro .welcome-stars span,
+body.neuro .teddy-glow,
+body.neuro .teddy-sparkle,
+body.neuro .intro-glow,
+body.neuro .glow-orb,
+body.neuro .skeleton-line::after,
+body.neuro .premium-cta,
+body.neuro .guest-soft-upsell-stars,
+body.neuro .upsell-stars {
+  animation: none !important;
+}
+body.neuro * {
+  transition-duration: 120ms !important;
+}
+
+/* =============================================================================
+   Accessibility Toggles (Settings)
+   ============================================================================= */
+.accessibility-toggle-row {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 10px 0 0 0;
+}
+.toggle-label {
+  display: flex;
+  align-items: center;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+  gap: 10px;
+  cursor: pointer;
+}
+.toggle-label input[type="checkbox"] {
+  display: none;
+}
+.toggle-slider {
+  width: 38px;
+  height: 22px;
+  background: #ccc;
+  border-radius: 22px;
+  position: relative;
+  transition: background 0.2s;
+  margin-right: 8px;
+}
+.toggle-label input[type="checkbox"]:checked + .toggle-slider {
+  background: var(--primary);
+}
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle-label input[type="checkbox"]:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+

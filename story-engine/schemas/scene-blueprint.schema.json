@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Scene Blueprint",
+  "description": "Structured scene plan before prose generation",
+  "type": "object",
+  "required": ["sceneNumber", "title", "purpose"],
+  "properties": {
+    "sceneNumber": { "type": "integer" },
+    "title": { "type": "string" },
+    "purpose": { "type": "string", "description": "Why this scene exists in the narrative" },
+    "setting": {
+      "type": "object",
+      "properties": {
+        "location": { "type": "string" },
+        "timeOfDay": { "type": "string" },
+        "mood": { "type": "string" }
+      }
+    },
+    "characters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "role": { "type": "string" },
+          "emotionalState": { "type": "string" }
+        }
+      }
+    },
+    "plotPoints": {
+      "type": "array",
+      "description": "Key narrative events",
+      "items": { "type": "string" }
+    },
+    "sensoryTargets": {
+      "type": "array",
+      "description": "Required sensory elements",
+      "items": { "type": "string" }
+    },
+    "paceMarking": {
+      "type": "string",
+      "enum": ["calm", "building", "peak", "resolution", "rest"]
+    },
+    "transitionTo": { "type": "string", "description": "How this scene connects to the next" }
+  }
+}

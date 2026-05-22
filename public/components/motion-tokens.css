@@ -1,0 +1,182 @@
+/* ============================================================================
+   DreamTalez Motion Tokens
+   ----------------------------------------------------------------------------
+   The single source of truth for the app's motion language.
+
+   "Moonlight drifting · pages softly turning · a bedtime lamp dimming."
+
+   Three layers in this file:
+     1. Tokens          — CSS custom properties for durations and easings
+     2. Utility classes — opt-in motion patterns (.dt-fade-in, .dt-rise-in, ...)
+     3. Base polish     — soft defaults on <button> with low specificity so
+                          existing component styles continue to win
+
+   Loaded BEFORE the other components/* CSS so consumers can read tokens.
+   Pure CSS. No JS, no animation framework. transform/opacity only.
+   ============================================================================ */
+
+:root {
+  /* ── Duration scale ────────────────────────────────────────────────
+     Bedtime rhythm: unhurried, breathable, calming.
+     Anything below 200ms is for tiny utility feedback only. */
+  --dt-dur-fast:    180ms;   /* button taps, micro-feedback */
+  --dt-dur-medium:  280ms;   /* default UI transitions */
+  --dt-dur-slow:    450ms;   /* emotional transitions */
+  --dt-dur-overlay: 600ms;   /* modal / overlay enter & leave */
+  --dt-dur-message: 700ms;   /* loading message cross-fade */
+  --dt-dur-reveal:  900ms;   /* story-paragraph reveal */
+
+  /* ── Easing curves ─────────────────────────────────────────────────
+     Soft cubic-bezier curves. No bounce, no spring, no elastic.
+     If you ever feel the urge for "ease", reach for one of these instead. */
+  --dt-ease-soft:   cubic-bezier(0.25, 0.46, 0.45, 0.94);  /* general soft ease */
+  --dt-ease-rise:   cubic-bezier(0.22, 0.61, 0.36, 1);     /* entries — slight ease-in, settles cleanly */
+  --dt-ease-settle: cubic-bezier(0.4, 0.0, 0.2, 1);        /* exits — calm settle */
+
+  /* ── Motion offsets ────────────────────────────────────────────────
+     Translate amounts. Bedtime motion is small — a sleepy lift, not a leap. */
+  --dt-rise-amount:    8px;   /* default rise distance for fade-in patterns */
+  --dt-overlay-rise:  12px;   /* slightly more for modals so they feel "lifted" */
+
+  /* ── Tactile feedback ──────────────────────────────────────────── */
+  --dt-press-scale: 0.985;   /* button press scale — subtle, not bouncy */
+}
+
+
+/* ============================================================================
+   Utility motion classes (opt-in)
+   ----------------------------------------------------------------------------
+   Add these classes when you want premium motion. Existing UI is unaffected.
+   ============================================================================ */
+
+.dt-fade-in {
+  animation: dt-fade-in var(--dt-dur-medium) var(--dt-ease-rise) both;
+}
+
+.dt-fade-out {
+  animation: dt-fade-out var(--dt-dur-medium) var(--dt-ease-settle) both;
+}
+
+.dt-rise-in {
+  animation: dt-rise-in var(--dt-dur-slow) var(--dt-ease-rise) both;
+}
+
+.dt-rise-out {
+  animation: dt-rise-out var(--dt-dur-slow) var(--dt-ease-settle) both;
+}
+
+.dt-modal-enter {
+  animation: dt-modal-enter var(--dt-dur-overlay) var(--dt-ease-rise) both;
+}
+
+.dt-modal-leave {
+  animation: dt-modal-leave var(--dt-dur-overlay) var(--dt-ease-settle) both;
+}
+
+.dt-overlay-enter {
+  animation: dt-overlay-enter var(--dt-dur-overlay) var(--dt-ease-rise) both;
+}
+
+.dt-overlay-leave {
+  animation: dt-overlay-leave var(--dt-dur-overlay) var(--dt-ease-settle) both;
+}
+
+@keyframes dt-fade-in   { from { opacity: 0; }                                                to { opacity: 1; } }
+@keyframes dt-fade-out  { from { opacity: 1; }                                                to { opacity: 0; } }
+@keyframes dt-rise-in   { from { opacity: 0; transform: translateY(var(--dt-rise-amount)); } to { opacity: 1; transform: translateY(0); } }
+@keyframes dt-rise-out  { from { opacity: 1; transform: translateY(0); }                     to { opacity: 0; transform: translateY(var(--dt-rise-amount)); } }
+@keyframes dt-modal-enter   { from { opacity: 0; transform: translateY(var(--dt-overlay-rise)); } to { opacity: 1; transform: translateY(0); } }
+@keyframes dt-modal-leave   { from { opacity: 1; transform: translateY(0); }                      to { opacity: 0; transform: translateY(var(--dt-overlay-rise)); } }
+@keyframes dt-overlay-enter { from { opacity: 0; }                                                to { opacity: 1; } }
+@keyframes dt-overlay-leave { from { opacity: 1; }                                                to { opacity: 0; } }
+
+
+/* ============================================================================
+   Base interaction polish
+   ----------------------------------------------------------------------------
+   Element-level (low-specificity) defaults so any component's class-based
+   rules continue to win. Where existing buttons declare their own transition,
+   it fully replaces this default — cleanly, with no fight.
+   ============================================================================ */
+
+button {
+  transition:
+    opacity          var(--dt-dur-fast)   var(--dt-ease-soft),
+    transform        var(--dt-dur-fast)   var(--dt-ease-soft),
+    background-color var(--dt-dur-medium) var(--dt-ease-soft),
+    border-color     var(--dt-dur-medium) var(--dt-ease-soft),
+    box-shadow       var(--dt-dur-medium) var(--dt-ease-soft),
+    color            var(--dt-dur-medium) var(--dt-ease-soft);
+}
+
+/* Opt-in tactile feedback for buttons. Existing buttons stay calm by default;
+   apply .dt-press to add a soft press scale without a bounce. */
+.dt-press:active {
+  transform: scale(var(--dt-press-scale));
+}
+
+/* Opt-in soft hover lift for cards/buttons that want it. */
+.dt-lift {
+  transition:
+    transform        var(--dt-dur-medium) var(--dt-ease-soft),
+    box-shadow       var(--dt-dur-medium) var(--dt-ease-soft),
+    background-color var(--dt-dur-medium) var(--dt-ease-soft);
+}
+.dt-lift:hover,
+.dt-lift:focus-visible {
+  transform: translateY(-2px);
+}
+
+
+/* ============================================================================
+   Visibility helpers
+   ----------------------------------------------------------------------------
+   Opt-in alternative to display:none toggling. Use .dt-show/.dt-hide on an
+   element you want to fade rather than snap. The element must keep its
+   layout (no display:none) — the parent decides when to actually unmount.
+   ============================================================================ */
+
+.dt-show {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity var(--dt-dur-medium) var(--dt-ease-rise);
+}
+
+.dt-hide {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dt-dur-medium) var(--dt-ease-settle);
+}
+
+
+/* ============================================================================
+   Reduced motion
+   ----------------------------------------------------------------------------
+   Preserve emotional softness — keep fades, drop movement.
+   We don't zero durations entirely (jarring); we trim and remove translate.
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    /* Trim fast utility transitions to feel instantaneous-but-soft. */
+    --dt-dur-fast:    80ms;
+    --dt-dur-medium:  120ms;
+    --dt-dur-slow:    160ms;
+    --dt-dur-overlay: 200ms;
+    --dt-dur-message: 200ms;
+    --dt-dur-reveal:  0ms;
+
+    /* No translation in reduced motion. */
+    --dt-rise-amount:   0px;
+    --dt-overlay-rise:  0px;
+    --dt-press-scale:   1;
+  }
+
+  .dt-rise-in,
+  .dt-rise-out,
+  .dt-modal-enter,
+  .dt-modal-leave {
+    /* Fall back to pure fades — keep the emotional handoff, drop the lift. */
+    animation-duration: var(--dt-dur-overlay);
+  }
+}

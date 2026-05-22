@@ -1,0 +1,229 @@
+/* =============================================================================
+   DreamTalez Layout — v2 clean
+   Spacing, page containers, scroll areas, nav bar.
+   No visual decoration here — only structural geometry.
+   ============================================================================= */
+
+/* ── App shell ────────────────────────────────────────────── */
+.app-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background: #0b1020;
+  /* iOS notch / Dynamic Island / status bar — keeps content below the system chrome.
+     On Android this resolves to 0px. On web it resolves to 0px (no effect). */
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ── Pages — full-screen stacked panels ──────────────────── */
+.page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.page.hidden { display: none !important; }
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: scale(0.985) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)     translateY(0);   }
+}
+
+.page:not(.hidden) {
+  animation: pageEnter 320ms ease-out forwards;
+}
+
+/* ── Scrollable content area ─────────────────────────────── */
+.page-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  /* Side: 16px   Bottom: nav + safe area + breathing room    */
+  padding: 0 16px calc(var(--nav-height) + 20px + env(safe-area-inset-bottom, 0px));
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Inner pages (everything except home) — centred column */
+.page-scroll:not(.home-scroll) {
+  max-width: 560px;
+  margin: 0 auto;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+/* Home scroll — hero is full-bleed, no side padding at root level */
+.home-scroll {
+  padding: 0 0 calc(var(--nav-height) + 20px + env(safe-area-inset-bottom, 0px));
+  max-width: none;
+}
+
+/* Cards/banners inside home scroll get their own horizontal margin */
+.home-scroll .card,
+.home-scroll .paywall-card,
+.home-scroll .welcome-banner {
+  margin: 16px 16px 0;
+}
+
+/* ── Auth page — vertically centred ─────────────────────── */
+.auth-page .page-scroll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 32px;
+}
+.auth-page .auth-card { width: 100%; max-width: 400px; }
+
+/* ── Inner-page card stacking ───────────────────────────── */
+/* Consecutive cards in inner pages get a gap between them.  */
+.page-scroll:not(.home-scroll) .card {
+  margin-bottom: 12px;
+}
+.page-scroll:not(.home-scroll) .card:last-of-type {
+  margin-bottom: 0;
+}
+
+/* ── Page header (back btn · title · spacer) ─────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0 20px;
+  gap: 12px;
+}
+
+.page-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-light);
+  text-align: center;
+  flex: 1;
+  letter-spacing: -0.2px;
+  margin: 0;
+}
+
+.page-header-spacer {
+  width: 64px;
+  flex-shrink: 0;
+}
+
+/* ── Back button ─────────────────────────────────────────── */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-family: var(--font);
+  padding: 6px 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 64px;
+  transition: color 0.18s;
+  -webkit-tap-highlight-color: transparent;
+}
+.back-btn:hover { color: rgba(255, 255, 255, 0.95); }
+
+/* ── Bottom navigation bar ────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
+  background: rgba(10, 5, 30, 0.90);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  backdrop-filter: blur(12px) saturate(1.15);
+  box-shadow: 0 -8px 28px -18px rgba(0, 0, 0, 0.70);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 10px 12px;
+  font-family: var(--font);
+  transition: color var(--transition);
+  -webkit-tap-highlight-color: transparent;
+  flex: 1;
+}
+
+.nav-item:hover { color: var(--text-light); }
+.nav-item.active { color: #ffffff; filter: none; }
+
+.nav-icon {
+  font-size: 1.38rem;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* ── Offline-ready pill ──────────────────────────────────── */
+.offline-ready-pill {
+  position: fixed;
+  bottom: calc(var(--nav-height) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(76, 175, 147, 0.12);
+  border: 1px solid rgba(76, 175, 147, 0.35);
+  color: var(--success, #4caf93);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  white-space: nowrap;
+}
+.offline-ready-pill.visible { opacity: 1; }
+
+/* ── Dialect toggle (settings) ───────────────────────────── */
+.dialect-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.dialect-btn { width: 100%; }
+.dialect-btn.active {
+  background: var(--primary);
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 1px rgba(74, 111, 174, 0.35), 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+.dialect-status { margin-top: 12px; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .card { padding: 18px 16px; border-radius: var(--radius-md); }
+  .page-header { padding: 14px 0 18px; }
+}

@@ -1,0 +1,58 @@
+{
+  "version": "1.0.0",
+  "locked": true,
+  "description": "Thresholds for all validation passes — authored by Opus, enforced at runtime",
+
+  "quality_thresholds": {
+    "minOverallScore": 60,
+    "minEmotionalWarmth": 55,
+    "minBedtimeSoftness": 50,
+    "minCinematicFlow": 40,
+    "maxRepetitionRisk": 50
+  },
+
+  "word_count": {
+    "hardMin": 1100,
+    "hardMax": 1600,
+    "softMin": 1200,
+    "softMax": 1500
+  },
+
+  "paragraph_count": {
+    "min": 6,
+    "max": 25
+  },
+
+  "ending_signals": {
+    "minimumRequired": 3,
+    "signals": ["sleep","dream","drifted","closed","quiet","softly","warmly","safe","blanket","stars","moonlight","hush","still","peaceful","rest"]
+  },
+
+  "stimulation_check": {
+    "applyInFinalPercent": 30,
+    "forbidden": ["suddenly","exploded","crashed","screamed","ran","rushed","danger","chased","terrified","shock","alarm","burst","roared"]
+  },
+
+  "sentiment_checks": {
+    "forbiddenOpeners": ["once upon a time","there was a child named","there once was a","in a land far away","long long ago"],
+    "minEmotionalAnchors": 4,
+    "emotionalAnchors": ["brave","kind","loved","safe","wonder","magical","cozy","cosy","warm","gentle","home","together","belong","courage","smile","laugh","comfort","peace","dream"]
+  },
+
+  "final_sentence": {
+    "maxWords": 10,
+    "mustEndWithTerminalPunctuation": true
+  },
+
+  "family_magic_checks": {
+    "comfortAnchorInEnding": true,
+    "childIsHero": true,
+    "maxFamilyMemberAppearances": 1
+  },
+
+  "severity_levels": {
+    "high": { "blocksDelivery": true },
+    "medium": { "blocksDelivery": true, "triggerRefinement": true },
+    "low": { "blocksDelivery": false, "logsOnly": true }
+  }
+}

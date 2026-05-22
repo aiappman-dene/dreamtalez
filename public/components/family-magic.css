@@ -1,0 +1,250 @@
+/* =============================================================================
+   Family Magic — card variant + onboarding modal
+   ============================================================================= */
+
+
+/* ─── Story card badge ──────────────────────────────────────────────────────── */
+
+.card-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #f6c453 0%, #ffaa33 100%);
+  color: #1a0a00;
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+
+/* ─── Family Magic modal overlay ───────────────────────────────────────────── */
+
+.fm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(6, 3, 20, 0.78);
+  animation: pageEnter 240ms ease forwards;
+  padding: 0;
+}
+
+.fm-modal-overlay.hidden {
+  display: none;
+}
+
+.fm-modal {
+  position: relative;
+  background: linear-gradient(180deg, #160830 0%, #0b0420 100%);
+  border: 1px solid rgba(246, 196, 83, 0.18);
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 520px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  padding: 28px 24px 40px;
+  box-shadow:
+    0 -16px 48px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(246, 196, 83, 0.06);
+}
+
+.fm-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+.fm-modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+
+/* ─── Modal header ──────────────────────────────────────────────────────────── */
+
+.fm-modal-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.fm-modal-icon {
+  font-size: 36px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.fm-modal-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gold);
+  margin: 0 0 8px;
+}
+
+.fm-modal-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.5;
+  margin: 0;
+}
+
+
+/* ─── Sections ──────────────────────────────────────────────────────────────── */
+
+.fm-section {
+  margin-bottom: 24px;
+}
+
+.fm-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.02em;
+  margin: 0 0 12px;
+}
+
+
+/* ─── Inputs ────────────────────────────────────────────────────────────────── */
+
+.fm-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color 200ms ease;
+  width: auto;
+}
+
+.fm-input:focus {
+  border-color: rgba(246, 196, 83, 0.4);
+}
+
+.fm-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.fm-input-full {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.fm-member-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fm-member-row .fm-input {
+  flex: 1;
+  min-width: 100px;
+}
+
+.fm-add-btn {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+
+/* ─── Member chips ──────────────────────────────────────────────────────────── */
+
+.fm-member-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.fm-member-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(246, 196, 83, 0.1);
+  border: 1px solid rgba(246, 196, 83, 0.22);
+  border-radius: 20px;
+  padding: 5px 12px 5px 14px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.fm-member-chip button {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 150ms ease;
+}
+
+.fm-member-chip button:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+
+/* ─── Comfort item grid ─────────────────────────────────────────────────────── */
+
+.fm-comfort-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.fm-comfort-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 11px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background  180ms ease,
+    border-color 180ms ease,
+    color        180ms ease;
+}
+
+.fm-comfort-item.selected,
+.fm-comfort-item:hover {
+  background: rgba(246, 196, 83, 0.12);
+  border-color: rgba(246, 196, 83, 0.35);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+
+/* ─── Save button ───────────────────────────────────────────────────────────── */
+
+.fm-save-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 700;
+}

@@ -1,0 +1,43 @@
+{
+  "version": "1.0.0",
+  "locked": true,
+  "description": "Story and character consistency enforcement rules",
+
+  "character_rules": {
+    "childName": { "consistent": true, "minAppearances": 3 },
+    "childPronoun": { "consistent": true },
+    "characterPersonality": { "mustMatchIntroduction": true },
+    "supportingCharacters": { "maxAppearances": { "default": 2 }, "voiceConsistent": true }
+  },
+
+  "world_rules": {
+    "primarySetting": { "singleSettingPerStory": true, "reinforceEveryNParagraphs": 4 },
+    "magicRules": { "consistent": true },
+    "timeline": { "causal": true, "noUnexplainedGaps": true },
+    "objects": { "introducedObjectsMayReappear": true, "cannotDisappearUnexplained": true }
+  },
+
+  "goal_continuity": {
+    "want": { "establishByStage": 2, "resolvedOnPage": true, "cannotBeAbandoned": true },
+    "need": { "presentAtHeartMoment": true, "resolvedEmotionally": true }
+  },
+
+  "family_magic_continuity": {
+    "comfortItemMaxAppearances": 2,
+    "familyMemberMaxAppearances": 1,
+    "namesMatchProfile": true,
+    "magicalPlaceCanShapeWorld": true
+  },
+
+  "language_continuity": {
+    "noDialectMixing": true,
+    "noEnglishLeakInNonEnglish": true,
+    "childNameFormConsistent": true
+  },
+
+  "series_continuity": {
+    "worldRulesCarryOver": true,
+    "companionIdentityConsistent": true,
+    "emotionalThreadAcknowledged": true
+  }
+}

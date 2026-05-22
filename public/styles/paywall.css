@@ -1,0 +1,242 @@
+﻿/* =============================================================================
+   Trial Banner & Paywall
+   ============================================================================= */
+.trial-banner {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  background: rgba(123, 97, 255, 0.12);
+  border: 1px solid rgba(123, 97, 255, 0.35);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.2px;
+}
+.trial-banner.warning {
+  background: rgba(224, 92, 92, 0.12);
+  border-color: rgba(224, 92, 92, 0.45);
+  color: #ff8b8b;
+}
+.paywall-card { text-align: center; }
+.paywall-note { text-align: center; margin-top: 10px; }
+.paywall-sub {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin: 4px 0 10px;
+}
+.paywall-perks-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 6px 0 2px;
+}
+.paywall-conversion {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+.paywall-pack { margin-top: 8px; }
+.paywall-divider {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 0.85rem;
+  opacity: 0.5;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.paywall-price {
+  margin: 12px 0 4px;
+}
+.paywall-amount {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text-light);
+  letter-spacing: -0.02em;
+}
+.paywall-period {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+.paywall-perks {
+  list-style: none;
+  margin: 14px 0 18px;
+  padding: 0;
+  text-align: left;
+}
+.paywall-perks li {
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: var(--input-bg);
+  border: 1px solid var(--navy-soft);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.paywall-perks li::before {
+  content: "\2605 ";
+  color: var(--purple-primary);
+  margin-right: 4px;
+}
+.option-locked {
+  color: var(--text-muted);
+}
+/* =============================================================================
+   Language Selection Screen
+   ============================================================================= */
+.lang-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 40px;
+  min-height: 100dvh;
+}
+.lang-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.lang-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 8px 0 4px;
+}
+.lang-subtitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+.lang-hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 28px;
+}
+.settings-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+}
+.lang-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, transform 0.12s;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text);
+}
+.lang-btn:hover {
+  border-color: var(--primary-hover);
+  background: var(--navy-soft);
+}
+.lang-btn.selected {
+  border-color: #5b9bd5;
+  background: rgba(91, 155, 213, 0.2);
+  transform: scale(1.03);
+  box-shadow: 0 0 0 1px rgba(91, 155, 213, 0.4);
+}
+.lang-btn .lang-en {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.2;
+}
+.lang-btn .lang-native {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.2;
+}
+.lang-btn-sm {
+  padding: 10px 8px;
+  font-size: 1.2rem;
+}
+.lang-btn-sm .lang-en {
+  font-size: 0.72rem;
+}
+.lang-continue {
+  width: 100%;
+  max-width: 480px;
+}
+.lang-continue:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =============================================================================
+   DreamTalez paywall
+   ============================================================================= */
+
+.paywall {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 10, 20, 0.68);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.paywall > .paywall-card {
+  width: min(520px, 100%);
+  text-align: center;
+  border-radius: 22px;
+  padding: 26px 20px;
+  border: 1px solid rgba(123, 97, 255, 0.28);
+  background: linear-gradient(160deg, rgba(18, 14, 36, 0.96), rgba(31, 22, 56, 0.96));
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.45);
+}
+
+.paywall > .paywall-card h2 {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.paywall > .paywall-card p {
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 16px;
+}
+
+.paywall > .paywall-card .btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+@media (max-width: 560px) {
+  .upsell-panel {
+    padding: 18px 14px 14px;
+    border-radius: 18px;
+  }
+
+  .upsell-title {
+    font-size: 1.2rem;
+  }
+
+  .upsell-copy {
+    font-size: 0.9rem;
+  }
+}
+

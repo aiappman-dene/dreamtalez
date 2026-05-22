@@ -1,0 +1,63 @@
+{
+  "version": "1.0.0",
+  "locked": true,
+  "description": "Prose rhythm, vocabulary, and sentence construction rules",
+
+  "sentence_length_by_section": {
+    "opening":         { "avgWords": 16, "min": 6,  "max": 28 },
+    "adventure":       { "avgWords": 14, "min": 5,  "max": 26 },
+    "middle":          { "avgWords": 12, "min": 4,  "max": 22 },
+    "emotional_moment":{ "avgWords": 10, "min": 3,  "max": 18 },
+    "ending":          { "avgWords": 8,  "min": 3,  "max": 14 },
+    "final_sentence":  { "maxWords": 8 }
+  },
+
+  "paragraph_rules": {
+    "maxSentences": 4,
+    "minSentences": 1,
+    "everyParagraphMustContain": "visual_or_emotional_moment",
+    "noTransitionalOnlyParagraphs": true
+  },
+
+  "forbidden_openers": [
+    "Once upon a time",
+    "There was a child named",
+    "There once was a",
+    "In a land far away",
+    "Long long ago",
+    "One day",
+    "It was a dark"
+  ],
+
+  "forbidden_phrases": [
+    "very happy",
+    "very sad",
+    "suddenly everything was okay",
+    "and they all lived happily ever after",
+    "The End",
+    "to be continued",
+    "stay tuned",
+    "next time"
+  ],
+
+  "required_elements": {
+    "oneElegantLine": true,
+    "showDontTell": true,
+    "comfortAnchorReturn": true,
+    "deceleratingRhythm": true
+  },
+
+  "dialogue_rules": {
+    "maxExchanges": 7,
+    "dialogueInFinalParagraph": false,
+    "dialogueMustCarry": "character_or_emotion_not_both"
+  },
+
+  "age_vocabulary": {
+    "toddler":   { "avgSentenceWords": 7,  "level": "very-simple" },
+    "preschool": { "avgSentenceWords": 10, "level": "simple" },
+    "early":     { "avgSentenceWords": 12, "level": "moderate" },
+    "middle":    { "avgSentenceWords": 15, "level": "rich" },
+    "older":     { "avgSentenceWords": 17, "level": "advanced" }
+  }
+}

@@ -1,0 +1,144 @@
+/* ============================================================================
+   DreamTalez Subliminal Atmosphere
+   ----------------------------------------------------------------------------
+   "A moonlit bedtime world softly breathing around the stories."
+
+   This file is the MICRO-POLISH layer. Three small effects, each tuned
+   so the user feels warmth without consciously noticing motion. If any
+   effect feels obvious to you while looking at the screen, the values
+   in this file are already wrong.
+
+   Effects in scope:
+     1. Subliminal dust motes drifting across the viewport (4 elements,
+        max opacity 0.22, 32–42s cycles) — only when the signed-in app
+        surface is visible
+     2. Reading surface — a soft warm radial inside the story card that
+        drifts a few percent over 38s; sits behind the prose
+     3. Nav active halo — slow opacity breathing on the warm pill that
+        marks the current page (14s)
+
+   Layering note: motes sit at z-index 1, behind:
+     · loading overlay (9998)
+     · soundscape button + panel (110)
+     · bottom nav (100)
+   ...and behind any card with its own background (paywall, story card,
+   tonight's hero, etc.). They only paint over neutral page space.
+
+   Pure CSS. transform/opacity only. GPU-friendly.
+   Tokens from motion-tokens.css.
+   ============================================================================ */
+
+
+/* ─── 0. Atmospheric glow layers — removed at the source ────────────────── */
+
+/* The "blue blob" had its actual source in style.css line ~3348: a second
+   body::before declaration with two radial-gradient blooms (gold + purple,
+   65% radius) layered behind every page. That rule has been removed in
+   style.css directly, restoring the disabled body::before at line ~650.
+
+   No further override needed here. We keep a calmer body background tone
+   so the page reads as quiet deep navy instead of ramping into bright
+   purple-blue at the bottom of the viewport. */
+
+/* Single solid deep moonlit navy. No gradient, no vertical color shift,
+   no perceived blue haze at the bottom. Atmosphere comes from cards,
+   typography, shadows, and motion — never from the page background. */
+body {
+  background: #0b1020;
+}
+
+/* Permanently kill the body::before radial-gradient blooms (gold at 70% 20%
+   + purple at 20% 80%) that were in the old monolithic style.css line ~3348.
+   Using !important so this wins even if an old cached stylesheet is still loaded. */
+body::before,
+body::after {
+  content: none !important;
+  background: none !important;
+}
+
+/* Also retire the pink corner glow on the home hero — small but reads
+   as a colored blob in the upper-right of the personalised profile card. */
+.hero-glow-right {
+  display: none;
+}
+
+
+/* ─── 0b. Story input button polish ─────────────────────────────────────── */
+
+/* .story-hero/.quick-card class names are retired (v2 rebuild uses .sg-prompt
+   and .quick-card with fresh rules in home.css). Only the input row button
+   retains a polish rule here since it's shared across pages. */
+
+.story-input-row button {
+  background: linear-gradient(135deg, #7b61ff 0%, #ff6ec7 100%);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 12px 18px;
+  border: none;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 8px 22px -8px rgba(123, 97, 255, 0.48);
+  transition:
+    transform  180ms ease,
+    box-shadow 280ms ease,
+    filter     280ms ease;
+}
+.story-input-row button:hover,
+.story-input-row button:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  outline: none;
+}
+.story-input-row button:active {
+  transform: scale(0.985);
+}
+
+
+/* ─── 1. Dust motes — disabled ──────────────────────────────────────────── */
+
+/* The page-level drifting "stars" have been removed per direction. Markup
+   stays in index.html (inside #dt-atmosphere) for easy revert; CSS hides
+   the entire container. */
+
+#dt-atmosphere {
+  display: none !important;
+}
+
+
+/* ─── 2. Reading surface ─────────────────────────────────────────────────── */
+
+/* Previously we drifted a warm radial inside .story-output. That has been
+   removed entirely — the story card's own moonlit gradient + shadow (from
+   story-reading.css) carries the warmth, no glow overlay needed. */
+
+
+/* ─── 3. Nav active halo — slow opacity breathing ─────────────────────────── */
+
+/* The active nav item already has a moonlit halo (::before pseudo from
+   nav-polish.css). Here we add a slow 14s opacity breathing so the
+   "you are here" cue feels quietly alive without drawing attention. */
+
+.nav-item.active::before {
+  animation: dt-nav-active-breathe 14s ease-in-out infinite;
+}
+
+@keyframes dt-nav-active-breathe {
+  0%, 100% { opacity: 1.00; }
+  50%      { opacity: 0.78; }
+}
+
+
+/* ─── Reduced motion ──────────────────────────────────────────────────────── */
+
+/* Reduced-motion users still feel atmospheric warmth — we just stop the
+   movement. Motes hold a static low-opacity glow; reading drift settles
+   at its mid-point; nav halo holds at full opacity. */
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item.active::before {
+    animation: none !important;
+    opacity: 1.0;
+  }
+}
