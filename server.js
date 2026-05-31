@@ -1235,17 +1235,11 @@ const USE_OPUS_BLUEPRINT = true;
 //   Blueprint mode: Sonnet designs → Sonnet writes (cost-optimized, quality-maintained)
 //   Validation: Flash for quick checks, Sonnet for final gate
 //   All stories MUST achieve 8/10+ score or be regenerated
+// Locked for Production: Hybrid 1 Sonnet Configuration
+//   Blueprint mode: Sonnet designs → Sonnet writes (cost-optimized, quality-maintained)
+//   Validation: Sonnet for strict 8/10 quality gate
 function getModelConfig({ mode, length } = {}) {
-  if (USE_OPUS_BLUEPRINT) {
-    // Prose writer is always Sonnet when Sonnet handles the blueprint (Hybrid 1)
-    // This saves 60% on blueprint costs while maintaining Disney quality
-    return { model: CLAUDE_MODEL_SONNET, temperature: 0.82 };
-  }
-  if (mode === "hero") {
-    return { model: CLAUDE_MODEL_SONNET, temperature: 0.85 };
-  }
-  // Sonnet for all standard stories — maintains quality while reducing cost
-  return { model: CLAUDE_MODEL_SONNET, temperature: 0.9 };
+  return { model: CLAUDE_MODEL_SONNET, temperature: 0.85 };
 }
 
 async function callClaude({ system, prompt, maxTokens = 1200, temperature = 0.5, model, timeoutMs }) {
