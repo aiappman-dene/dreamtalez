@@ -175,12 +175,29 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.gstatic.com", "https://apis.google.com"],
+      scriptSrc: [
+        "'self'", 
+        "'unsafe-inline'", 
+        "https://www.gstatic.com", 
+        "https://apis.google.com",
+        "https://www.google.com",
+        "https://*.firebaseapp.com"
+      ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://*.stripe.com"],
-      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "https://api.anthropic.com"],
-      frameSrc: ["'self'", "https://*.stripe.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: ["'self'", "data:", "https://*.stripe.com", "https://*.googleusercontent.com"],
+      connectSrc: [
+        "'self'", 
+        "https://*.googleapis.com", 
+        "https://*.firebaseio.com", 
+        "https://*.firebaseapp.com",
+        "https://*.firebasestorage.app",
+        "https://www.gstatic.com",
+        "https://api.anthropic.com",
+        "https://fonts.gstatic.com",
+        "https://www.google.com"
+      ],
+      frameSrc: ["'self'", "https://*.stripe.com", "https://*.firebaseapp.com"],
     },
   },
   crossOriginEmbedderPolicy: false,

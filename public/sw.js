@@ -35,6 +35,13 @@ self.addEventListener('activate', event => {
 });
 
 async function fetchWithCacheFallback(request) {
+  // For external resources like Google Fonts/reCAPTCHA, try cache first to avoid CSP blocks during fetch
+  const isExternal = !request.url.startsWith(self.location.origin);
+  if (isExternal) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+  }
+
   try {
     const response = await fetch(request);
     if (request.method === 'GET' && CACHEABLE_RESOURCE_TYPES.has(request.destination) && response && response.ok) {
@@ -58,7 +65,11 @@ async function fetchWithCacheFallback(request) {
       );
     }
 
-    return new Response('', { status: 204, statusText: 'No Content' });
+    // Return a more professional fallback for missing resources
+    if (request.destination === 'image') {
+      return new Response('', { status: 204 });
+    }
+    return new Response('', { status: 404, statusText: 'Not Found' });
   }
 }
 
