@@ -79,19 +79,18 @@ const _isLocalhost = typeof location !== "undefined" &&
   (location.hostname === "localhost" || location.hostname === "127.0.0.1");
 
 let _appCheck = null;
-if (!_isLocalhost) {
-  try {
-    _appCheck = initializeAppCheck(_app, {
-      provider: new ReCaptchaEnterpriseProvider("6LfsMvcsAAAAAHOJg5HeTOn-QrlVclzH-QF-ffqx"),
-      isTokenAutoRefreshEnabled: true,
-    });
-  } catch (e) {
-    // App Check init failure must never block login or Firestore reads.
-    // Server-side REQUIRE_APP_CHECK protects AI routes independently.
-    console.warn("[AppCheck] init skipped:", e.message);
-    _appCheck = null;
-  }
-}
+// Temporarily disabled to prevent 404 script errors from stalling login on slower connections.
+// if (!_isLocalhost) {
+//   try {
+//     _appCheck = initializeAppCheck(_app, {
+//       provider: new ReCaptchaEnterpriseProvider("6LfsMvcsAAAAAHOJg5HeTOn-QrlVclzH-QF-ffqx"),
+//       isTokenAutoRefreshEnabled: true,
+//     });
+//   } catch (e) {
+//     console.warn("[AppCheck] init skipped:", e.message);
+//     _appCheck = null;
+//   }
+// }
 
 export let auth = getAuth(_app);
 export const db = getFirestore(_app);

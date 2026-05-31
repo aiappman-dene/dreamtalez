@@ -88,19 +88,48 @@ export async function login() {
     btn.textContent = "Logging in...";
   }
 
-  try {
-    await authReady;
-    await signInWithEmailAndPassword(auth, email, password);
+  const MAX_RETRIES = 2;
+  let attempt = 0;
+  let lastError = null;
+
+  while (attempt <= MAX_RETRIES) {
     try {
-      const successDiag = {
-        time: new Date().toISOString(),
-        uid: auth.currentUser?.uid || null,
-        email: auth.currentUser?.email || null,
-        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-      };
-      localStorage.setItem('dt-last-auth-success', JSON.stringify(successDiag));
-    } catch (e) {}
-  } catch (error) {
+      await authReady;
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      // Success!
+      try {
+        const successDiag = {
+          time: new Date().toISOString(),
+          uid: auth.currentUser?.uid || null,
+          email: auth.currentUser?.email || null,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+        };
+        localStorage.setItem('dt-last-auth-success', JSON.stringify(successDiag));
+      } catch (e) {}
+      
+      return; // Exit function on success
+    } catch (error) {
+      lastError = error;
+      console.error(`Login attempt ${attempt + 1} failed:`, error.code || error.message);
+      
+      // Only retry on network errors
+      if (error.code === "auth/network-request-failed" && attempt < MAX_RETRIES) {
+        attempt++;
+        const delay = attempt * 2000; // 2s, 4s
+        showToast(`Connection slow, retrying in ${attempt}s...`, "info");
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
+      
+      // If it's a credential error or we're out of retries, break and show error
+      break;
+    }
+  }
+
+  // If we reach here, all attempts failed
+  const error = lastError;
+  try {
     console.error("Login failed:", error);
     // Persist a short diagnostic record locally so mobile users can share it
     // without remote logging. This helps identify platform-specific issues.
