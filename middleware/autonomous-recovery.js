@@ -30,12 +30,13 @@ export function trackGenerationCost(costUSD, userId, storyName) {
   
   totalSpendThisHour += costUSD;
   
+  // ONLY log if it's a critical cost issue (e.g. > $50 for one story or > $500/hour)
   if (costUSD > RECOVERY_CONFIG.COST_ALERT_THRESHOLD_USD) {
-    console.warn(`[COST_ALERT] High-cost generation: $${costUSD.toFixed(2)} for story "${storyName}" (user: ${userId})`);
+    console.error(`[CRITICAL_BUG] High-cost generation detected: $${costUSD.toFixed(2)} for story "${storyName}" (user: ${userId}). This may indicate a prompt injection or runaway loop.`);
   }
   
   if (totalSpendThisHour > 500) {
-    console.error(`[COST_ALERT] Total spend this hour: $${totalSpendThisHour.toFixed(2)} — possible runaway generation`);
+    console.error(`[CRITICAL_BUG] RUNAWAY SPEND: $${totalSpendThisHour.toFixed(2)} this hour. Emergency shutdown or investigation required.`);
   }
 }
 
@@ -47,21 +48,20 @@ export async function retryWithBackoff(fn, context = {}) {
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`[RETRY] Attempt ${attempt}/${maxRetries} for story "${storyName}" (user: ${userId})`);
+      // SILENT SUCCESS: No logging for successful retries
       return await fn();
     } catch (error) {
       if (attempt === maxRetries) {
-        console.error(`[RETRY_EXHAUSTED] All ${maxRetries} attempts failed for "${storyName}": ${error.message}`);
+        // ONLY log if it actually breaks the app after all retries
+        console.error(`[CRITICAL_BUG] Story generation permanently failed for "${storyName}" after ${maxRetries} attempts. Error: ${error.message}`);
         throw error;
       }
       
-      // Exponential backoff with jitter
       const backoffMs = Math.min(
         RECOVERY_CONFIG.INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1) + Math.random() * 1000,
         RECOVERY_CONFIG.MAX_BACKOFF_MS
       );
       
-      console.warn(`[RETRY_BACKOFF] Waiting ${backoffMs}ms before retry for "${storyName}"`);
       await new Promise(resolve => setTimeout(resolve, backoffMs));
     }
   }
@@ -71,31 +71,16 @@ export async function retryWithBackoff(fn, context = {}) {
  * Autonomous health check - runs periodically to ensure system is healthy
  */
 export function performHealthCheck() {
-  const health = {
-    timestamp: new Date().toISOString(),
-    status: 'healthy',
-    metrics: {
-      totalSpendThisHour: totalSpendThisHour.toFixed(2),
-      uptime: process.uptime(),
-      memoryUsage: process.memoryUsage(),
-    },
-    alerts: [],
-  };
+  const heapUsedRatio = process.memoryUsage().heapUsed / process.memoryUsage().heapTotal;
   
-  // Check memory usage
-  if (health.metrics.memoryUsage.heapUsed / health.metrics.memoryUsage.heapTotal > 0.9) {
-    health.status = 'warning';
-    health.alerts.push('High memory usage detected');
+  // ONLY log if there is a critical health issue
+  if (heapUsedRatio > 0.9) {
+    console.error(`[CRITICAL_BUG] Memory Leak Warning: System using ${(heapUsedRatio * 100).toFixed(1)}% of heap memory.`);
   }
   
-  // Check hourly spend
-  if (totalSpendThisHour > 300) {
-    health.status = 'warning';
-    health.alerts.push(`High hourly spend: $${totalSpendThisHour.toFixed(2)}`);
+  if (totalSpendThisHour > 400) {
+    console.error(`[CRITICAL_BUG] Financial Health Warning: Hourly spend is at $${totalSpendThisHour.toFixed(2)}.`);
   }
-  
-  console.log(`[HEALTH_CHECK] ${JSON.stringify(health)}`);
-  return health;
 }
 
 /**
