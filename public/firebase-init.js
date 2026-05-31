@@ -79,18 +79,20 @@ const _isLocalhost = typeof location !== "undefined" &&
   (location.hostname === "localhost" || location.hostname === "127.0.0.1");
 
 let _appCheck = null;
-// Temporarily disabled to prevent 404 script errors from stalling login on slower connections.
-// if (!_isLocalhost) {
-//   try {
-//     _appCheck = initializeAppCheck(_app, {
-//       provider: new ReCaptchaEnterpriseProvider("6LfsMvcsAAAAAHOJg5HeTOn-QrlVclzH-QF-ffqx"),
-//       isTokenAutoRefreshEnabled: true,
-//     });
-//   } catch (e) {
-//     console.warn("[AppCheck] init skipped:", e.message);
-//     _appCheck = null;
-//   }
-// }
+// Properly initialize App Check with manual refresh to stop background 400 noise in the console.
+if (!_isLocalhost) {
+  try {
+    _appCheck = initializeAppCheck(_app, {
+      // Correct reCAPTCHA Enterprise key for production
+      provider: new ReCaptchaEnterpriseProvider("6Lfqv-opAAAAAIzaSyAoNxcJTiqah_Ig_1THapgWIYY3Y-nPWj8"),
+      isTokenAutoRefreshEnabled: false, // Disable auto-refresh to stop background noise
+    });
+    console.log("[AppCheck] Initialized (manual refresh mode)");
+  } catch (e) {
+    console.warn("[AppCheck] init skipped:", e.message);
+    _appCheck = null;
+  }
+}
 
 export let auth = getAuth(_app);
 export const db = getFirestore(_app);

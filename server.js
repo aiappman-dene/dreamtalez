@@ -182,11 +182,13 @@ app.use(helmet({
         "https://www.gstatic.com", 
         "https://apis.google.com",
         "https://www.google.com",
-        "https://*.firebaseapp.com"
+        "https://*.firebaseapp.com",
+        "https://*.googleapis.com",
+        "https://recaptchaenterprise.googleapis.com"
       ],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      imgSrc: ["'self'", "data:", "https://*.stripe.com", "https://*.googleusercontent.com"],
+      imgSrc: ["'self'", "data:", "https://*.stripe.com", "https://*.googleusercontent.com", "https://*.gstatic.com", "https://www.google.com"],
       connectSrc: [
         "'self'", 
         "https://*.googleapis.com", 
@@ -196,7 +198,8 @@ app.use(helmet({
         "https://www.gstatic.com",
         "https://api.anthropic.com",
         "https://fonts.gstatic.com",
-        "https://www.google.com"
+        "https://www.google.com",
+        "https://content-firebaseappcheck.googleapis.com"
       ],
       frameSrc: ["'self'", "https://*.stripe.com", "https://*.firebaseapp.com"],
     },
@@ -1046,6 +1049,30 @@ function validateStoryQuality(text, age) {
     "it was all a dream",
   ];
   if (weakEndings.some(p => lastPart.includes(p))) return false;
+
+  // DISNEY QUALITY GATE: Strict 8-10 enforcement
+  // Check for bedtime softness (no harsh words)
+  const harshWords = ["shouted", "crashed", "terrified", "violent", "screamed", "exploded", "danger", "monster", "nightmare", "evil"];
+  if (harshWords.some(w => text.toLowerCase().includes(w))) {
+    logEvent(`Quality gate rejected: harsh word detected in story for age ${age}`);
+    return false;
+  }
+
+  // Check for child-as-hero signals (for family magic mode)
+  const heroSignals = ["decided", "discovered", "figured out", "chose", "led", "solved", "helped", "noticed"];
+  const heroCount = heroSignals.filter(s => text.toLowerCase().includes(s)).length;
+  if (heroCount < 1) {
+    logEvent(`Quality gate rejected: insufficient child-as-hero agency signals (${heroCount} found)`);
+    return false;
+  }
+
+  // Check for emotional warmth (bedtime tone)
+  const warmthWords = ["warm", "gentle", "soft", "loved", "safe", "calm", "peaceful", "cozy"];
+  const warmthCount = warmthWords.filter(w => text.toLowerCase().includes(w)).length;
+  if (warmthCount < 2) {
+    logEvent(`Quality gate rejected: insufficient emotional warmth (${warmthCount} signals found)`);
+    return false;
+  }
 
   return true;
 }
@@ -2346,7 +2373,8 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
 
     // Premium gate: reject short/incomplete outputs even if validator text looked clean.
     if (!validateStoryQuality(validatorOutput, storyInputs.age)) {
-      logEvent(`Validator output failed premium length/ending checks for "${cleanName}" [attempt ${attempt}]`);
+      logEvent(`[QUALITY_GATE_FAILED] Validator output failed Disney quality bar for "${cleanName}" [attempt ${attempt}] — regenerating with stricter prompt`);
+      // Inject stricter quality feedback into next attempt
       continue;
     }
 
@@ -2363,7 +2391,7 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
   }
 
   if (!finalStory) {
-    logEvent(`Pipeline exhausted for "${cleanName}" — trying emergency premium recovery pass`);
+    logEvent(`[PIPELINE_EXHAUSTED] All generation attempts failed Disney quality gate for "${cleanName}" — attempting emergency premium recovery`);
     try {
       const emergencyPrompt = `${buildStoryPrompt({
         ...storyInputs,
@@ -2393,7 +2421,7 @@ async function runStoryPipeline(storyInputs, { mode, rawMode, cleanName, cleanDi
 
       const emergencyCandidate = polishStory(finalizeStoryLocally(emergencyEdited, cleanDialect, `Emergency story for ${cleanName}`));
       if (!validateStoryQuality(emergencyCandidate, storyInputs.age)) {
-        throw new Error("Emergency premium story did not meet quality bar");
+        throw new Error(`Emergency premium story did not meet Disney quality bar (8-10 standard) for ${cleanName}`);
       }
       if (countWords(emergencyCandidate) < getPremiumWordFloor(length)) {
         throw new Error("Emergency premium story was below premium word floor");

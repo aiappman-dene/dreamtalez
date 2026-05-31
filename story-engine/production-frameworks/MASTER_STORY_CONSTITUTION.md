@@ -36,6 +36,9 @@ No story may end with unresolved tension, lingering fear, or emotional ambiguity
 
 A DreamTalez story must feel like it was written by a human author who spent hours on it. Every sentence must earn its place. No filler. No generic phrasing. No mechanical output.
 
+**THE 8-10 STANDARD:**
+Every story MUST achieve a score of 8 to 10 on all quality metrics. If a draft scores below 8, it is REJECTED and must be rewritten. There is no partial credit. Disney quality is the only acceptable output.
+
 ---
 
 ## STORY ARCHITECTURE (MANDATORY)
@@ -64,6 +67,8 @@ Do not reorder. Do not skip. Do not collapse beats.
 - Return a comfort anchor (warmth, safety, familiar object) near the ending
 - Decelerate sentence length and energy across the final third
 - End with the shortest, softest sentence in the story
+- **SIGNATURE DETAIL:** Include one detail so specific and unexpected that it becomes the story's "unforgettable image."
+- **PLANT & PAYOFF:** Plant a specific object or image in the first 20% and return it transformed in the final 20%.
 
 ## WHAT STORIES MUST NEVER DO
 
