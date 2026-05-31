@@ -91,7 +91,7 @@ if (!_isLocalhost) {
   }
 }
 
-let auth = getAuth(_app);
+export let auth = getAuth(_app);
 export const db = getFirestore(_app);
 
 // Helper: persist a short diagnostic object to localStorage (if available)
