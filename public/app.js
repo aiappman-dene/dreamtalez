@@ -3338,20 +3338,27 @@ window.beginFromIntro = beginFromIntro;
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     state.currentUser = user;
-    // Show welcome screen if needed (returns true if shown)
-    if (await showWelcomeScreenIfNeeded(user)) return;
-    const { isNewUser } = await loadUserProfile();
-    if (isNewUser) {
-      // Show one-time intro on very first launch, then language picker
-      const introSeen = localStorage.getItem("dt-intro-seen") === "1";
-      if (!introSeen) {
-        navigateTo("intro");
-      } else {
-        navigateTo("language");
+    try {
+      // Show welcome screen if needed (returns true if shown)
+      if (await showWelcomeScreenIfNeeded(user)) return;
+      const { isNewUser } = await loadUserProfile();
+      if (isNewUser) {
+        // Show one-time intro on very first launch, then language picker
+        const introSeen = localStorage.getItem("dt-intro-seen") === "1";
+        if (!introSeen) {
+          navigateTo("intro");
+        } else {
+          navigateTo("language");
+        }
+        return;
       }
+      await loadChildren();
+    } catch (err) {
+      console.error("[Auth] Post-login setup failed:", err);
+      showToast("Something went wrong loading your account. Please try again.", "error");
+      navigateTo("auth");
       return;
     }
-    await loadChildren();
     navigateTo("home");
     checkReturnUser();
     trackEvent("app_opened");
