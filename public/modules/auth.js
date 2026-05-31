@@ -25,6 +25,7 @@ const DIALECT_BRITISH = "en-GB";
 export async function signup() {
   const email = (document.getElementById("email")?.value || "").trim();
   const password = document.getElementById("password")?.value || "";
+  const btn = document.querySelector('[data-action="signup"]');
 
   if (!email || !password) {
     showToast(t("alert_email_password"), "error");
@@ -34,6 +35,12 @@ export async function signup() {
   if (password.length < 6) {
     showToast(t("alert_password_length"), "error");
     return;
+  }
+
+  const originalText = btn ? btn.textContent : "";
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Signing up...";
   }
 
   try {
@@ -57,16 +64,28 @@ export async function signup() {
       error.code === "auth/weak-password" ? "Password must be at least 6 characters." :
       "Signup failed. Please try again.";
     showToast(message, "error");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   }
 }
 
 export async function login() {
   const email = (document.getElementById("email")?.value || "").trim();
   const password = document.getElementById("password")?.value || "";
+  const btn = document.querySelector('[data-action="login"]');
 
   if (!email || !password) {
     showToast(t("alert_email_password"), "error");
     return;
+  }
+
+  const originalText = btn ? btn.textContent : "";
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Logging in...";
   }
 
   try {
@@ -106,6 +125,11 @@ export async function login() {
       (error.message || "Login failed. Please try again.");
 
     showToast(message, "error");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   }
 }
 

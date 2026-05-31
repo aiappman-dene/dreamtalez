@@ -3359,12 +3359,14 @@ onAuthStateChanged(auth, async (user) => {
         }
         return;
       }
+      // Navigate home immediately after profile load so user isn't stuck on login screen
+      navigateTo("home");
+      // Load children in background
       await loadChildren();
     } catch (err) {
       console.error("[Auth] Post-login setup failed:", err);
       showToast("You're logged in. Some account data could not load yet, so refresh if anything looks missing.", "info");
     }
-    navigateTo("home");
     checkReturnUser();
     trackEvent("app_opened");
 
@@ -3390,14 +3392,16 @@ onAuthStateChanged(auth, async (user) => {
       localStorage.setItem("dt-returned-once", "1");
       trackEvent("user_returned");
     }
-    // Start background cache fill once children are loaded
+    // Start background cache fill once children are loaded, with a delay to prioritize UI
     if (window.StoryCache) {
-      window.StoryCache.pruneOldEntries();
-      window.StoryCache.scheduleBackgroundFill(
-        state.cachedChildren,
-        () => state.currentUser?.getIdToken(),
-        getCurrentLanguage()
-      );
+      setTimeout(() => {
+        window.StoryCache.pruneOldEntries();
+        window.StoryCache.scheduleBackgroundFill(
+          state.cachedChildren,
+          () => state.currentUser?.getIdToken(),
+          getCurrentLanguage()
+        );
+      }, 3000);
     }
     refreshTeddyState();
   } else {
