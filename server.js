@@ -1761,6 +1761,7 @@ app.use(
           "https://*.firebaseapp.com",
           "https://*.firebasestorage.app",
           "https://www.gstatic.com",
+          "https://www.google.com",
           "https://identitytoolkit.googleapis.com",
           "https://securetoken.googleapis.com",
           "https://firestore.googleapis.com",
