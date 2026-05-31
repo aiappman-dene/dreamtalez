@@ -369,16 +369,14 @@ export async function saveChild() {
   }
 }
 
-export async function loadChildren() {
+export async function loadChildren(snap) {
   if (!state.currentUser) return;
 
   try {
-    const userRef = doc(db, "users", state.currentUser.uid);
-    const snap = await getDoc(userRef);
+    const userSnap = snap || await getDoc(doc(db, "users", state.currentUser.uid));
+    if (!userSnap.exists()) return;
 
-    if (!snap.exists()) return;
-
-    const data = snap.data();
+    const data = userSnap.data();
     state.cachedChildren        = Array.isArray(data.children) ? data.children : [];
     state.cachedStreaks          = data.streaks && typeof data.streaks === "object" ? data.streaks : {};
     state.cachedLibrary         = Array.isArray(data.library) ? data.library : [];

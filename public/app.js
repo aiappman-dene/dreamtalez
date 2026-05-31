@@ -104,30 +104,37 @@ window.logout = () => authLogout();
 // =============================================================================
 // Welcome Screen Logic
 // =============================================================================
-async function showWelcomeScreenIfNeeded(user) {
-  if (!user) return false;
+async function showWelcomeScreenIfNeeded(user, userSnap) {
+  if (!user || !userSnap || !userSnap.exists()) return false;
   try {
-    const userDocRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userDocRef);
-    if (!userSnap.exists()) return false;
     const data = userSnap.data();
     if (data.welcomeShown) return false;
+
     // Show welcome screen
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
     const welcomePage = document.getElementById('pageWelcome');
     if (welcomePage) welcomePage.classList.remove('hidden');
+
     // Animate floating stars
     setupWelcomeStars();
+
     // Set flag in Firebase immediately
+    const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { welcomeShown: true });
+
     // Button handler
     const btn = document.getElementById('welcomeBeginBtn');
     if (btn) {
       btn.onclick = async () => {
         welcomePage.classList.add('hidden');
-        await loadUserProfile();
-        await loadChildren();
-        navigateTo('home');
+        // Since we're here, the user is new or hasn't finished onboarding
+        const { isNewUser } = await loadUserProfile(userSnap);
+        if (isNewUser) {
+          navigateTo("language");
+        } else {
+          await loadChildren(userSnap);
+          navigateTo('home');
+        }
       };
     }
     return true;
@@ -805,33 +812,30 @@ async function saveLanguageToFirestore(langCode) {
   }
 }
 
-async function loadUserProfile() {
+async function loadUserProfile(snap) {
   if (!state.currentUser) return { isNewUser: false };
   try {
-    // Use shared db instance from firebase-init.js (never create new instance)
-    const snap = await getDoc(doc(db, "users", state.currentUser.uid));
-    if (!snap.exists()) {
+    // If snap is provided, use it; otherwise fetch it (fallback)
+    const userSnap = snap || await getDoc(doc(db, "users", state.currentUser.uid));
+    
+    if (!userSnap.exists()) {
       // Brand new user — show language screen
       return { isNewUser: true };
     }
-    const data = snap.data();
+    const data = userSnap.data();
     // language === null means signup created the doc but the user hasn't
     // chosen a language yet — treat as new user and show the language screen.
     if (data.language === null) {
       return { isNewUser: true };
     }
     if (data.language && SUPPORTED_LANGUAGES.includes(data.language)) {
-
       setCurrentLanguage(data.language);
-  
       // Keep state.cachedDialect in sync for en-GB/en-US
       if (data.language === "en-US") state.cachedDialect = "en-US";
       else state.cachedDialect = "en-GB";
     } else {
       // Existing user with no language set — default silently
-
       setCurrentLanguage("en-GB");
-  
       saveLanguageToFirestore("en-GB");
     }
     return { isNewUser: false };
@@ -3346,9 +3350,14 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     state.currentUser = user;
     try {
+      // Unified startup fetch: get the user document once and pass it around
+      const userDocRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userDocRef);
+
       // Show welcome screen if needed (returns true if shown)
-      if (await showWelcomeScreenIfNeeded(user)) return;
-      const { isNewUser } = await loadUserProfile();
+      if (await showWelcomeScreenIfNeeded(user, userSnap)) return;
+
+      const { isNewUser } = await loadUserProfile(userSnap);
       if (isNewUser) {
         // Show one-time intro on very first launch, then language picker
         const introSeen = localStorage.getItem("dt-intro-seen") === "1";
@@ -3361,8 +3370,8 @@ onAuthStateChanged(auth, async (user) => {
       }
       // Navigate home immediately after profile load so user isn't stuck on login screen
       navigateTo("home");
-      // Load children in background
-      await loadChildren();
+      // Load children in background using the existing snapshot
+      await loadChildren(userSnap);
     } catch (err) {
       console.error("[Auth] Post-login setup failed:", err);
       showToast("You're logged in. Some account data could not load yet, so refresh if anything looks missing.", "info");
@@ -3832,10 +3841,10 @@ if ("serviceWorker" in navigator) {
 
       await registration.update();
 
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        console.log("[SW] controller changed, reloading page");
-        window.location.reload();
-      });
+      // navigator.serviceWorker.addEventListener("controllerchange", () => {
+      //   console.log("[SW] controller changed, reloading page");
+      //   window.location.reload();
+      // });
     } catch (error) {
       console.warn("[SW] registration failed", error);
     }
