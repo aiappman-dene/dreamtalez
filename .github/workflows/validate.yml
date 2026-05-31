@@ -1,0 +1,134 @@
+name: Repo Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Required runbook files present
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in RELEASE.md render.yaml deploy.env.example local.env.example; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "One or more required files are missing." >&2
+            exit 2
+          fi
+          echo "Required files: OK"
+
+      - name: No secrets committed
+        run: |
+          set -euo pipefail
+          fail=0
+
+          check() {
+            if git ls-files -- "$1" | grep -q .; then
+              echo "SECRET_TRACKED: $1" >&2
+              fail=1
+            fi
+          }
+
+          # Environment files
+          check ".env"
+          check ".env.local"
+          check ".env.production"
+          check ".env.development"
+
+          # Android signing
+          check "*.jks"
+          check "*.keystore"
+          check "keystore.properties"
+
+          # Firebase runtime configs
+          check "google-services.json"
+          check "android/app/google-services.json"
+          check "GoogleService-Info.plist"
+
+          # iOS signing
+          check "*.p12"
+          check "*.mobileprovision"
+          check "*.cer"
+
+          if [ "$fail" -ne 0 ]; then
+            echo "One or more sensitive files are tracked by git. Remove them with: git rm --cached <file>" >&2
+            exit 3
+          fi
+          echo "Secret tracking check: OK"
+
+      - name: No hardcoded secrets in source
+        run: |
+          set -euo pipefail
+          fail=0
+
+          # Scan for patterns that look like real secret values in source files.
+          # Excludes: .env.example files (templates), node_modules, this workflow file itself.
+          EXCLUDE='--exclude-dir=node_modules --exclude=*.example --exclude=validate.yml'
+
+          patterns=(
+            "sk-ant-api"
+            "sk_live_"
+            "whsec_"
+            "AIzaSy"
+          )
+
+          for pat in "${patterns[@]}"; do
+            if grep -r $EXCLUDE --include="*.js" --include="*.ts" --include="*.json" -l "$pat" . 2>/dev/null | grep -q .; then
+              echo "HARDCODED_SECRET_PATTERN: $pat found in source files" >&2
+              fail=1
+            fi
+          done
+
+          if [ "$fail" -ne 0 ]; then
+            echo "Hardcoded secret patterns detected in source." >&2
+            exit 4
+          fi
+          echo "Hardcoded secret scan: OK"
+
+      - name: Public images present
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in public/images/icon-192.png public/images/icon-512.png; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "PWA icon files missing — run icon generation script." >&2
+            exit 5
+          fi
+          echo "PWA icons: OK"
+
+      - name: Health endpoint defined in server
+        run: |
+          set -euo pipefail
+          if ! grep -q 'app.get("/health"' server.js; then
+            echo "MISSING: /health endpoint not found in server.js" >&2
+            exit 6
+          fi
+          echo "Health endpoint: OK"
+
+      - name: Firestore rules present and non-empty
+        run: |
+          set -euo pipefail
+          if [ ! -f "firestore.rules" ] || [ ! -s "firestore.rules" ]; then
+            echo "MISSING or EMPTY: firestore.rules" >&2
+            exit 7
+          fi
+          if ! grep -q "allow read, write: if false" firestore.rules; then
+            echo "WARNING: firestore.rules may be too permissive — no 'if false' rules found" >&2
+          fi
+          echo "Firestore rules: OK"

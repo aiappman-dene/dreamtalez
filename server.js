@@ -779,19 +779,47 @@ async function requireAiAuth(req, res, next) {
 async function requireAppCheck(req, res, next) {
   if (!REQUIRE_APP_CHECK) return next();
   const token = req.headers["x-firebase-appcheck"];
-  if (!token) {
-    logEvent(`[AppCheck] Missing token on ${req.path} from ${req.ip}`);
-    return res.status(401).json({ error: "App integrity check failed. Please refresh and try again." });
+  const ua = req.headers['user-agent'] || '';
+
+  // If token present: verify normally and proceed
+  if (token) {
+    try {
+      // Ensure Firebase Admin is initialized before calling getAppCheck()
+      getFirebaseAdminInstance();
+      await getAppCheck().verifyToken(token);
+      const masked = String(token).slice(0, 8) + '...';
+      logEvent(`[AppCheck] Valid token on ${req.path} from ${req.ip} ua=${ua} token_prefix=${masked}`);
+      return next();
+    } catch (err) {
+      logEvent(`[AppCheck] Invalid token on ${req.path}: ${err.message} ua=${ua}`);
+      // fall through to fallback below
+    }
+  } else {
+    logEvent(`[AppCheck] Missing token on ${req.path} from ${req.ip} ua=${ua}`);
   }
-  try {
-    // Ensure Firebase Admin is initialized before calling getAppCheck()
-    getFirebaseAdminInstance();
-    await getAppCheck().verifyToken(token);
-    return next();
-  } catch (err) {
-    logEvent(`[AppCheck] Invalid token on ${req.path}: ${err.message}`);
-    return res.status(401).json({ error: "App integrity check failed. Please refresh and try again." });
+
+  // FALLBACK: Some native WebViews (Capacitor/Android System WebView) do not
+  // attach App Check tokens reliably. If a valid Firebase ID token is present
+  // in Authorization header we accept the request after verifying it. This
+  // preserves security (must be an authenticated user) while avoiding a hard
+  // outage for mobile clients. App Check remains the preferred protection.
+  const authHeader = req.headers.authorization || "";
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  if (match) {
+    try {
+      const decoded = await getFirebaseAdminInstance().verifyIdToken(match[1]);
+      logEvent(`[AppCheck] Fallback allowed on ${req.path} for uid=${decoded.uid} from ${req.ip} ua=${ua}`);
+      // attach the verified auth info for downstream middleware
+      req.authUser = decoded;
+      return next();
+    } catch (e) {
+      logEvent(`[AppCheck] Fallback idToken verify failed on ${req.path}: ${e.message} ua=${ua}`);
+      return res.status(401).json({ error: "App integrity check failed. Please refresh and try again." });
+    }
   }
+
+  // No token and no valid id token — enforce App Check
+  return res.status(401).json({ error: "App integrity check failed. Please refresh and try again." });
 }
 
 function buildAiLimiter({ windowMs, max, routeLabel }) {

@@ -7,9 +7,9 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Stories are persisted client-side (localStorage / IndexedDB) at the
-    // moment, so this collection is unused. Lock it down rather than leave
-    // it world-readable. Re-enable with proper uid-scoping when needed.
+    // Stories are persisted client-side (localStorage / IndexedDB).
+    // Collection is locked — re-enable with uid-scoping if server-side
+    // story persistence is added in future.
     match /stories/{storyId} {
       allow read, write: if false;
     }
@@ -20,6 +20,26 @@ service cloud.firestore {
     match /jobs/{jobId} {
       allow read: if request.auth != null && request.auth.uid == resource.data.uid;
       allow write: if false;
+    }
+
+    // Stripe event deduplication records — server-only via Admin SDK.
+    match /stripeEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    // Guest one-off purchase claim records — server-only via Admin SDK.
+    match /guestOneoffClaims/{sessionId} {
+      allow read, write: if false;
+    }
+
+    // Per-user persistent rate limit windows — server-only via Admin SDK.
+    match /userRateLimits/{userId} {
+      allow read, write: if false;
+    }
+
+    // Per-user generation lock records — server-only via Admin SDK.
+    match /generationLocks/{userId} {
+      allow read, write: if false;
     }
   }
 }

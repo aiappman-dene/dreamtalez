@@ -1,5 +1,17 @@
 apply plugin: 'com.android.application'
 
+// Apply Firebase plugins before the android {} block so the firebaseCrashlytics {}
+// DSL extension is registered and available when android {} is evaluated.
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+        apply plugin: 'com.google.firebase.crashlytics'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, Firebase plugins not applied.")
+}
+
 // Load signing credentials from keystore.properties (never committed to git)
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
@@ -40,6 +52,14 @@ android {
             signingConfig signingConfigs.release
         }
     }
+
+    // Upload ProGuard mapping file to Firebase so Crashlytics can deobfuscate
+    // release stack traces in the Firebase Console.
+    // iOS equivalent: automatic via Xcode run script added by Firebase iOS SDK.
+    firebaseCrashlytics {
+        mappingFileUploadEnabled true
+        nativeSymbolUploadEnabled false
+    }
 }
 
 repositories {
@@ -61,12 +81,3 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}

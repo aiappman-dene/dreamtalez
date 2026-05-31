@@ -22,6 +22,7 @@ import {
   getDocs,
   serverTimestamp,
   getAppCheckToken,
+  collectAuthDiagnostics,
 } from "./firebase-init.js?v=20260522c";
 
 // Magical loading experience — owns its DOM/CSS/timers. See public/components/loading.js
@@ -58,6 +59,47 @@ const COOLDOWN_MS = 5000;
 // showToast — imported from ./modules/toast.js
 // logout    — imported from ./modules/auth.js
 window.logout = () => authLogout();
+
+// Lightweight fetch wrapper to capture failing API requests and log headers
+// and App Check tokens for mobile diagnostics. Logs are written to
+// `localStorage.dt-last-fetch-error` and `localStorage.dt-last-request-headers`.
+(() => {
+  const _origFetch = window.fetch.bind(window);
+  window.fetch = async (input, init = {}) => {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    // Only instrument same-origin API calls and Render-hosted endpoints
+    const shouldInstrument = url.startsWith('/') || url.includes(window.location.hostname) || url.includes('/api');
+    if (!shouldInstrument) return _origFetch(input, init);
+
+    // Record request headers if present
+    try {
+      const hdrs = (init && init.headers) || {};
+      localStorage.setItem('dt-last-request-headers', JSON.stringify({ time: new Date().toISOString(), url, headers: hdrs, userAgent: navigator.userAgent }));
+    } catch (e) {}
+
+    try {
+      const res = await _origFetch(input, init);
+      if (!res.ok) {
+        const text = await res.text().catch(() => null);
+        try { localStorage.setItem('dt-last-fetch-error', JSON.stringify({ time: new Date().toISOString(), url, status: res.status, statusText: res.statusText, body: text })); } catch (e) {}
+      }
+      return res;
+    } catch (err) {
+      try { localStorage.setItem('dt-last-fetch-error', JSON.stringify({ time: new Date().toISOString(), url, error: String(err), userAgent: navigator.userAgent })); } catch (e) {}
+      throw err;
+    }
+  };
+
+  // Expose a quick diagnostic trigger for manual testing
+  window.dtCollectClientDiagnostics = async () => {
+    try {
+      const diag = await collectAuthDiagnostics().catch(() => null);
+      // Also capture current auth.currentUser and userAgent
+      try { localStorage.setItem('dt-last-client-diagnostic', JSON.stringify({ diag, userAgent: navigator.userAgent })); } catch (e) {}
+      return diag;
+    } catch (e) { return { error: String(e) }; }
+  };
+})();
 
 // =============================================================================
 // Welcome Screen Logic
