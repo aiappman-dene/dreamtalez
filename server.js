@@ -169,27 +169,34 @@ const DEVELOPER_EMAILS = new Set([
 // App init
 // =============================
 const app = express();
-// generateLimiter is applied per-route below (not globally) to avoid double-firing
 
+// Security Headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.gstatic.com", "https://apis.google.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://*.stripe.com"],
+      connectSrc: ["'self'", "https://*.googleapis.com", "https://*.firebaseio.com", "https://api.anthropic.com"],
+      frameSrc: ["'self'", "https://*.stripe.com"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
 
-// =============================
-// Rate limiting — applied ONLY to API routes below, never to static assets.
-// Static files (app.js, CSS, HTML) must always load without limit-based throttling.
-// Duplicate generateLimiter declaration removed. The definition at the top is used.
+// Gzip compression for faster asset delivery
+app.use(compression());
 
-// Use middleware globally
-// =============================
 app.use(corsMiddleware);
 
-// Request ID — short trace token attached to every request for log correlation.
-// Exposed as X-Request-Id so mobile clients can include it in support reports.
+// Request ID
 app.use((req, _res, next) => {
   req.requestId = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
   next();
 });
 
-// Budget guard — blocks all API requests if emergency spend threshold is hit.
-// Static asset serving is unaffected because static middleware is registered later.
 app.use(budgetGuard);
 
 
@@ -1850,9 +1857,9 @@ app.use(express.static(PUBLIC_DIR, {
     if (filePath.endsWith(".html")) {
       res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     } else {
-      // JS/CSS/images: cache for 1 hour, revalidate with ETag
+      // JS/CSS/images: cache for 1 day, revalidate with ETag
       // Browser sends If-None-Match; server returns 304 if unchanged (no re-download)
-      res.setHeader("Cache-Control", "public, max-age=3600, must-revalidate");
+      res.setHeader("Cache-Control", "public, max-age=86400, must-revalidate");
     }
   },
 }));

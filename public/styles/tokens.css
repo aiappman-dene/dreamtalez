@@ -90,6 +90,6 @@
   --transition: var(--motion-md);
 
   /* Type / Layout */
-  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --font: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --nav-height: 70px;
 }
