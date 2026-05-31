@@ -23,7 +23,7 @@ import {
   serverTimestamp,
   getAppCheckToken,
   collectAuthDiagnostics,
-} from "./firebase-init.js?v=20260522c";
+} from "./firebase-init.js?v=20260531b";
 
 // Magical loading experience — owns its DOM/CSS/timers. See public/components/loading.js
 import { start as dtLoadingStart, stop as dtLoadingStop } from "./components/loading.js";
@@ -106,28 +106,35 @@ window.logout = () => authLogout();
 // =============================================================================
 async function showWelcomeScreenIfNeeded(user) {
   if (!user) return false;
-  const userDocRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userDocRef);
-  if (!userSnap.exists()) return false;
-  const data = userSnap.data();
-  if (data.welcomeShown) return false;
-  // Show welcome screen
-  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-  const welcomePage = document.getElementById('pageWelcome');
-  if (welcomePage) welcomePage.classList.remove('hidden');
-  // Animate floating stars
-  setupWelcomeStars();
-  // Set flag in Firebase immediately
-  await updateDoc(userDocRef, { welcomeShown: true });
-  // Button handler
-  const btn = document.getElementById('welcomeBeginBtn');
-  if (btn) {
-    btn.onclick = () => {
-      welcomePage.classList.add('hidden');
-      navigateTo('home');
-    };
+  try {
+    const userDocRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userDocRef);
+    if (!userSnap.exists()) return false;
+    const data = userSnap.data();
+    if (data.welcomeShown) return false;
+    // Show welcome screen
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    const welcomePage = document.getElementById('pageWelcome');
+    if (welcomePage) welcomePage.classList.remove('hidden');
+    // Animate floating stars
+    setupWelcomeStars();
+    // Set flag in Firebase immediately
+    await updateDoc(userDocRef, { welcomeShown: true });
+    // Button handler
+    const btn = document.getElementById('welcomeBeginBtn');
+    if (btn) {
+      btn.onclick = async () => {
+        welcomePage.classList.add('hidden');
+        await loadUserProfile();
+        await loadChildren();
+        navigateTo('home');
+      };
+    }
+    return true;
+  } catch (err) {
+    console.warn("[Auth] Welcome screen check skipped:", err.code || err.message || err);
+    return false;
   }
-  return true;
 }
 
 function setupWelcomeStars() {
@@ -3355,9 +3362,7 @@ onAuthStateChanged(auth, async (user) => {
       await loadChildren();
     } catch (err) {
       console.error("[Auth] Post-login setup failed:", err);
-      showToast("Something went wrong loading your account. Please try again.", "error");
-      navigateTo("auth");
-      return;
+      showToast("You're logged in. Some account data could not load yet, so refresh if anything looks missing.", "info");
     }
     navigateTo("home");
     checkReturnUser();
