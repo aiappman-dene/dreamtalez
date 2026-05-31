@@ -19,3 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Crashlytics: preserve source file names and line numbers so stack traces
+# in the Firebase Console are readable after minification.
+-keepattributes SourceFile,LineNumberTable
+-keep public class * extends java.lang.Exception

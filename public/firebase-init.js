@@ -5,11 +5,15 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
 import {
   getAuth,
+  initializeAuth,
   signInWithEmailAndPassword,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signOut,
+  setPersistence,
+  browserLocalPersistence,
+  indexedDBLocalPersistence,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   initializeAppCheck,
@@ -87,8 +91,41 @@ if (!_isLocalhost) {
   }
 }
 
-export const auth = getAuth(_app);
-export const db   = getFirestore(_app);
+let auth = getAuth(_app);
+export const db = getFirestore(_app);
+
+// Helper: persist a short diagnostic object to localStorage (if available)
+function _saveClientDiagnostic(key, obj) {
+  try { localStorage.setItem(key, JSON.stringify(obj)); } catch { /* ignore */ }
+}
+
+// Try to ensure robust persistence for Capacitor / Android System WebView.
+// Preferred: `browserLocalPersistence`. If that fails, try initializing
+// auth with `indexedDBLocalPersistence` which works better in some WebView
+// implementations. Fall back to in-memory if neither works.
+async function _ensureAuthPersistence() {
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    _saveClientDiagnostic('dt-last-auth-diagnostic', { time: new Date().toISOString(), persistence: 'browserLocalPersistence' });
+    return;
+  } catch (e) {
+    console.warn('[Firebase] setPersistence(browserLocalPersistence) failed:', e?.message || e);
+  }
+
+  try {
+    // Re-initialize auth tied to this app with IndexedDB persistence
+    auth = initializeAuth(_app, { persistence: indexedDBLocalPersistence });
+    _saveClientDiagnostic('dt-last-auth-diagnostic', { time: new Date().toISOString(), persistence: 'indexedDBLocalPersistence', note: 'reinitialized via initializeAuth' });
+    return;
+  } catch (e) {
+    console.warn('[Firebase] initializeAuth(indexedDBLocalPersistence) failed:', e?.message || e);
+  }
+
+  _saveClientDiagnostic('dt-last-auth-diagnostic', { time: new Date().toISOString(), persistence: 'none', note: 'falling back to default getAuth' });
+}
+
+// Kick off persistence resolution but don't block module load.
+_ensureAuthPersistence().catch(() => {});
 
 export async function getAppCheckToken() {
   if (!_appCheck) return null;
@@ -98,6 +135,32 @@ export async function getAppCheckToken() {
   } catch {
     return null;
   }
+}
+
+// Collect client-side diagnostics about App Check + Auth for mobile debugging.
+export async function collectAuthDiagnostics() {
+  const diag = { time: new Date().toISOString(), userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null };
+  try {
+    diag.appCheck = !!_appCheck;
+    diag.appCheckToken = await getAppCheckToken().catch(() => null);
+  } catch (e) {
+    diag.appCheckError = String(e?.message || e);
+  }
+  try {
+    diag.currentUser = auth.currentUser ? { uid: auth.currentUser.uid, email: auth.currentUser.email ?? null } : null;
+  } catch (e) {
+    diag.currentUserError = String(e?.message || e);
+  }
+  try {
+    // Attempt to read id token (non-blocking)
+    if (auth.currentUser) {
+      diag.idTokenPresent = !!(await auth.currentUser.getIdToken().catch(() => null));
+    }
+  } catch (e) {
+    diag.idTokenError = String(e?.message || e);
+  }
+  _saveClientDiagnostic('dt-last-auth-diagnostic', diag);
+  return diag;
 }
 
 // =============================================================================

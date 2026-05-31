@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network Security Config — production hardening.
+  Enforces HTTPS-only connections. No cleartext (HTTP) traffic permitted.
+  Pinning is intentionally omitted: Render rotates certs via Let's Encrypt,
+  and broken pins cause silent failures for users with no recourse.
+-->
+<network-security-config>
+  <base-config cleartextTrafficPermitted="false">
+    <trust-anchors>
+      <certificates src="system" />
+    </trust-anchors>
+  </base-config>
+</network-security-config>

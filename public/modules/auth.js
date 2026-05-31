@@ -70,13 +70,39 @@ export async function login() {
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
+    try {
+      const successDiag = {
+        time: new Date().toISOString(),
+        uid: auth.currentUser?.uid || null,
+        email: auth.currentUser?.email || null,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      };
+      localStorage.setItem('dt-last-auth-success', JSON.stringify(successDiag));
+    } catch (e) {}
   } catch (error) {
     console.error("Login failed:", error);
+    // Persist a short diagnostic record locally so mobile users can share it
+    // without remote logging. This helps identify platform-specific issues.
+    try {
+      const diag = {
+        time: new Date().toISOString(),
+        code: error.code || null,
+        message: error.message || String(error),
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+        platform: typeof navigator !== 'undefined' ? navigator.platform : null,
+      };
+      localStorage.setItem('dt-last-auth-error', JSON.stringify(diag));
+    } catch (e) {
+      // ignore storage errors
+    }
+
     const message =
       error.code === "auth/user-not-found" ? "No account found with this email." :
       error.code === "auth/wrong-password" ? "Incorrect password. Please try again." :
       error.code === "auth/invalid-credential" ? "Incorrect email or password." :
-      "Login failed. Please try again.";
+      // If we have a platform-specific failure surface, surface a helpful hint
+      (error.message || "Login failed. Please try again.");
+
     showToast(message, "error");
   }
 }
