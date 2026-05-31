@@ -958,14 +958,12 @@ function getSafeFallbackStory(name) {
 // These mirror getAgeWordTarget() in prompts.js but stay server-side
 // so we don't import the ES module into the validator / enforcer.
 function getAgeWordBounds(age, storyType) {
-  // One-off sample stories are intentionally shorter — a preview of premium
-  if (storyType === "oneoff-sample") return { min: 300, max: 450 };
+  // Family shared stories (family-magic) can go up to 1000 words
+  if (storyType === "family-magic") return { min: 600, max: 1000 };
   // Keepsake stories get the richest word budget
   if (storyType === "keepsake") return { min: 800, max: 1100 };
-  const n = parseInt(age, 10);
-  if (!isNaN(n) && n <= 5) return { min: 400, max: 650 };
-  if (!isNaN(n) && n <= 8) return { min: 600, max: 850 };
-  return { min: 700, max: 950 };
+  // Standard stories: 600-800 words
+  return { min: 600, max: 800 };
 }
 
 function countWords(text = "") {
@@ -976,10 +974,11 @@ function countWords(text = "") {
     .length;
 }
 
-function getPremiumWordFloor(length = "medium") {
-  if (length === "long") return 1100;
+function getPremiumWordFloor(length = "medium", storyType = "default") {
+  if (storyType === "family-magic") return 600;
+  if (length === "long") return 800;
   if (length === "short") return 500;
-  return 700;
+  return 600;
 }
 
 function enforceLength(text, age) {

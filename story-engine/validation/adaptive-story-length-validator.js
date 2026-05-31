@@ -8,10 +8,10 @@
  * Returns { passed, warnings, metrics }
  */
 
-const MIN_WORDS = 1200;
-const MAX_WORDS = 1500;
-const IDEAL_MIN = 1250;
-const IDEAL_MAX = 1450;
+const MIN_WORDS = 600;
+const MAX_WORDS = 1000;
+const IDEAL_MIN = 650;
+const IDEAL_MAX = 850;
 
 function countWords(text) {
   return text.trim().split(/\s+/).filter(Boolean).length;
@@ -30,7 +30,7 @@ export class AdaptiveStoryLengthValidator {
       warnings.push({
         type:     "story_too_short",
         severity: "medium",
-        evidence: `Story is ${wordCount} words — minimum is ${MIN_WORDS} for an 8–10 minute bedtime ritual`,
+        evidence: `Story is ${wordCount} words — minimum is ${MIN_WORDS} for a 5–8 minute bedtime ritual`,
       });
     } else if (wordCount > MAX_WORDS) {
       warnings.push({

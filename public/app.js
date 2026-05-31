@@ -191,7 +191,7 @@ function updateTeddyCounterUI() {
   const teddySpan = document.getElementById("teddyCount");
   if (!teddyBtn || !teddySpan) return;
   teddySpan.textContent = teddyCount == null ? "--" : teddyCount;
-  teddyBtn.disabled = true; // Stripe coming soon
+  teddyBtn.disabled = false; // Teddy Bear tokens are now available
   // Glow effect
   if (!teddyBtn.querySelector('.teddy-glow')) {
     const glow = document.createElement('span');

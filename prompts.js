@@ -359,10 +359,11 @@ Do NOT exceed the upper bound. Do NOT pad a story to reach the upper bound.
 
 Natural pacing beats:
 - Short emotional scenes: 500–650 words — valid and often MORE powerful
-- Standard scenes: 700–850 words — the normal target
+- Standard scenes: 600–800 words — the normal target
+- Family Magic scenes: 800–1000 words — for deeper family connection
 - Climactic, layered scenes: up to the maximum
 
-A perfectly paced 650-word story is far better than a padded 900-word one.
+A perfectly paced 650-word story is far better than a padded 800-word one.
 Every sentence must earn its place. Remove anything that repeats, delays, or adds no emotional value.
 
 SLEEPY ENDING RULE (STRICT):
@@ -1092,7 +1093,7 @@ TONIGHT'S MAIN STORY PROMISE:
 ${wishSpecificityLines}`
     : "";
 
-  const wt = getAgeWordTarget(age);
+  const wt = getAgeWordTarget(age, effectiveMode);
 
   // Family Magic context block — Phase 2: emotional continuity system
   // Only injected for family-magic mode. Inlines engine logic to avoid import

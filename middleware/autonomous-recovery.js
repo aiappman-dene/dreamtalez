@@ -12,7 +12,7 @@ const RECOVERY_CONFIG = {
   MAX_RETRIES: 3,
   INITIAL_BACKOFF_MS: 1000,
   MAX_BACKOFF_MS: 10000,
-  COST_ALERT_THRESHOLD_USD: 50, // Alert if a single generation costs more than $50
+  COST_ALERT_THRESHOLD_USD: 1.00, // Alert if a single generation costs more than $1.00 (Disney standard)
 };
 
 let totalSpendThisHour = 0;
@@ -35,8 +35,8 @@ export function trackGenerationCost(costUSD, userId, storyName) {
     console.error(`[CRITICAL_BUG] High-cost generation detected: $${costUSD.toFixed(2)} for story "${storyName}" (user: ${userId}). This may indicate a prompt injection or runaway loop.`);
   }
   
-  if (totalSpendThisHour > 500) {
-    console.error(`[CRITICAL_BUG] RUNAWAY SPEND: $${totalSpendThisHour.toFixed(2)} this hour. Emergency shutdown or investigation required.`);
+  if (totalSpendThisHour > 20) {
+    console.error(`[CRITICAL_BUG] RUNAWAY SPEND: $${totalSpendThisHour.toFixed(2)} this hour. This exceeds normal operation limits.`);
   }
 }
 
@@ -78,7 +78,7 @@ export function performHealthCheck() {
     console.error(`[CRITICAL_BUG] Memory Leak Warning: System using ${(heapUsedRatio * 100).toFixed(1)}% of heap memory.`);
   }
   
-  if (totalSpendThisHour > 400) {
+  if (totalSpendThisHour > 15) {
     console.error(`[CRITICAL_BUG] Financial Health Warning: Hourly spend is at $${totalSpendThisHour.toFixed(2)}.`);
   }
 }
