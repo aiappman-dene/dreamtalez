@@ -157,7 +157,8 @@ const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL || "";
 const FIREBASE_PRIVATE_KEY = (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, "\n");
 const REQUIRE_AUTH_FOR_AI_ROUTES = process.env.REQUIRE_AUTH_FOR_AI_ROUTES !== "false";
 const REQUIRE_APP_CHECK = process.env.REQUIRE_APP_CHECK === "true";
-const USE_FULL_AI_PIPELINE = process.env.USE_FULL_AI_PIPELINE === "true" || process.env.AI_PIPELINE_PROFILE === "full";
+// Force full AI pipeline for Disney-quality stories (8-10 rating)
+const USE_FULL_AI_PIPELINE = true;
 
 // Developer accounts — credit gate is always bypassed for these emails
 const DEVELOPER_EMAILS = new Set([
@@ -1180,7 +1181,8 @@ const API_VERSION = "2023-06-01";
 // USE_OPUS_BLUEPRINT=true → Opus designs the story structure, Sonnet writes the prose.
 // This gives Opus-quality narrative architecture at a fraction of full-Opus generation cost.
 // Set to false to skip the blueprint stage entirely (pure Sonnet/Haiku generation).
-const USE_OPUS_BLUEPRINT = process.env.USE_OPUS_BLUEPRINT === "true";
+// Force Opus blueprinting for superior narrative architecture
+const USE_OPUS_BLUEPRINT = true;
 
 // Tiered model selection:
 //   Blueprint mode: Opus designs → Sonnet writes (all modes)

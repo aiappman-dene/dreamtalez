@@ -130,11 +130,18 @@ async function _ensureAuthPersistence() {
 export const authReady = _ensureAuthPersistence().catch(() => {});
 
 export async function getAppCheckToken() {
+  // If App Check is disabled or not initialized, return null immediately.
+  // This prevents 400 errors from exchangeRecaptchaEnterpriseToken calls.
   if (!_appCheck) return null;
+  
   try {
+    // Only attempt to get token if we are not on localhost (standard check)
+    if (_isLocalhost) return null;
+
     const result = await _getAppCheckTokenInternal(_appCheck);
     return result.token;
-  } catch {
+  } catch (e) {
+    // Silently fail as App Check should never block the app's core flow
     return null;
   }
 }

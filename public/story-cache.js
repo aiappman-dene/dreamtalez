@@ -396,12 +396,15 @@
       }
     };
 
-    // Run only when the browser is idle — requestIdleCallback with setTimeout fallback
+    // Background pre-caching disabled to reduce backend load and console noise.
+    // To re-enable, uncomment the block below.
+    /*
     if (typeof requestIdleCallback === "function") {
       requestIdleCallback(() => run(), { timeout: 3000 });
     } else {
       setTimeout(() => run(), 2000);
     }
+    */
   }
 
   // ============================================================
