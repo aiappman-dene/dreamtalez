@@ -1839,8 +1839,22 @@ app.get("/.well-known/assetlinks.json", (req, res) => {
   }]);
 });
 
-// Static files — ETags disabled so browser always fetches fresh CSS/JS
-app.use(express.static(PUBLIC_DIR, { etag: false, lastModified: false }));
+// Static files — ETags enabled for JS/CSS so browser caches on repeat visits.
+// index.html stays no-store (set below) so new deploys are always picked up.
+app.use(express.static(PUBLIC_DIR, {
+  etag: true,
+  lastModified: true,
+  setHeaders(res, filePath) {
+    // HTML: never cache — always fetch fresh so deploys take effect immediately
+    if (filePath.endsWith(".html")) {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+    } else {
+      // JS/CSS/images: cache for 1 hour, revalidate with ETag
+      // Browser sends If-None-Match; server returns 304 if unchanged (no re-download)
+      res.setHeader("Cache-Control", "public, max-age=3600, must-revalidate");
+    }
+  },
+}));
 
 app.get("/", (req, res) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
