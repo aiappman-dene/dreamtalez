@@ -14,6 +14,8 @@ import {
   setPersistence,
   browserLocalPersistence,
   indexedDBLocalPersistence,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 import {
   initializeAppCheck,
@@ -124,8 +126,9 @@ async function _ensureAuthPersistence() {
   _saveClientDiagnostic('dt-last-auth-diagnostic', { time: new Date().toISOString(), persistence: 'none', note: 'falling back to default getAuth' });
 }
 
-// Kick off persistence resolution but don't block module load.
-_ensureAuthPersistence().catch(() => {});
+// Kick off persistence resolution and expose it so auth actions can wait for
+// the browser's best available storage before signing users in.
+export const authReady = _ensureAuthPersistence().catch(() => {});
 
 export async function getAppCheckToken() {
   if (!_appCheck) return null;
@@ -175,6 +178,8 @@ export {
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   signOut,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
   
   // Firestore - Document operations
   doc,

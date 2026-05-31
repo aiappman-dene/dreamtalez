@@ -58,7 +58,7 @@ services:
       # Comma-separated list of allowed origins (no trailing slash)
       # Must include your Render domain AND any custom domain
       - key: ALLOWED_ORIGINS
-        value: https://dreamtalez.onrender.com,https://dreamtalez.com
+        value: https://dreamtalez.onrender.com,https://dreamtalez.com,https://www.dreamtalez.com
 
       # ── Android TWA / Digital Asset Links ──────────────────────────────────
       # SHA-256 fingerprint of your release keystore — get with:

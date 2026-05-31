@@ -8,7 +8,7 @@ import {
   doc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import { db } from "../firebase-init.js?v=20260522c";
+import { db } from "../firebase-init.js?v=20260531b";
 import { state } from "./app-state.js";
 import { t } from "./i18n.js?v=20260521b";
 import { showToast } from "./toast.js";

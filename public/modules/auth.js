@@ -10,12 +10,12 @@ import {
   signOut,
   EmailAuthProvider,
   reauthenticateWithCredential,
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-import {
   doc,
   setDoc,
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import { auth, db } from "../firebase-init.js?v=20260522c";
+  auth,
+  authReady,
+  db,
+} from "../firebase-init.js?v=20260531b";
 import { state } from "./app-state.js";
 import { t } from "./i18n.js?v=20260521b";
 import { showToast } from "./toast.js";
@@ -37,6 +37,7 @@ export async function signup() {
   }
 
   try {
+    await authReady;
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await setDoc(doc(db, "users", userCredential.user.uid), {
       email,
@@ -69,6 +70,7 @@ export async function login() {
   }
 
   try {
+    await authReady;
     await signInWithEmailAndPassword(auth, email, password);
     try {
       const successDiag = {
@@ -109,6 +111,7 @@ export async function login() {
 
 export async function logout() {
   try {
+    await authReady;
     await signOut(auth);
   } catch (error) {
     console.error("Logout failed:", error);
@@ -123,6 +126,7 @@ export async function resetPassword() {
   }
 
   try {
+    await authReady;
     await sendPasswordResetEmail(auth, email);
     showToast("Password reset email sent ✉️", "success");
   } catch (err) {
@@ -172,6 +176,7 @@ export async function confirmDeleteAccount() {
   if (errEl) errEl.classList.add("hidden");
 
   try {
+    await authReady;
     // Re-authenticate (Firebase requires this before sensitive operations)
     const credential = EmailAuthProvider.credential(state.currentUser.email, password);
     await reauthenticateWithCredential(state.currentUser, credential);
