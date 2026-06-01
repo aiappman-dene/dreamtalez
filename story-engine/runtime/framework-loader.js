@@ -177,7 +177,7 @@ export class FrameworkLoader {
       return null;
     }
 
-    return `DREAMTALEZ LOCKED PRODUCTION FRAMEWORK\nVersion: 1.0.0 | Authored by Claude Opus | Runtime: Claude Sonnet\n\n${"=".repeat(60)}\n\n${parts.join(`\n\n${"=".repeat(60)}\n\n`)}`;
+    return `BEDTALEZ LOCKED PRODUCTION FRAMEWORK\nVersion: 1.0.0 | Authored by Claude Opus | Runtime: Claude Sonnet\n\n${"=".repeat(60)}\n\n${parts.join(`\n\n${"=".repeat(60)}\n\n`)}`;
   }
 
   isLoaded() {

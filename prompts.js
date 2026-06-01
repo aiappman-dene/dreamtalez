@@ -634,7 +634,7 @@ Your rules:
 - Preserve dialect, tone, sentence length, and pacing throughout.
 - Return ONLY the corrected story — no preamble, no labels, no explanation.`;
 
-const DREAMTALEZ_STYLE = `
+const BEDTALEZ_STYLE = `
 Bedtalez Signature Style:
 
 - Gentle magical realism (soft magic, not overwhelming)
@@ -865,7 +865,7 @@ function getModeIdentityPrompt(mode) {
 
 // The Bedtalez brand voice — applied to every story regardless of mode.
 // Ensures a consistent authored feel across all 4 experiences.
-const DREAMTALEZ_SIGNATURE = `
+const BEDTALEZ_SIGNATURE = `
 SIGNATURE STYLE:
 Write in a warm, emotionally rich, cinematic storytelling style suitable for a high-quality children's bedtime book.
 
@@ -1178,8 +1178,8 @@ Let this quality shape how they approach the challenge and how they feel at the 
   return `
 You are a world-class children's bedtime storyteller.
 
-${DREAMTALEZ_STYLE}
-${DREAMTALEZ_SIGNATURE}
+${BEDTALEZ_STYLE}
+${BEDTALEZ_SIGNATURE}
 ${getModeIdentityPrompt(effectiveMode)}
 ${modeBeats ? `\n${modeBeats}\n` : ""}${CINEMATIC_STORY_INSTRUCTIONS}
 ${personalityBlock}
