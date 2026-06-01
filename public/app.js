@@ -126,14 +126,26 @@ async function showWelcomeScreenIfNeeded(user, userSnap) {
     const btn = document.getElementById('welcomeBeginBtn');
     if (btn) {
       btn.onclick = async () => {
+        console.log("[Welcome] Begin button clicked");
         welcomePage.classList.add('hidden');
-        // Since we're here, the user is new or hasn't finished onboarding
-        const { isNewUser } = await loadUserProfile(userSnap);
-        if (isNewUser) {
-          navigateTo("language");
-        } else {
-          await loadChildren(userSnap);
-          navigateTo('home');
+        
+        // Show loading while we prepare the next view
+        dtLoadingStart(t('loading_magic', 'Preparing your magical world...'));
+        
+        try {
+          // Since we're here, the user is new or hasn't finished onboarding
+          const { isNewUser } = await loadUserProfile(userSnap);
+          if (isNewUser) {
+            navigateTo("language");
+          } else {
+            await loadChildren(userSnap);
+            navigateTo('home');
+          }
+        } catch (err) {
+          console.error("[Welcome] Error during onboarding:", err);
+          navigateTo('home'); // Fallback to home
+        } finally {
+          dtLoadingStop();
         }
       };
     }
