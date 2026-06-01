@@ -762,7 +762,13 @@ function getFirebaseAdminInstance() {
     const hasServiceAccount = FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY;
     const hasApplicationDefault = !!process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
-    if (hasServiceAccount) {
+    const SERVICE_ACCOUNT_PATH = path.join(__dirname, "firebase-service-account.json");
+    if (fs.existsSync(SERVICE_ACCOUNT_PATH)) {
+      initializeAdminApp({
+        credential: cert(SERVICE_ACCOUNT_PATH),
+      });
+      logEvent("[FIREBASE] Initialized using service account JSON");
+    } else if (hasServiceAccount) {
       initializeAdminApp({
         credential: cert({
           projectId: FIREBASE_PROJECT_ID,

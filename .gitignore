@@ -40,3 +40,4 @@ GoogleService-Info.plist
 # ── Build outputs ──────────────────────────────────────────────────────────
 dist/
 build/
+firebase-service-account.json
