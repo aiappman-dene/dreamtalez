@@ -30,7 +30,7 @@ export const DEFAULT_CORRECTIVE_PROMPTS = {
   repetition:
     "Vary sentence beginnings and avoid reusing the same imagery; rephrase repeated motifs with synonymous bedtime language.",
   emotional:
-    "Lead with cozy warmth and reassurance: a held hand, a steady breath, a soft endearment. Remove any nervous, fearful, or anxious imagery — DreamTalez stories replace unease with coziness, never explore it.",
+    "Lead with cozy warmth and reassurance: a held hand, a steady breath, a soft endearment. Remove any nervous, fearful, or anxious imagery — Bedtalez stories replace unease with coziness, never explore it.",
   "bedtime-safety":
     "Remove all violent, loud, or distressing vocabulary. Resolve any tension and end on a settling, declarative beat that names the comfort (home, held, safe, loved).",
   pacing:

@@ -233,7 +233,7 @@ async function refreshTeddyState(animated = false) {
 
 // (onAuthStateChanged handler moved above, see initialization section)
 // =============================================================================
-// DreamTalez — Frontend Application
+// Bedtalez — Frontend Application
 // =============================================================================
 // Accessibility Modes: Dyslexia Friendly & Neurodivergent Friendly
 // =============================================================================
@@ -1362,7 +1362,7 @@ async function shareStory() {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: `"${title}" — DreamTalez`,
+        title: `"${title}" — Bedtalez`,
         text: fullText.slice(0, 3000), // keep within share sheet limits
       });
       trackEvent("story_shared", { method: "native", childName });
@@ -1946,7 +1946,7 @@ function navigateTo(page) {
     const emailEl = $("settingsEmail");
     if (emailEl && state.currentUser) emailEl.textContent = state.currentUser.email || "";
     const verEl = $("settingsVersion");
-    if (verEl) verEl.textContent = `DreamTalez v${APP_VERSION}`;
+    if (verEl) verEl.textContent = `Bedtalez v${APP_VERSION}`;
     renderDialectControls();
     // Highlight active language in settings grid
     const sGrid = $("settingsLangGrid");
@@ -3705,7 +3705,7 @@ function scheduleLocalBedtimeNotification(childName, time) {
     reg.active?.postMessage({
       type: "SCHEDULE_NOTIFICATION",
       delayMs,
-      title: "DreamTalez ✨",
+      title: "Bedtalez ✨",
       body: `Bedtime story time for ${name}! A magical adventure is waiting 🌙`,
       tag: "dt-bedtime-reminder",
     });

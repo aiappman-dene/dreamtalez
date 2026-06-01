@@ -1,5 +1,5 @@
 /**
- * story-cache.js — Offline story cache for DreamTalez
+ * story-cache.js — Offline story cache for Bedtalez
  *
  * Pre-generates AI stories when online and stores them in IndexedDB so
  * Medium / Long / Hero modes work on airplane mode.
@@ -13,7 +13,7 @@
   // Config
   // ============================================================
 
-  const DB_NAME = "dreamtalez-cache";
+  const DB_NAME = "bedtalez-cache";
   const DB_VERSION = 1;
   const STORE_NAME = "stories";
   const TARGET_PER_SLOT = 1;          // stories to keep ready per child+mode
@@ -254,8 +254,8 @@
   // Background fill — generates stories while browser is idle
   // ============================================================
 
-  const BG_LOCK_KEY      = "dreamtalez-bg-fill-running";
-  const BG_COOLDOWN_KEY  = "dreamtalez-bg-fill-cooldown";
+  const BG_LOCK_KEY      = "bedtalez-bg-fill-running";
+  const BG_COOLDOWN_KEY  = "bedtalez-bg-fill-cooldown";
   const BG_COOLDOWN_MS   = 15 * 60 * 1000; // 15 minutes after a 429
   const BG_POLL_INTERVAL = 3000;            // poll job status every 3 s
   const BG_POLL_TIMEOUT  = 120 * 1000;     // abandon a job after 2 minutes

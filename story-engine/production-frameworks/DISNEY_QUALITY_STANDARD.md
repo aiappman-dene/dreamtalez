@@ -1,5 +1,5 @@
 # DISNEY QUALITY STANDARD
-## DreamTalez Prose and Emotional Craft
+## Bedtalez Prose and Emotional Craft
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
@@ -155,7 +155,7 @@ Long sentence → shorter sentence → short sentence → very short sentence �
 
 ## SPARKLE LANGUAGE (USE SPARINGLY)
 
-Soft magical language that belongs in DreamTalez stories:
+Soft magical language that belongs in Bedtalez stories:
 - glowing, shimmering, drifting, hovering, settling
 - gentle, soft, golden, quiet, still, peaceful
 - warm, cosy, tender, safe
@@ -207,7 +207,7 @@ The Heart Moment is not a narrative climax. It is a stillness. Use this five-bea
 
 ## THE PARENT EMOTION STANDARD
 
-DreamTalez does not only move children. It moves parents.
+Bedtalez does not only move children. It moves parents.
 
 The parent reading this aloud is present in a dark room with their child. They are also tired. They are also looking for reassurance that the world is good.
 
@@ -231,4 +231,4 @@ Before delivering any story, apply these five refinements in order:
 
 ---
 
-*This standard defines the prose and emotional craft required of every DreamTalez story. Quality is the product moat.*
+*This standard defines the prose and emotional craft required of every Bedtalez story. Quality is the product moat.*

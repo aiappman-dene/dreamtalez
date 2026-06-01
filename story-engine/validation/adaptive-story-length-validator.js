@@ -2,7 +2,7 @@
  * Adaptive Story Length Validator
  *
  * Validates that the story stays within the 1200–1500 word premium runtime.
- * DreamTalez's ~8–10 minute bedtime ritual is a core product promise — stories
+ * Bedtalez's ~8–10 minute bedtime ritual is a core product promise — stories
  * that are too short feel cheap; too long breaks the ritual.
  *
  * Returns { passed, warnings, metrics }

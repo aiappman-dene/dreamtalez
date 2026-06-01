@@ -1,4 +1,4 @@
-# DreamTalez TODO
+# Bedtalez TODO
 
 ## Phase 1 — Critical Production Blockers (user action required)
 - [ ] Generate Android release keystore and back it up securely
@@ -43,7 +43,7 @@
    - ANTHROPIC_API_KEY=sk-ant-...
    - FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY
    - STRIPE_SECRET=sk_live_..., STRIPE_WEBHOOK_SECRET=whsec_...
-   - ALLOWED_ORIGINS=https://dreamtalez.onrender.com,https://dreamtalez.com
+   - ALLOWED_ORIGINS=https://bedtalez.onrender.com,https://bedtalez.com
    - ANDROID_SHA256_FINGERPRINT (from release keystore)
      (render.yaml verified; secret values still required in Render dashboard)
 7. [ ] Deploy — watch logs for boot validation output (should show ✅ AI configured, ✅ CORS origins)

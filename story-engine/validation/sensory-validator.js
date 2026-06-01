@@ -4,7 +4,7 @@
  * Inspects modality balance (sight / sound / touch / smell / taste) and
  * the cozy bedtime atmosphere of the prose: moonlight, lantern glow,
  * snug blankets, drifting snowfall, hushed forests — the "soft moonlit
- * bedtime world" DreamTalez aims for.
+ * bedtime world" Bedtalez aims for.
  *
  * Bedtime prose leans heavily visual; we nudge toward the other senses
  * (especially touch and sound) without forcing every modality. We also

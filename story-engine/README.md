@@ -1,4 +1,4 @@
-# DreamTalez Story Engine
+# Bedtalez Story Engine
 
 **PHASE 1: Building the Architecture (Current)**
 

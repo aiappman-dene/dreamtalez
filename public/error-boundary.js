@@ -1,4 +1,4 @@
-// DreamTalez — Frontend Error Boundary
+// Bedtalez — Frontend Error Boundary
 // Captures uncaught JS errors and unhandled promise rejections.
 //
 // Privacy rules:
@@ -77,7 +77,7 @@
       ts:      new Date().toISOString(),
     };
 
-    console.error("[DreamTalez] Uncaught error:", entry);
+    console.error("[Bedtalez] Uncaught error:", entry);
 
     // Forward to Crashlytics bridge when running inside the Capacitor app.
     // Works on Android now; iOS uses the same call path when added later.

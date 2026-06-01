@@ -1,5 +1,5 @@
 // =============================================================================
-// DreamTalez — Client-Side Input Safety
+// Bedtalez — Client-Side Input Safety
 // Shared module imported by app.js and children.js.
 // Mirrors the server-side list in server.js — keep both in sync.
 // =============================================================================

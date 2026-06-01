@@ -1,5 +1,5 @@
 # SENSORY ORCHESTRATION STANDARD
-## DreamTalez Atmosphere & Immersion System
+## Bedtalez Atmosphere & Immersion System
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
@@ -10,7 +10,7 @@ More sensory detail does not create more immersion. It creates numbness.
 
 A child who has read five sensory details in a row stops feeling them. A child who reads one precisely placed sensory detail at the right moment feels it in their body.
 
-DreamTalez uses sensory language like a composer uses a solo instrument — rarely, precisely, at the moment of maximum emotional resonance.
+Bedtalez uses sensory language like a composer uses a solo instrument — rarely, precisely, at the moment of maximum emotional resonance.
 
 ---
 

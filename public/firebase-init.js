@@ -1,4 +1,4 @@
-// DreamTalez — Firebase Initialization
+// Bedtalez — Firebase Initialization
 // Single module that owns Firebase app/auth/db instances.
 // Import { auth, db } from here — never call initializeApp() again elsewhere.
 
@@ -43,9 +43,9 @@ import {
 
 const firebaseConfig = {
   apiKey: "AIzaSyAoNxcJTiqah_Ig_1THapgWIYY3Y-nPWj8",
-  authDomain: "dreamtalez.firebaseapp.com",
-  projectId: "dreamtalez",
-  storageBucket: "dreamtalez.appspot.com",
+  authDomain: "bedtalez.firebaseapp.com",
+  projectId: "bedtalez",
+  storageBucket: "bedtalez.appspot.com",
   messagingSenderId: "219771634733",
   appId: "1:219771634733:web:007c920a5442a4d19c24a4",
 };

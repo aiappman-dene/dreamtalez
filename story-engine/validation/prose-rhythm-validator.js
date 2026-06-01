@@ -1,7 +1,7 @@
 /**
  * Prose Rhythm Validator
  *
- * Read-aloud cadence checks. DreamTalez stories should feel like a cozy
+ * Read-aloud cadence checks. Bedtalez stories should feel like a cozy
  * bedtime narrator — short calming sentences, medium narrative sentences,
  * occasional softly lyrical lines, all woven together with breathing room.
  *

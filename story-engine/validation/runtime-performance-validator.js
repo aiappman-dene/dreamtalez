@@ -1,7 +1,7 @@
 /**
  * Runtime Performance Validator
  *
- * Validates generation latency and token efficiency against DreamTalez's
+ * Validates generation latency and token efficiency against Bedtalez's
  * premium-feeling speed targets. This is a monitoring and alerting tool —
  * it never fails a story, only flags performance concerns.
  *

@@ -1,23 +1,23 @@
-# RELEASE — DreamTalez Cutover & Launch Runbook
+# RELEASE — Bedtalez Cutover & Launch Runbook
 
-Scope: concise, sequential operational checklist to launch DreamTalez without code changes. Follow steps in order.
+Scope: concise, sequential operational checklist to launch Bedtalez without code changes. Follow steps in order.
 
 1) Preflight — required before any build
 - Confirm `.env` local secrets are NOT committed and `deploy.env.example` is copied to your host secrets store.
 - Confirm `android/.gitignore` excludes keystore and `google-services.json`.
-- Confirm `android/app/packageId` is `com.dreamtalez.app` (see `capacitor.config.json`).
+- Confirm `android/app/packageId` is `com.bedtalez.app` (see `capacitor.config.json`).
 
 2) Android signing (create & secure keystore)
 - Generate release keystore (example):
 
 ```bash
 keytool -genkeypair -v \
-  -keystore dreamtalez-release.jks \
-  -alias dreamtalez \
+  -keystore bedtalez-release.jks \
+  -alias bedtalez \
   -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-- Move the JKS to a secure vault (e.g., `~/secrets/dreamtalez/`), never commit.
+- Move the JKS to a secure vault (e.g., `~/secrets/bedtalez/`), never commit.
 - Create `android/keystore.properties` with `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
 - Backup the JKS and `keystore.properties` in an encrypted backup (1Password/Bitwarden/secure S3 with KMS).
 
@@ -25,15 +25,15 @@ keytool -genkeypair -v \
 - Use provided helpers or keytool directly:
 
 ```bash
-./scripts/compute_sha256.sh path/to/dreamtalez-release.jks dreamtalez
+./scripts/compute_sha256.sh path/to/bedtalez-release.jks bedtalez
 # or on Windows PowerShell
-./scripts/compute_sha256.ps1 -KeystorePath path\to\dreamtalez-release.jks -Alias dreamtalez
+./scripts/compute_sha256.ps1 -KeystorePath path\to\bedtalez-release.jks -Alias bedtalez
 ```
 
 - Place the resulting colon-separated SHA256 string into your deploy secrets as `ANDROID_SHA256_FINGERPRINT`.
 
 4) Firebase Android setup
-- In Firebase Console, add an Android app with package `com.dreamtalez.app`.
+- In Firebase Console, add an Android app with package `com.bedtalez.app`.
 - Upload `google-services.json` to `android/app/google-services.json` (do not commit).
 - Register the SHA-256 fingerprint in Firebase project settings for that Android app.
 
@@ -43,9 +43,9 @@ keytool -genkeypair -v \
 ```
 NODE_ENV=production
 PORT=3001
-BASE_URL=https://dreamtalez.onrender.com
-RENDER_EXTERNAL_URL=https://dreamtalez.onrender.com
-ALLOWED_ORIGINS=https://dreamtalez.onrender.com,https://www.dreamtalez.com
+BASE_URL=https://bedtalez.onrender.com
+RENDER_EXTERNAL_URL=https://bedtalez.onrender.com
+ALLOWED_ORIGINS=https://bedtalez.onrender.com,https://www.bedtalez.com
 ANTHROPIC_API_KEY (or CLAUDE_API_KEY)
 FIREBASE_PROJECT_ID
 FIREBASE_CLIENT_EMAIL
@@ -69,7 +69,7 @@ ANDROID_SHA256_FINGERPRINT
 - Check health endpoint:
 
 ```bash
-curl -sS https://dreamtalez.onrender.com/health | jq .
+curl -sS https://bedtalez.onrender.com/health | jq .
 ```
 
 - Expected: `{"status":"ok", ...}` and `aiEnabled` `true` if AI key present.
@@ -102,6 +102,6 @@ curl -sS https://dreamtalez.onrender.com/health | jq .
 Appendix — quick command references
 - Build release (Android): `./gradlew bundleRelease`
 - Compute SHA256: `./scripts/compute_sha256.sh path/to/jks alias`
-- Health check: `curl -sS https://dreamtalez.onrender.com/health`
+- Health check: `curl -sS https://bedtalez.onrender.com/health`
 
 Keep this runbook as the canonical cutover checklist. Avoid making app code changes during the cutover; perform configuration and secret updates only.

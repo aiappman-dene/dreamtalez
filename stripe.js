@@ -43,7 +43,7 @@ export async function createCheckoutSession(req, res) {
   }
 
   try {
-    const base = process.env.BASE_URL || "https://dreamtalez.onrender.com";
+    const base = process.env.BASE_URL || "https://bedtalez.onrender.com";
     const metadata = { type };
     if (uid) metadata.uid = uid;
 

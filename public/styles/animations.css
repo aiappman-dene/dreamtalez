@@ -1,5 +1,5 @@
 ﻿/* =============================================================================
-   DreamTalez animations
+   Bedtalez animations
    ============================================================================= */
 
 @keyframes welcomeFadeIn {
@@ -48,7 +48,7 @@
   100% { opacity: 0; transform: scale(0.7) rotate(0deg); }
 }
 /* =============================================================================
-   DreamTalez â€” Premium Design System (App-like layout)
+   Bedtalez â€” Premium Design System (App-like layout)
    ============================================================================= */
 
 *,

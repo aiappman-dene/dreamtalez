@@ -27,7 +27,7 @@ function isSupportedStoryLocale(lang) {
   return supported.includes(lang);
 }
 // =============================================================================
-// DreamTalez — Server
+// Bedtalez — Server
 // AI-powered bedtime story generator for children aged 2–12
 // =============================================================================
 
@@ -1892,7 +1892,7 @@ app.use((req, res, next) => {
 
 // Digital Asset Links — required for Android TWA/Capacitor app verification.
 // Replace SHA256_CERT_FINGERPRINT with the output of:
-//   keytool -list -v -keystore dreamtalez-release.jks -alias dreamtalez
+//   keytool -list -v -keystore bedtalez-release.jks -alias bedtalez
 // in the "SHA256:" line (colon-separated hex pairs).
 app.get("/.well-known/assetlinks.json", (req, res) => {
   res.setHeader("Content-Type", "application/json");
@@ -1901,7 +1901,7 @@ app.get("/.well-known/assetlinks.json", (req, res) => {
     relation: ["delegate_permission/common.handle_all_urls"],
     target: {
       namespace: "android_app",
-      package_name: "com.dreamtalez.app",
+      package_name: "com.bedtalez.app",
       sha256_cert_fingerprints: [
         process.env.ANDROID_SHA256_FINGERPRINT || "REPLACE_WITH_RELEASE_KEYSTORE_SHA256",
       ],
@@ -2643,7 +2643,7 @@ function preflightCheck() {
   // App Check — warn if not enabled in production; not fatal since it requires
   // reCAPTCHA Enterprise domain registration before it can be safely enforced.
   if (isProd && !REQUIRE_APP_CHECK) {
-    warn.push("AppCheck: REQUIRE_APP_CHECK is not enabled — set to true after registering dreamtalez.onrender.com in reCAPTCHA Enterprise console");
+    warn.push("AppCheck: REQUIRE_APP_CHECK is not enabled — set to true after registering bedtalez.onrender.com in reCAPTCHA Enterprise console");
   }
 
   if (warn.length) {
@@ -2687,7 +2687,7 @@ if (LOCKED_SYSTEM_PROMPT) {
 }
 
 // ============================================
-// LOCKED PORT — DreamTalez Production Standard
+// LOCKED PORT — Bedtalez Production Standard
 // Never increments, never falls back.
 // ============================================
 
@@ -2696,7 +2696,7 @@ const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, () => {
   console.log(`
 ========================================
-DreamTalez Server Running
+Bedtalez Server Running
 ========================================
 
 PORT: ${PORT}

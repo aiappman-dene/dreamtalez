@@ -6,23 +6,23 @@ Purpose: generate a release keystore, back it up securely, extract the SHA256 fi
 
 ```bash
 keytool -genkeypair -v \
-  -keystore dreamtalez-release.jks \
-  -alias dreamtalez \
+  -keystore bedtalez-release.jks \
+  -alias bedtalez \
   -keyalg RSA -keysize 2048 -validity 10000
 ```
 
 - You'll be prompted for store and key passwords and the certificate subject fields.
-- Store the `dreamtalez-release.jks` file *locally* (do not commit).
+- Store the `bedtalez-release.jks` file *locally* (do not commit).
 
 2) Recommended file locations
 
-- Put the keystore in a secure folder outside source control, e.g. `~/secrets/dreamtalez/` or `C:\keystore\dreamtalez\`.
+- Put the keystore in a secure folder outside source control, e.g. `~/secrets/bedtalez/` or `C:\keystore\bedtalez\`.
 - Add a file `android/keystore.properties` with (example):
 
 ```
-storeFile=dreamtalez-release.jks
+storeFile=bedtalez-release.jks
 storePassword=<STORE_PASSWORD>
-keyAlias=dreamtalez
+keyAlias=bedtalez
 keyPassword=<KEY_PASSWORD>
 ```
 
@@ -33,13 +33,13 @@ keyPassword=<KEY_PASSWORD>
 - Linux / macOS (bash):
 
 ```bash
-keytool -list -v -keystore path/to/dreamtalez-release.jks -alias dreamtalez -storepass <STOREPASS> | awk -F": " '/SHA256:/{print $2}'
+keytool -list -v -keystore path/to/bedtalez-release.jks -alias bedtalez -storepass <STOREPASS> | awk -F": " '/SHA256:/{print $2}'
 ```
 
 - Windows PowerShell (example):
 
 ```powershell
-&(keytool -list -v -keystore "path\to\dreamtalez-release.jks" -alias dreamtalez -storepass "<STOREPASS>") | Select-String 'SHA256:'
+&(keytool -list -v -keystore "path\to\bedtalez-release.jks" -alias bedtalez -storepass "<STOREPASS>") | Select-String 'SHA256:'
 ```
 
 - I included two helper scripts: `scripts/compute_sha256.sh` and `scripts/compute_sha256.ps1` to automate extraction.

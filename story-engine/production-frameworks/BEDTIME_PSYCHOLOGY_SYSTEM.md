@@ -1,12 +1,12 @@
 # BEDTIME PSYCHOLOGY SYSTEM
-## DreamTalez Sleep Science & Narrative Deceleration
+## Bedtalez Sleep Science & Narrative Deceleration
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
 
 ## THE BEDTIME CONTRACT
 
-A DreamTalez story is not entertainment. It is a sleep ritual.
+A Bedtalez story is not entertainment. It is a sleep ritual.
 
 The child's nervous system must decelerate from wakefulness toward sleep during the story. Every narrative decision — pacing, sentence length, sensory detail, energy level — must serve this transition.
 
@@ -48,7 +48,7 @@ The story's deceleration rate adapts to when the child is hearing it:
 
 ## SENTENCE LENGTH AS SLEEP SIGNAL
 
-Research in child sleep psychology confirms: slowing language rhythm signals the brain to shift toward sleep. DreamTalez uses this deliberately.
+Research in child sleep psychology confirms: slowing language rhythm signals the brain to shift toward sleep. Bedtalez uses this deliberately.
 
 **Opening and adventure sections:** Long, flowing sentences (15–20 words). The reader is carried forward.
 

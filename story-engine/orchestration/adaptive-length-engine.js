@@ -1,7 +1,7 @@
 /**
  * Adaptive Length Engine
  *
- * DreamTalez stories must remain ~8–10 minutes read-aloud at all times.
+ * Bedtalez stories must remain ~8–10 minutes read-aloud at all times.
  * This engine does NOT change story length — it enforces the premium stable runtime.
  *
  * What it DOES adjust:

@@ -1,5 +1,5 @@
 /**
- * DreamTalez magical loading experience.
+ * Bedtalez magical loading experience.
  *
  * The emotional beginning of bedtime — not a spinner.
  *

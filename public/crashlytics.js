@@ -1,4 +1,4 @@
-// DreamTalez — Crashlytics Bridge
+// Bedtalez — Crashlytics Bridge
 // Thin wrapper around @capacitor-firebase/crashlytics.
 // Falls back to console-only on web/dev — no behaviour change in browser.
 //

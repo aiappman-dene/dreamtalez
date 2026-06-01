@@ -1,5 +1,5 @@
 /**
- * DreamTalez bedtime loading messages.
+ * Bedtalez bedtime loading messages.
  *
  * Tone: cozy · sleepy · comforting · magical · premium · emotionally safe.
  *

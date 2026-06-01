@@ -1,4 +1,4 @@
-package com.dreamtalez.app;
+package com.bedtalez.app;
 
 import android.os.Bundle;
 import android.webkit.WebView;

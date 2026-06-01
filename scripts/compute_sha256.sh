@@ -3,7 +3,7 @@ set -euo pipefail
 
 if [ "$#" -lt 2 ]; then
   echo "Usage: $0 <keystore-path> <alias> [storepass]"
-  echo "Example: $0 android/dreamtalez-release.jks dreamtalez"
+  echo "Example: $0 android/bedtalez-release.jks bedtalez"
   exit 2
 fi
 

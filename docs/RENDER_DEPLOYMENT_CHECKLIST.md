@@ -4,9 +4,9 @@
 
 - `NODE_ENV=production`
 - `PORT=3001`
-- `BASE_URL=https://dreamtalez.onrender.com`
-- `RENDER_EXTERNAL_URL=https://dreamtalez.onrender.com`
-- `ALLOWED_ORIGINS=https://dreamtalez.onrender.com,https://www.dreamtalez.com`
+- `BASE_URL=https://bedtalez.onrender.com`
+- `RENDER_EXTERNAL_URL=https://bedtalez.onrender.com`
+- `ALLOWED_ORIGINS=https://bedtalez.onrender.com,https://www.bedtalez.com`
 - `ANTHROPIC_API_KEY` or `CLAUDE_API_KEY` (your AI provider key)
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_CLIENT_EMAIL`
@@ -27,7 +27,7 @@
 - After deploy, verify:
 
 ```bash
-curl -sSf https://dreamtalez.onrender.com/health | jq .
+curl -sSf https://bedtalez.onrender.com/health | jq .
 ```
 
 - Expected response (example): `{"status":"ok","aiEnabled":true}` — AI-enabled will be `true` only when the AI key is set and validated by the server.

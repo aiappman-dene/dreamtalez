@@ -1,9 +1,9 @@
-# DreamTalez Production Readiness Checklist
+# Bedtalez Production Readiness Checklist
 
-This checklist captures the final production wiring, deployment readiness, Android release preparation, Firebase integration, Crashlytics validation, and operational safety checks for DreamTalez.
+This checklist captures the final production wiring, deployment readiness, Android release preparation, Firebase integration, Crashlytics validation, and operational safety checks for Bedtalez.
 
 ## 1. Android release signing
-- [ ] Generate Android release keystore (`dreamtalez-release.jks`).
+- [ ] Generate Android release keystore (`bedtalez-release.jks`).
 - [ ] Store keystore securely offline.
 - [ ] Add `android/keystore.properties` with:
   - `storeFile`

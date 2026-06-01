@@ -1,5 +1,5 @@
 # CONTINUITY MEMORY STANDARD
-## DreamTalez Story & Character Consistency System
+## Bedtalez Story & Character Consistency System
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---

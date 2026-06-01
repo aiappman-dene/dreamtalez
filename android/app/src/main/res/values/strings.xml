@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">DreamTalez</string>
-    <string name="title_activity_main">DreamTalez</string>
-    <string name="package_name">com.dreamtalez.app</string>
-    <string name="custom_url_scheme">com.dreamtalez.app</string>
+    <string name="app_name">Bedtalez</string>
+    <string name="title_activity_main">Bedtalez</string>
+    <string name="package_name">com.bedtalez.app</string>
+    <string name="custom_url_scheme">com.bedtalez.app</string>
 </resources>

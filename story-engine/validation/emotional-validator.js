@@ -1,7 +1,7 @@
 /**
  * Emotional Validator
  *
- * DreamTalez's emotional target is "warm bedtime magic" — sweet, cozy,
+ * Bedtalez's emotional target is "warm bedtime magic" — sweet, cozy,
  * reassuring. This validator measures comfort anchors (warmth + wonder
  * + reassurance) and treats discomfort vocabulary as something to remove,
  * NOT as a dimension to model. Stories should feel cozy, never analytical.
@@ -47,7 +47,7 @@ export class EmotionalValidator {
     }
 
     // Discomfort vocabulary is removed, not modeled. The payload's `nervousness`
-    // field is intentionally ignored here — DreamTalez does not scale tolerance
+    // field is intentionally ignored here — Bedtalez does not scale tolerance
     // up because a scene "should feel anxious." There is no such mode.
     const allowedUnease = this.maxUneaseDensity;
     if (profile.uneaseDensity > allowedUnease) {

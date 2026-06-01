@@ -1,9 +1,9 @@
 {
-  "appId": "com.dreamtalez.app",
-  "appName": "DreamTalez",
+  "appId": "com.bedtalez.app",
+  "appName": "Bedtalez",
   "webDir": "public",
   "server": {
-    "url": "https://dreamtalez.onrender.com",
+    "url": "https://bedtalez.onrender.com",
     "cleartext": false
   },
   "android": {
@@ -12,7 +12,7 @@
     "webContentsDebuggingEnabled": false
   },
   "ios": {
-    "scheme": "DreamTalez",
+    "scheme": "Bedtalez",
     "contentInset": "always",
     "allowsLinkPreview": false,
     "handleApplicationNotifications": false,

@@ -1,4 +1,4 @@
-// Simple i18n implementation for DreamTalez UI
+// Simple i18n implementation for Bedtalez UI
 // Usage: i18n.t('key')
 
 const translations = {

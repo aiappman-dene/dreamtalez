@@ -1,12 +1,12 @@
 # CINEMATIC PROSE STANDARD
-## DreamTalez Scene Construction & Transition System
+## Bedtalez Scene Construction & Transition System
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
 
 ## CINEMATIC PRINCIPLE
 
-A DreamTalez story is read aloud by a parent in a dark bedroom. It must work as a performance — every sentence must carry sound, texture, and feeling. Read every paragraph as if you are the parent, speaking softly to a child whose eyes are growing heavy.
+A Bedtalez story is read aloud by a parent in a dark bedroom. It must work as a performance — every sentence must carry sound, texture, and feeling. Read every paragraph as if you are the parent, speaking softly to a child whose eyes are growing heavy.
 
 If a sentence doesn't work spoken aloud slowly and warmly, it doesn't belong in the story.
 
@@ -90,7 +90,7 @@ One well-placed sensory cue creates ten times the immersion of five scattered on
 
 ## DIALOGUE PRINCIPLES
 
-Dialogue is used sparingly — it is punctuation in DreamTalez prose, not the main event.
+Dialogue is used sparingly — it is punctuation in Bedtalez prose, not the main event.
 
 Rules:
 - Maximum 5–7 dialogue exchanges in a full story

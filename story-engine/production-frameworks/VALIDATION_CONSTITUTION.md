@@ -1,5 +1,5 @@
 # VALIDATION CONSTITUTION
-## DreamTalez Story Quality Gates
+## Bedtalez Story Quality Gates
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
@@ -8,7 +8,7 @@
 
 Validation is not a checklist. It is a quality promise to the child and the parent.
 
-Every story delivered by DreamTalez must pass the standard that a senior Disney editor would apply before publication. The validator's job is not to find faults — it is to confirm that this story deserves to be the last thing a child hears before sleep.
+Every story delivered by Bedtalez must pass the standard that a senior Disney editor would apply before publication. The validator's job is not to find faults — it is to confirm that this story deserves to be the last thing a child hears before sleep.
 
 ---
 

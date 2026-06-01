@@ -1,7 +1,7 @@
 /**
  * Global Localization Validator
  *
- * Checks that non-English stories preserve DreamTalez's emotional tone
+ * Checks that non-English stories preserve Bedtalez's emotional tone
  * rather than just being literal translations. A story can be grammatically
  * correct in another language but still lose its bedtime softness if the
  * translator chose clinical words over warm ones.

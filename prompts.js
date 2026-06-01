@@ -1,5 +1,5 @@
 // =============================================================================
-// DreamTalez — Story Prompt Engine v2
+// Bedtalez — Story Prompt Engine v2
 // Pipeline: Blueprint (Opus) → Prose (Sonnet) → Edit → Validate → Output
 // =============================================================================
 // =============================================================================
@@ -635,7 +635,7 @@ Your rules:
 - Return ONLY the corrected story — no preamble, no labels, no explanation.`;
 
 const DREAMTALEZ_STYLE = `
-DreamTalez Signature Style:
+Bedtalez Signature Style:
 
 - Gentle magical realism (soft magic, not overwhelming)
 - Emotional warmth over action
@@ -863,7 +863,7 @@ function getModeIdentityPrompt(mode) {
   return ADVENTURE_MODE_PROMPT;
 }
 
-// The DreamTalez brand voice — applied to every story regardless of mode.
+// The Bedtalez brand voice — applied to every story regardless of mode.
 // Ensures a consistent authored feel across all 4 experiences.
 const DREAMTALEZ_SIGNATURE = `
 SIGNATURE STYLE:

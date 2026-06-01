@@ -2,7 +2,7 @@
 
 ## Core principle
 
-DreamTalez stories are always ~8–10 minutes long. What adapts is the emotional weight, the pacing distribution, and the sensory intensity — never the total runtime. A child's bedtime ritual is sacred.
+Bedtalez stories are always ~8–10 minutes long. What adapts is the emotional weight, the pacing distribution, and the sensory intensity — never the total runtime. A child's bedtime ritual is sacred.
 
 ---
 

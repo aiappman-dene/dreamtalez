@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "locked": true,
-  "description": "DreamTalez bedtime safety and timing rules — authored by Opus, enforced by Sonnet runtime",
+  "description": "Bedtalez bedtime safety and timing rules — authored by Opus, enforced by Sonnet runtime",
 
   "runtime_minutes": {
     "target": 8,

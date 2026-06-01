@@ -2,7 +2,7 @@
 
 1) Package name
 
-- The Android app package id is `com.dreamtalez.app` (see `capacitor.config.json`). Use this when creating the Android app in Firebase.
+- The Android app package id is `com.bedtalez.app` (see `capacitor.config.json`). Use this when creating the Android app in Firebase.
 
 2) `google-services.json`
 

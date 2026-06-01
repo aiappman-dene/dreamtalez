@@ -1,5 +1,5 @@
 # FAMILY MAGIC CONSTITUTION
-## DreamTalez Family Warmth System
+## Bedtalez Family Warmth System
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---

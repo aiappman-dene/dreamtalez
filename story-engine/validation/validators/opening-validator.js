@@ -1,7 +1,7 @@
 /**
  * Opening Validator
  *
- * Validates the opening section of a DreamTalez story against the
+ * Validates the opening section of a Bedtalez story against the
  * Disney Quality Standard and Cinematic Prose Standard.
  *
  * Score: 1–10. Returns section, score, warnings.

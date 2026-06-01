@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: dreamtalez
+    name: bedtalez
     runtime: node
     plan: starter          # upgrade to Standard for more RAM once traffic grows
     region: frankfurt      # closest to EU family audience; change to oregon for US-primary
@@ -52,17 +52,17 @@ services:
         sync: false        # price_... story pack price ID from Stripe dashboard
 
       - key: BASE_URL
-        value: https://dreamtalez.onrender.com   # used for Stripe success/cancel redirect URLs
+        value: https://bedtalez.onrender.com   # used for Stripe success/cancel redirect URLs
 
       # ── CORS ───────────────────────────────────────────────────────────────
       # Comma-separated list of allowed origins (no trailing slash)
       # Must include your Render domain AND any custom domain
       - key: ALLOWED_ORIGINS
-        value: https://dreamtalez.onrender.com,https://dreamtalez.com,https://www.dreamtalez.com
+        value: https://bedtalez.onrender.com,https://bedtalez.com,https://www.bedtalez.com
 
       # ── Android TWA / Digital Asset Links ──────────────────────────────────
       # SHA-256 fingerprint of your release keystore — get with:
-      #   keytool -list -v -keystore release.keystore -alias dreamtalez -storepass <pass>
+      #   keytool -list -v -keystore release.keystore -alias bedtalez -storepass <pass>
       - key: ANDROID_SHA256_FINGERPRINT
         sync: false
 
@@ -77,7 +77,7 @@ services:
         value: "false"     # set to true only after validating Opus cost/latency in production
 
       # ── App Check / reCAPTCHA Enterprise ──────────────────────────────────────
-      # Set to true once dreamtalez.onrender.com is registered in reCAPTCHA Enterprise console.
+      # Set to true once bedtalez.onrender.com is registered in reCAPTCHA Enterprise console.
       # Site key 6LfsMvcsAAAAAHOJg5HeTOn-QrlVclzH-QF-ffqx is in public/firebase-init.js (public key).
       - key: REQUIRE_APP_CHECK
         value: "true"
@@ -86,4 +86,4 @@ services:
       # Self-ping URL used to prevent cold starts on Render starter plan.
       # Set this to your Render service URL or custom domain (no trailing slash).
       - key: RENDER_EXTERNAL_URL
-        value: https://dreamtalez.onrender.com
+        value: https://bedtalez.onrender.com

@@ -1,7 +1,7 @@
-# DreamTalez Environment & Deployment Audit
+# Bedtalez Environment & Deployment Audit
 
 ## Purpose
-This document summarizes required environment variables, production readiness checks, and secret-handling guidance for DreamTalez.
+This document summarizes required environment variables, production readiness checks, and secret-handling guidance for Bedtalez.
 
 ## Environment Templates
 - `local.env.example` — local development defaults and safe test values.

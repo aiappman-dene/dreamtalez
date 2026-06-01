@@ -1,5 +1,5 @@
 // =============================================================================
-// DreamTalez Story Engine � Procedural Story Generation
+// Bedtalez Story Engine � Procedural Story Generation
 // Pure module: no global state, no Firebase, no DOM.
 // Imports: i18n.js (t, getCurrentLanguage) and utils.js (pick, formatName)
 // =============================================================================

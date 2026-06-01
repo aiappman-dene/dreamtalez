@@ -1,7 +1,7 @@
 /**
  * Premium Quality Validator
  *
- * Final gate: confirms the story meets DreamTalez premium output standard
+ * Final gate: confirms the story meets Bedtalez premium output standard
  * across five dimensions. This validator is more holistic than the individual
  * Phase 3/4 validators — it looks at the story as a complete product.
  *
@@ -65,7 +65,7 @@ export class PremiumQualityValidator {
       warnings.push({
         type:     "low_emotional_anchor_density",
         severity: "low",
-        evidence: `Only ${anchorHits} emotional anchors found — premium DreamTalez stories carry at least 4`,
+        evidence: `Only ${anchorHits} emotional anchors found — premium Bedtalez stories carry at least 4`,
       });
     }
 

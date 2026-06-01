@@ -9,9 +9,9 @@
  * in the small set of words children actually feel, not in a dictionary.
  *
  * ─────────────────────────────────────────────────────────────────────
- * DreamTalez emotional direction
+ * Bedtalez emotional direction
  * ─────────────────────────────────────────────────────────────────────
- * DreamTalez stories are "warm bedtime magic" — sweet, cozy, magical,
+ * Bedtalez stories are "warm bedtime magic" — sweet, cozy, magical,
  * reassuring. They are NOT therapeutic, introspective, fear-modeling,
  * or psychologically probing.
  *
@@ -81,7 +81,7 @@ export const BEDTIME_BANNED = {
 };
 
 /**
- * Cozy bedtime atmosphere — the imagery DreamTalez wants to *favor*.
+ * Cozy bedtime atmosphere — the imagery Bedtalez wants to *favor*.
  * Used by the sensory validator to detect when prose lacks the
  * "soft moonlit bedtime world" texture. Independent slice from
  * TONE_LEXICON / SENSORY_LEXICON; overlap is intentional and harmless
@@ -145,7 +145,7 @@ export const COZY_ATMOSPHERE = {
 };
 
 /**
- * Harsh imagery — the texture DreamTalez wants to *avoid* in atmosphere.
+ * Harsh imagery — the texture Bedtalez wants to *avoid* in atmosphere.
  * Detected to warn, not banned outright (a single sharp word is fine if
  * balanced by warmth). The validator flags only when density is meaningful.
  */

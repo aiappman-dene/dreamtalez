@@ -1,5 +1,5 @@
 /**
- * DreamTalez line-by-line story reveal.
+ * Bedtalez line-by-line story reveal.
  *
  * The story does not appear all at once. It opens slowly — paragraph by
  * paragraph — like a bedtime book softly unfolding under moonlight.

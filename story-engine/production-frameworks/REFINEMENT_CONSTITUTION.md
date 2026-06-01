@@ -1,5 +1,5 @@
 # REFINEMENT CONSTITUTION
-## DreamTalez Story Improvement System
+## Bedtalez Story Improvement System
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
@@ -73,7 +73,7 @@ If a story fails multiple quality gates and cannot be refined into compliance:
 3. If still failing: deliver the best available version with quality warnings logged
 4. Never deliver the safe fallback story if the generated story is above 60% quality threshold
 
-The safe fallback is a last resort — it has no personalisation and breaks the emotional promise of DreamTalez.
+The safe fallback is a last resort — it has no personalisation and breaks the emotional promise of Bedtalez.
 
 ---
 

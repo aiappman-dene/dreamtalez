@@ -1,12 +1,12 @@
 # STORYFLOW PACING STANDARD
-## DreamTalez Length, Rhythm & Section Architecture
+## Bedtalez Length, Rhythm & Section Architecture
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
 
 ## THE STABLE RUNTIME PRINCIPLE
 
-DreamTalez stories are **always** 8–10 minutes read aloud. This is the bedtime ritual contract.
+Bedtalez stories are **always** 8–10 minutes read aloud. This is the bedtime ritual contract.
 
 Children calibrate sleep onset to ritual length. A story that ends too soon disrupts the signal. A story that runs too long causes fatigue-resistance.
 
@@ -115,7 +115,7 @@ The child may become restless or the parent loses the rhythm. Fatigue-resistance
 | 4–6 years | 600–900 words | 5–7 minutes |
 | 6–12 years | 1,200–1,500 words | 8–10 minutes |
 
-Note: The phase system governs 6–12 year old stories (the primary DreamTalez demographic). Toddler and preschool lengths are handled by `getAgeWordTarget()`.
+Note: The phase system governs 6–12 year old stories (the primary Bedtalez demographic). Toddler and preschool lengths are handled by `getAgeWordTarget()`.
 
 ---
 

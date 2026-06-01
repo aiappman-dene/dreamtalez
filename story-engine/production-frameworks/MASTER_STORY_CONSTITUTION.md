@@ -1,5 +1,5 @@
 # MASTER STORY CONSTITUTION
-## DreamTalez — Permanent Locked Standard
+## Bedtalez — Permanent Locked Standard
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
@@ -8,7 +8,7 @@
 
 ### The Child is Always the Hero
 
-The child whose name appears in the story is the protagonist, the decision-maker, the one who changes, grows, and succeeds. This is not a preference — it is the foundational law of every DreamTalez story.
+The child whose name appears in the story is the protagonist, the decision-maker, the one who changes, grows, and succeeds. This is not a preference — it is the foundational law of every Bedtalez story.
 
 Family members, companions, magical guides, and creatures exist to:
 - Love the child
@@ -34,7 +34,7 @@ No story may end with unresolved tension, lingering fear, or emotional ambiguity
 
 ### Quality is Non-Negotiable
 
-A DreamTalez story must feel like it was written by a human author who spent hours on it. Every sentence must earn its place. No filler. No generic phrasing. No mechanical output.
+A Bedtalez story must feel like it was written by a human author who spent hours on it. Every sentence must earn its place. No filler. No generic phrasing. No mechanical output.
 
 **THE 8-10 STANDARD:**
 Every story MUST achieve a score of 8 to 10 on all quality metrics. If a draft scores below 8, it is REJECTED and must be rewritten. There is no partial credit. Disney quality is the only acceptable output.
@@ -117,7 +117,7 @@ The Gentle Irony is what separates a story that is pleasant from a story that is
 
 ## THE SINGULARITY RULE (NON-NEGOTIABLE)
 
-Every DreamTalez story must pass this test:
+Every Bedtalez story must pass this test:
 
 *Could this child's name be replaced with any other child's name and the story still work equally well?*
 

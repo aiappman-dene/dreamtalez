@@ -1,4 +1,4 @@
-// DreamTalez Service Worker
+// Bedtalez Service Worker
 // Offline shell caching, push notifications, keepsake offline storage.
 
 const SW_VERSION   = '20260521b';
@@ -86,7 +86,7 @@ self.addEventListener('message', event => {
     const { delayMs, title, body, tag } = event.data;
     if (!delayMs || delayMs <= 0) return;
     setTimeout(() => {
-      self.registration.showNotification(title || 'DreamTalez ✨', {
+      self.registration.showNotification(title || 'Bedtalez ✨', {
         body: body || 'A magical bedtime story is waiting 🌙',
         icon: '/icons/icon-192.png',
         badge: '/icons/icon-96.png',
@@ -115,7 +115,7 @@ self.addEventListener('message', event => {
 self.addEventListener('push', event => {
   let data = {};
   try { data = event.data?.json() || {}; } catch {}
-  const title = data.title || 'DreamTalez ✨';
+  const title = data.title || 'Bedtalez ✨';
   const body  = data.body  || 'A magical bedtime story is waiting tonight 🌙';
   event.waitUntil(
     self.registration.showNotification(title, {

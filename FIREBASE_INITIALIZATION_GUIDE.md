@@ -5,7 +5,7 @@
 
 ## Summary
 
-DreamTalez uses a **centralized singleton Firebase initialization pattern** to ensure auth state synchronization across all browser tabs and windows. This document describes the architecture and safeguards in place to prevent future initialization regressions.
+Bedtalez uses a **centralized singleton Firebase initialization pattern** to ensure auth state synchronization across all browser tabs and windows. This document describes the architecture and safeguards in place to prevent future initialization regressions.
 
 ## Architecture
 
@@ -158,7 +158,7 @@ location.reload();
 
 ### Test Tab Sync
 
-1. Open two browser tabs to DreamTalez
+1. Open two browser tabs to Bedtalez
 2. Log in on Tab 1
 3. Tab 2 should automatically detect login (no page refresh needed)
 4. Open dev console on both tabs
@@ -168,7 +168,7 @@ location.reload();
 
 1. Log in
 2. Close browser completely
-3. Reopen DreamTalez
+3. Reopen Bedtalez
 4. User should still be logged in (via Firebase auth listener)
 
 ## Adding New Features

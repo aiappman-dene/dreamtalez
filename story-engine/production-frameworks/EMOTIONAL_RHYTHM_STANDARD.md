@@ -1,12 +1,12 @@
 # EMOTIONAL RHYTHM STANDARD
-## DreamTalez Arc Architecture & Energy Management
+## Bedtalez Arc Architecture & Energy Management
 ### Authored by Claude Opus | Locked for Sonnet Runtime
 
 ---
 
 ## THE ARC IS NOT OPTIONAL
 
-Every DreamTalez story follows a precise emotional rhythm arc. This arc is not a suggestion — it is the architecture that makes bedtime storytelling work psychologically.
+Every Bedtalez story follows a precise emotional rhythm arc. This arc is not a suggestion — it is the architecture that makes bedtime storytelling work psychologically.
 
 Do not flatten the arc. Do not maintain constant energy. Do not skip sections.
 
